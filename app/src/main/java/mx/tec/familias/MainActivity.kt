@@ -1,4 +1,4 @@
-package com.example.familiasquesuman
+package mx.tec.familias
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

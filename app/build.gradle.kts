@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.familiasquesuman"
+    namespace = "mx.tec.familias"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.familiasquesuman"
+        applicationId = "mx.tec.familias"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
