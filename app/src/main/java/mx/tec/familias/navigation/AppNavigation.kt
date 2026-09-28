@@ -16,6 +16,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import mx.tec.familias.ui.screens.explorar.ExplorarScreen
+import mx.tec.familias.ui.screens.explorar.DetalleCampaniaScreen
+import mx.tec.familias.ui.screens.explorar.DetalleActividadScreen
 
 @Composable
 fun AppNavigation() {
@@ -44,13 +47,13 @@ fun AppNavigation() {
             InicioScreen(
                 nombreUsuario = nombreUsuario.ifEmpty { "Usuario" },
                 onExplorarClick = {
-                    navController.navigate("explorar")
+                    navController.navigate(Routes.Explorar.route)
                 },
                 onActividadesClick = {
-                    navController.navigate("actividades")
+                    navController.navigate(Routes.Actividades.route)
                 },
                 onPerfilClick = {
-                    navController.navigate("perfil")
+                    navController.navigate(Routes.Perfil.route)
                 }
             )
         }
@@ -65,17 +68,40 @@ fun AppNavigation() {
             }
         }
 
-        composable("explorar") {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("PANTALLA DE EXPLORAR")
-            }
+        composable(Routes.Explorar.route) {
+            ExplorarScreen(
+                onInicioClick = {
+                    navController.navigate(Routes.Inicio.route)
+                },
+                onCampaniaClick = {
+                    navController.navigate(Routes.DetalleCampania.route)
+                },
+                onActividadClick = {
+                    navController.navigate(Routes.DetalleActividad.route)
+                }
+            )
         }
 
-        composable("actividades") {
+        composable(Routes.DetalleCampania.route) {
+            DetalleCampaniaScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Routes.DetalleActividad.route) {
+            DetalleActividadScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onInscribirseClick = {
+                    // Después lo conectaremos con Inscripción
+                }
+            )
+        }
+
+        composable(Routes.Actividades.route) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,7 +111,7 @@ fun AppNavigation() {
             }
         }
 
-        composable("perfil") {
+        composable(Routes.Perfil.route) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
