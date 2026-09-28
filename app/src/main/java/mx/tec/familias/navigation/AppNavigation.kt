@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import mx.tec.familias.ui.screens.explorar.ExplorarScreen
 import mx.tec.familias.ui.screens.explorar.DetalleCampaniaScreen
 import mx.tec.familias.ui.screens.explorar.DetalleActividadScreen
+import mx.tec.familias.ui.auth.IntegrantesScreen
 
 @Composable
 fun AppNavigation() {
@@ -59,13 +60,11 @@ fun AppNavigation() {
         }
 
         composable(Routes.Integrantes.route) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("PANTALLA DE INTEGRANTES")
-            }
+            IntegrantesScreen(
+                onContinuar = {
+                    navController.navigate(Routes.Inicio.route)
+                }
+            )
         }
 
         composable(Routes.Explorar.route) {
