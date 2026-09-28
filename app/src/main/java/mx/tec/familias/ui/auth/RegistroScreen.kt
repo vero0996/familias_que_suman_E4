@@ -29,9 +29,11 @@ import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import mx.tec.familias.viewmodel.FamilyViewModel
 
 @Composable
 fun RegistroScreen(
+    viewModel: FamilyViewModel,
     onContinuar: (String, Boolean) -> Unit = { _, _ -> }
 ) {
 
@@ -165,18 +167,18 @@ fun RegistroScreen(
 
         Button(
             onClick = {
+
+                viewModel.guardarUsuario(
+                    nombre = nombre,
+                    correo = correo,
+                    telefono = telefono
+                )
+
                 onContinuar(
                     nombre.trim(),
                     registrarOtros
                 )
-            },
-            enabled = puedeContinuar,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = TealPrimary
-            )
+            }
         ) {
             Text(
                 text = "Continuar",

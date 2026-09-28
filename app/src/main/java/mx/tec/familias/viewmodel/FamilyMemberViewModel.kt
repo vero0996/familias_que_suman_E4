@@ -1,0 +1,51 @@
+package mx.tec.familias.viewmodel
+
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
+import mx.tec.familias.data.model.FamilyMember
+import mx.tec.familias.data.model.UserProfile
+import java.util.UUID
+
+class FamilyViewModel : ViewModel() {
+
+    // Información de la persona que se registró
+    var usuario = mutableStateOf<UserProfile?>(null)
+        private set
+
+    // Familiares y acompañantes
+    val integrantes = mutableStateListOf<FamilyMember>()
+
+    fun guardarUsuario(
+        nombre: String,
+        correo: String,
+        telefono: String
+    ) {
+        usuario.value = UserProfile(
+            nombre = nombre.trim(),
+            correo = correo.trim(),
+            telefono = telefono.trim()
+        )
+    }
+
+    fun agregarIntegrante(
+        nombre: String,
+        edad: Int,
+        parentesco: String
+    ) {
+        integrantes.add(
+            FamilyMember(
+                id = UUID.randomUUID().toString(),
+                nombre = nombre.trim(),
+                edad = edad,
+                parentesco = parentesco.trim()
+            )
+        )
+    }
+
+    fun eliminarIntegrante(id: String) {
+        integrantes.removeAll {
+            it.id == id
+        }
+    }
+}

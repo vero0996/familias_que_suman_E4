@@ -44,21 +44,17 @@ import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
-
-data class Integrante(
-    val nombre: String,
-    val edad: Int,
-    val parentesco: String
-)
+import mx.tec.familias.viewmodel.FamilyViewModel
+import mx.tec.familias.data.model.FamilyMember as Integrante
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun IntegrantesScreen(
+    viewModel: FamilyViewModel = viewModel(),
     onContinuar: () -> Unit = {}
 ) {
 
-    val integrantes = remember {
-        mutableStateListOf<Integrante>()
-    }
+    val integrantes = viewModel.integrantes
 
     var mostrarFormulario by remember {
         mutableStateOf(false)
@@ -128,7 +124,7 @@ fun IntegrantesScreen(
                 IntegranteCard(
                     integrante = integrante,
                     onDelete = {
-                        integrantes.remove(integrante)
+                        viewModel.eliminarIntegrante(integrante.id)
                     }
                 )
             }
@@ -261,12 +257,10 @@ fun IntegrantesScreen(
 
                                         if (datosValidos) {
 
-                                            integrantes.add(
-                                                Integrante(
-                                                    nombre = nombre.trim(),
-                                                    edad = edad.toInt(),
-                                                    parentesco = parentesco.trim()
-                                                )
+                                            viewModel.agregarIntegrante(
+                                                nombre = nombre,
+                                                edad = edad.toInt(),
+                                                parentesco = parentesco
                                             )
 
                                             nombre = ""

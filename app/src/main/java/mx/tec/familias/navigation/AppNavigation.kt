@@ -20,11 +20,15 @@ import mx.tec.familias.ui.screens.explorar.ExplorarScreen
 import mx.tec.familias.ui.screens.explorar.DetalleCampaniaScreen
 import mx.tec.familias.ui.screens.explorar.DetalleActividadScreen
 import mx.tec.familias.ui.auth.IntegrantesScreen
+import mx.tec.familias.ui.screens.actividades.InscripcionScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.tec.familias.viewmodel.FamilyViewModel
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     var nombreUsuario by remember { mutableStateOf("") }
+    val familyViewModel: FamilyViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -33,6 +37,7 @@ fun AppNavigation() {
 
         composable(Routes.Registro.route) {
             RegistroScreen(
+                viewModel = familyViewModel,
                 onContinuar = { nombre, registrarOtros ->
                     nombreUsuario = nombre
                     if (registrarOtros) {
@@ -60,7 +65,9 @@ fun AppNavigation() {
         }
 
         composable(Routes.Integrantes.route) {
+
             IntegrantesScreen(
+                viewModel = familyViewModel,
                 onContinuar = {
                     navController.navigate(Routes.Inicio.route)
                 }
@@ -95,7 +102,22 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onInscribirseClick = {
-                    // Después lo conectaremos con Inscripción
+                    navController.navigate(Routes.Inscripcion.route)
+                }
+            )
+        }
+
+        composable(Routes.Inscripcion.route) {
+
+            InscripcionScreen(
+                viewModel = familyViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onConfirmarClick = {
+                    navController.navigate(
+                        Routes.ConfirmacionInscripcion.route
+                    )
                 }
             )
         }
