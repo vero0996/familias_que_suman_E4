@@ -17,9 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
@@ -49,7 +47,6 @@ import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.theme.Background
-import mx.tec.familias.ui.theme.Border
 import mx.tec.familias.ui.theme.BrownDark
 import mx.tec.familias.ui.theme.BrownPrimary
 import mx.tec.familias.ui.theme.Divider
@@ -67,7 +64,10 @@ fun InicioScreen(
     onActividadesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {}
 ) {
-    var searchText by remember { mutableStateOf("") }
+
+    var searchText by remember {
+        mutableStateOf("")
+    }
 
     Column(
         modifier = Modifier
@@ -75,128 +75,164 @@ fun InicioScreen(
             .background(Background)
     ) {
 
-        // Todo el contenido de Inicio hace scroll
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            contentPadding = PaddingValues(bottom = 24.dp)
+
+            contentPadding = PaddingValues(
+                top = 50.dp,
+                bottom = 32.dp
+            )
         ) {
 
-            // HEADER
             item {
-                InicioHeader()
+                InicioHeader(
+                    onProfileClick = onPerfilClick
+                )
             }
 
-            // CONTENIDO PRINCIPAL
             item {
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                 ) {
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(
+                        modifier = Modifier.height(20.dp)
+                    )
 
-                    // SALUDO
                     Text(
                         text = "¡Hola, $nombreUsuario!",
                         fontSize = 28.sp,
+                        lineHeight = 34.sp,
                         fontWeight = FontWeight.Bold,
                         color = TealPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
 
                     Text(
                         text = "\"La familia es el primer núcleo de solidaridad y servicio.\"",
                         fontSize = 14.sp,
-                        color = TextSecondary,
-                        lineHeight = 20.sp
+                        lineHeight = 21.sp,
+                        color = TextSecondary
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(
+                        modifier = Modifier.height(24.dp)
+                    )
 
-                    // IMPACTO
                     ImpactCard()
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(
+                        modifier = Modifier.height(24.dp)
+                    )
 
-                    // BUSCADOR
                     OutlinedTextField(
                         value = searchText,
-                        onValueChange = { searchText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text("Buscar causas, asociaciones...")
+                        onValueChange = {
+                            searchText = it
                         },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+
+                        placeholder = {
+                            Text(
+                                text = "Buscar causas, asociaciones..."
+                            )
+                        },
+
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar"
+                                contentDescription = "Buscar",
+                                tint = TealPrimary
                             )
                         },
+
                         singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
+
+                        shape = RoundedCornerShape(14.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
 
-                    // FILTROS
                     CategoryFilters()
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(
+                        modifier = Modifier.height(28.dp)
+                    )
 
-                    // TÍTULO
                     Text(
-                        text = "Causas Destacadas",
+                        text = "Causas destacadas",
                         fontSize = 22.sp,
+                        lineHeight = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
 
-                    // CAUSA 1
                     CauseCard(
                         category = "MEDIO AMBIENTE",
                         title = "Reforestación Familiar",
                         organization = "Asociación Bosque Vivo",
-                        description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente…",
+                        description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente oportunidad para contribuir en familia.",
                         progressLabel = "Progreso de voluntarios",
                         progress = 0.80f,
                         progressText = "80%",
                         buttonText = "Unirse como Familia"
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(
+                        modifier = Modifier.height(18.dp)
+                    )
 
-                    // CAUSA 2
                     CauseCard(
                         category = "EDUCACIÓN",
                         title = "Apoyo Escolar en el Barrio",
                         organization = "Fundación Aprender Juntos",
-                        description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a la…",
+                        description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a apoyar a estudiantes.",
                         progressLabel = "Meta de donaciones",
                         progress = 0.45f,
                         progressText = "45%",
-                        buttonText = "Ver Detalles"
+                        buttonText = "Ver detalles"
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
                 }
             }
         }
 
-        // BARRA INFERIOR FIJA
         BottomNavigationBar(
             currentDestination = FamilyDestination.INICIO,
+
             onDestinationSelected = { destination ->
+
                 when (destination) {
+
                     FamilyDestination.INICIO -> Unit
-                    FamilyDestination.EXPLORAR -> onExplorarClick()
-                    FamilyDestination.ACTIVIDADES -> onActividadesClick()
-                    FamilyDestination.PERFIL -> onPerfilClick()
+
+                    FamilyDestination.EXPLORAR ->
+                        onExplorarClick()
+
+                    FamilyDestination.ACTIVIDADES ->
+                        onActividadesClick()
+
+                    FamilyDestination.PERFIL ->
+                        onPerfilClick()
                 }
             }
         )
@@ -204,20 +240,25 @@ fun InicioScreen(
 }
 
 @Composable
-private fun InicioHeader() {
+private fun InicioHeader(
+    onProfileClick: () -> Unit
+) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                horizontal = 20.dp,
-                vertical = 16.dp
+                horizontal = 16.dp,
+                vertical = 12.dp
             ),
+
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         IconButton(
             onClick = {}
         ) {
+
             Icon(
                 imageVector = Icons.Default.Menu,
                 contentDescription = "Menú",
@@ -227,69 +268,100 @@ private fun InicioHeader() {
 
         Text(
             text = "Familias que Suman +",
-            modifier = Modifier.weight(1f),
+
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 4.dp),
+
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = TealPrimary
         )
 
-        Box(
-            modifier = Modifier
-                .size(42.dp)
-                .clip(CircleShape)
-                .background(TealDark),
-            contentAlignment = Alignment.Center
+        IconButton(
+            onClick = onProfileClick
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Perfil",
-                tint = Color.White
-            )
+
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(TealDark),
+
+                contentAlignment = Alignment.Center
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = Color.White,
+                    modifier = Modifier.size(21.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun ImpactCard() {
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+
+        shape = RoundedCornerShape(18.dp),
+
         colors = CardDefaults.cardColors(
             containerColor = TealPrimary
+        ),
+
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 0.dp
         )
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(
+                    horizontal = 20.dp,
+                    vertical = 18.dp
+                ),
+
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(54.dp)
                     .clip(CircleShape)
                     .background(TealDark),
+
                 contentAlignment = Alignment.Center
             ) {
+
                 Text(
                     text = "♥",
                     color = Color.White,
-                    fontSize = 24.sp
+                    fontSize = 23.sp
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(
+                modifier = Modifier.width(16.dp)
+            )
 
             Column {
+
                 Text(
                     text = "TU IMPACTO ESTE MES",
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = OrangePrimary
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(
+                    modifier = Modifier.height(4.dp)
+                )
 
                 Text(
                     text = "3 Causas Apoyadas",
@@ -311,8 +383,10 @@ private fun CategoryFilters() {
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(scrollState),
+
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+
         CategoryChip(
             text = "Todos",
             selected = true
@@ -340,27 +414,52 @@ private fun CategoryFilters() {
     }
 }
 
+
 @Composable
 private fun CategoryChip(
     text: String,
     selected: Boolean
 ) {
+
     TextButton(
         onClick = {},
-        modifier = Modifier.height(40.dp),
+
+        modifier = Modifier.height(38.dp),
+
         shape = RoundedCornerShape(20.dp),
+
+        contentPadding = PaddingValues(
+            horizontal = 16.dp
+        ),
+
         colors = ButtonDefaults.textButtonColors(
-            containerColor = if (selected) OrangePrimary else Surface,
-            contentColor = if (selected) BrownDark else TextSecondary
+            containerColor =
+                if (selected) {
+                    OrangePrimary
+                } else {
+                    Surface
+                },
+
+            contentColor =
+                if (selected) {
+                    BrownDark
+                } else {
+                    TextSecondary
+                }
         )
     ) {
+
         Text(
             text = text,
-            fontWeight = if (selected) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+
+            fontSize = 13.sp,
+
+            fontWeight =
+                if (selected) {
+                    FontWeight.Bold
+                } else {
+                    FontWeight.Normal
+                }
         )
     }
 }
@@ -376,12 +475,16 @@ private fun CauseCard(
     progressText: String,
     buttonText: String
 ) {
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+
+        shape = RoundedCornerShape(18.dp),
+
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),
+
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
         )
@@ -391,36 +494,44 @@ private fun CauseCard(
             modifier = Modifier.fillMaxWidth()
         ) {
 
-            // Placeholder para imagen
+            // IMAGEN
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(175.dp)
                     .background(Divider)
             )
 
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(18.dp)
             ) {
 
+                // CATEGORÍA
                 Text(
                     text = category,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = BrownPrimary
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
 
+                // TÍTULO
                 Text(
                     text = title,
                     fontSize = 20.sp,
+                    lineHeight = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(
+                    modifier = Modifier.height(5.dp)
+                )
 
+                // ORGANIZACIÓN
                 Text(
                     text = organization,
                     fontSize = 14.sp,
@@ -428,21 +539,30 @@ private fun CauseCard(
                     color = TealDark
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier = Modifier.height(10.dp)
+                )
 
+                // DESCRIPCIÓN
                 Text(
                     text = description,
                     fontSize = 14.sp,
-                    color = TextSecondary,
-                    lineHeight = 20.sp
+                    lineHeight = 21.sp,
+                    color = TextSecondary
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(
+                    modifier = Modifier.height(18.dp)
+                )
 
+                // PROGRESO
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween
                 ) {
+
                     Text(
                         text = progressLabel,
                         fontSize = 12.sp,
@@ -457,30 +577,46 @@ private fun CauseCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(
+                    modifier = Modifier.height(7.dp)
+                )
 
                 LinearProgressIndicator(
                     progress = { progress },
+
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
+                        .clip(
+                            RoundedCornerShape(4.dp)
+                        ),
+
                     color = TealPrimary,
                     trackColor = Divider
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(
+                    modifier = Modifier.height(18.dp)
+                )
 
+                // BOTÓN
                 Button(
                     onClick = {},
-                    modifier = Modifier.fillMaxWidth(),
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+
                     shape = RoundedCornerShape(10.dp),
+
                     colors = ButtonDefaults.buttonColors(
                         containerColor = TealPrimary
                     )
                 ) {
+
                     Text(
                         text = buttonText,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }

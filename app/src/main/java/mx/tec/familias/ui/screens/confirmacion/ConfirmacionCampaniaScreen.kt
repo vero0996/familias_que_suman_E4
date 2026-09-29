@@ -20,17 +20,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.theme.Background
+import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 
 @Composable
-fun ConfirmacionInscripcionScreen(
-    onInicioClick: () -> Unit = {}
+fun ConfirmacionCampaniaScreen(
+    onExplorarClick: () -> Unit = {}
 ) {
 
     Column(
@@ -42,7 +45,6 @@ fun ConfirmacionInscripcionScreen(
         verticalArrangement = Arrangement.Center
     ) {
 
-        // ÍCONO DE ÉXITO
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(24.dp))
@@ -50,72 +52,59 @@ fun ConfirmacionInscripcionScreen(
                 .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
-
             Icon(
                 imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Inscripción confirmada",
+                contentDescription = "Apoyo confirmado",
                 tint = TealPrimary,
-                modifier = Modifier
-                    .height(64.dp)
+                modifier = Modifier.height(64.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // TÍTULO
         Text(
-            text = "¡Inscripción confirmada!",
+            text = "¡Gracias por apoyar!",
             fontSize = 28.sp,
             lineHeight = 34.sp,
+            fontWeight = FontWeight.Bold,
             color = TealPrimary,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // MENSAJE
         Text(
-            text = "Tu inscripción a la actividad se realizó correctamente.",
+            text = "Tu apoyo a la campaña se registró correctamente.",
             modifier = Modifier.fillMaxWidth(),
             fontSize = 15.sp,
             lineHeight = 22.sp,
             color = TextSecondary,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // RESUMEN
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
-                .background(
-                    androidx.compose.ui.graphics.Color.White
-                )
+                .background(Surface)
                 .padding(18.dp)
         ) {
-
             Column {
 
                 Text(
-                    text = "Plantación de Árboles en El Pardo",
+                    text = "Útiles Escolares para Todos",
                     fontSize = 18.sp,
                     lineHeight = 24.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Sábado 24 de mayo · 9:00 AM",
-                    fontSize = 14.sp,
-                    color = TextSecondary
-                )
-
-                Text(
-                    text = "Parque El Pardo",
+                    text = "Fundación Aprender Juntos",
                     fontSize = 14.sp,
                     color = TextSecondary
                 )
@@ -124,9 +113,8 @@ fun ConfirmacionInscripcionScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // BOTÓN
         Button(
-            onClick = onInicioClick,
+            onClick = onExplorarClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -135,11 +123,10 @@ fun ConfirmacionInscripcionScreen(
                 containerColor = TealPrimary
             )
         ) {
-
             Text(
-                text = "Volver al inicio",
+                text = "Volver a explorar",
                 fontSize = 16.sp,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                fontWeight = FontWeight.Bold
             )
         }
     }

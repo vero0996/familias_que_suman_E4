@@ -10,11 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,11 +37,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.data.model.FamilyMember
 import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.Surface
+import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
@@ -49,12 +57,10 @@ fun InscripcionScreen(
     onConfirmarClick: () -> Unit = {}
 ) {
 
-    // Acompañantes seleccionados
     val seleccionados = remember {
         mutableStateListOf<String>()
     }
 
-    // La persona que hizo el registro aparece seleccionada por defecto
     var usuarioSeleccionado by remember {
         mutableStateOf(true)
     }
@@ -63,7 +69,6 @@ fun InscripcionScreen(
         mutableStateOf("")
     }
 
-    // Total de participantes seleccionados
     val totalSeleccionados =
         seleccionados.size +
                 if (usuarioSeleccionado) 1 else 0
@@ -78,10 +83,11 @@ fun InscripcionScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Surface)
                 .padding(
-                    horizontal = 8.dp,
-                    vertical = 12.dp
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 24.dp,
+                    bottom = 16.dp
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -89,9 +95,8 @@ fun InscripcionScreen(
             IconButton(
                 onClick = onBackClick
             ) {
-
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Regresar",
                     tint = TealPrimary
                 )
@@ -100,7 +105,8 @@ fun InscripcionScreen(
             Text(
                 text = "Inscripción",
                 fontSize = 20.sp,
-                color = TextPrimary
+                fontWeight = FontWeight.Bold,
+                color = TealPrimary
             )
         }
 
@@ -110,89 +116,100 @@ fun InscripcionScreen(
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                top = 4.dp,
+                bottom = 20.dp
+            )
         ) {
 
-            // INFORMACIÓN DE LA ACTIVIDAD
+            // ACTIVIDAD
             item {
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = Surface
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(18.dp),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 1.dp
+                    )
                 ) {
 
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(18.dp)
                     ) {
 
                         Text(
                             text = "Plantación de Árboles en El Pardo",
                             fontSize = 20.sp,
+                            lineHeight = 26.sp,
+                            fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
 
-                        Spacer(
-                            modifier = Modifier.height(8.dp)
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        ActivityDetailRow(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = null,
+                                    tint = TealPrimary
+                                )
+                            },
+                            text = "Sábado 24 de mayo · 9:00 AM"
                         )
 
-                        Text(
-                            text = "Sábado 24 de mayo · 9:00 AM",
-                            fontSize = 14.sp,
-                            color = TextSecondary
-                        )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text = "Parque El Pardo",
-                            fontSize = 14.sp,
-                            color = TextSecondary
+                        ActivityDetailRow(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = TealPrimary
+                                )
+                            },
+                            text = "Parque El Pardo"
                         )
                     }
                 }
 
-                Spacer(
-                    modifier = Modifier.height(20.dp)
-                )
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
                     text = "¿Quiénes participarán?",
-                    fontSize = 20.sp,
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
+                    fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
 
-                Spacer(
-                    modifier = Modifier.height(6.dp)
-                )
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = "Selecciona a las personas que asistirán a esta actividad.",
                     fontSize = 14.sp,
+                    lineHeight = 21.sp,
                     color = TextSecondary
-                )
-
-                Spacer(
-                    modifier = Modifier.height(16.dp)
                 )
             }
 
             // MI INFORMACIÓN
             item {
 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
                     text = "Mi información",
                     fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
 
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                Spacer(modifier = Modifier.height(10.dp))
 
                 viewModel.usuario.value?.let { usuario ->
 
@@ -210,31 +227,26 @@ fun InscripcionScreen(
             // MIS ACOMPAÑANTES
             item {
 
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Mis acompañantes",
                     fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
 
-                Spacer(
-                    modifier = Modifier.height(6.dp)
-                )
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = "Selecciona a las personas que te acompañarán en esta actividad.",
                     fontSize = 14.sp,
+                    lineHeight = 21.sp,
                     color = TextSecondary
-                )
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
                 )
             }
 
+            // LISTA DE ACOMPAÑANTES
             if (viewModel.integrantes.isEmpty()) {
 
                 item {
@@ -244,7 +256,7 @@ fun InscripcionScreen(
                         colors = CardDefaults.cardColors(
                             containerColor = Surface
                         ),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(14.dp)
                     ) {
 
                         Text(
@@ -266,11 +278,8 @@ fun InscripcionScreen(
                         onSeleccionar = {
 
                             if (seleccionados.contains(integrante.id)) {
-
                                 seleccionados.remove(integrante.id)
-
                             } else {
-
                                 seleccionados.add(integrante.id)
                             }
                         }
@@ -281,19 +290,16 @@ fun InscripcionScreen(
             // OBSERVACIONES
             item {
 
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Observaciones",
                     fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
 
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
                     value = observaciones,
@@ -307,26 +313,43 @@ fun InscripcionScreen(
                         Text(
                             "¿Hay algo que debamos saber?"
                         )
-                    }
+                    },
+                    shape = RoundedCornerShape(14.dp)
                 )
 
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "$totalSeleccionados " +
-                            if (totalSeleccionados == 1)
-                                "participante seleccionado"
-                            else
-                                "participantes seleccionados",
-                    fontSize = 15.sp,
-                    color = TextSecondary
-                )
+                // RESUMEN
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(TealLight)
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                Spacer(
-                    modifier = Modifier.height(20.dp)
-                )
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = TealPrimary
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = "$totalSeleccionados " +
+                                if (totalSeleccionados == 1)
+                                    "participante seleccionado"
+                                else
+                                    "participantes seleccionados",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TealPrimary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
@@ -335,7 +358,10 @@ fun InscripcionScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Surface)
-                .padding(20.dp)
+                .padding(
+                    horizontal = 20.dp,
+                    vertical = 16.dp
+                )
         ) {
 
             Button(
@@ -343,7 +369,7 @@ fun InscripcionScreen(
                 enabled = totalSeleccionados > 0,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TealPrimary
                 ),
@@ -352,10 +378,41 @@ fun InscripcionScreen(
 
                 Text(
                     text = "Confirmar inscripción",
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ActivityDetailRow(
+    icon: @Composable () -> Unit,
+    text: String
+) {
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(TealLight)
+                .padding(7.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            icon()
+        }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            color = TextSecondary
+        )
     }
 }
 
@@ -372,22 +429,35 @@ private fun UsuarioSeleccionCard(
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Checkbox(
-                checked = seleccionado,
-                onCheckedChange = {
-                    onSeleccionar()
-                }
-            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(TealLight)
+                    .padding(9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = TealPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -396,15 +466,25 @@ private fun UsuarioSeleccionCard(
                 Text(
                     text = nombre,
                     fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
 
+                Spacer(modifier = Modifier.height(3.dp))
+
                 Text(
                     text = "Yo · $correo",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     color = TextSecondary
                 )
             }
+
+            Checkbox(
+                checked = seleccionado,
+                onCheckedChange = {
+                    onSeleccionar()
+                }
+            )
         }
     }
 }
@@ -421,22 +501,35 @@ private fun IntegranteSeleccionCard(
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Checkbox(
-                checked = seleccionado,
-                onCheckedChange = {
-                    onSeleccionar()
-                }
-            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(TealLight)
+                    .padding(9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = TealPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -445,15 +538,25 @@ private fun IntegranteSeleccionCard(
                 Text(
                     text = integrante.nombre,
                     fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
 
+                Spacer(modifier = Modifier.height(3.dp))
+
                 Text(
                     text = "${integrante.parentesco} · ${integrante.edad} años",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     color = TextSecondary
                 )
             }
+
+            Checkbox(
+                checked = seleccionado,
+                onCheckedChange = {
+                    onSeleccionar()
+                }
+            )
         }
     }
 }

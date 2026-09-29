@@ -4,13 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +45,6 @@ fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onInscribirseClick: () -> Unit = {}
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,12 +56,11 @@ fun DetalleActividadScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = 12.dp,
-                    vertical = 8.dp
+                    horizontal = 16.dp,
+                    vertical = 25.dp
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             IconButton(
                 onClick = onBackClick
             ) {
@@ -88,7 +85,9 @@ fun DetalleActividadScreen(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(
+                    horizontal = 20.dp
+                )
         ) {
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -97,10 +96,17 @@ fun DetalleActividadScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Divider)
-            )
+                    .height(210.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Divider),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Imagen de la actividad",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -128,17 +134,18 @@ fun DetalleActividadScreen(
             // ORGANIZACIÓN
             Text(
                 text = "Asociación Bosque Vivo",
-                fontSize = 15.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TealDark
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // DESCRIPCIÓN
+            // SOBRE LA ACTIVIDAD
             Text(
                 text = "Sobre esta actividad",
-                fontSize = 20.sp,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
@@ -147,24 +154,25 @@ fun DetalleActividadScreen(
 
             Text(
                 text = "Únete con tu familia a una jornada de reforestación en El Pardo. Plantaremos árboles nativos y aprenderemos sobre la importancia de cuidar y conservar nuestros espacios naturales.",
-                fontSize = 15.sp,
-                color = TextSecondary,
-                lineHeight = 22.sp
+                fontSize = 14.sp,
+                lineHeight = 21.sp,
+                color = TextSecondary
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             // INFORMACIÓN
             Text(
                 text = "Información de la actividad",
-                fontSize = 20.sp,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            ActivityInfoRow(
+            ActivityInfoCard(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.CalendarToday,
@@ -176,9 +184,9 @@ fun DetalleActividadScreen(
                 value = "Sábado 24 de mayo · 9:00 AM"
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            ActivityInfoRow(
+            ActivityInfoCard(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
@@ -190,9 +198,9 @@ fun DetalleActividadScreen(
                 value = "Parque El Pardo"
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            ActivityInfoRow(
+            ActivityInfoCard(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.People,
@@ -212,14 +220,16 @@ fun DetalleActividadScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Surface)
-                .padding(20.dp)
+                .padding(
+                    horizontal = 20.dp,
+                    vertical = 16.dp
+                )
         ) {
-
             Button(
                 onClick = onInscribirseClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(50.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = TealPrimary
@@ -236,24 +246,37 @@ fun DetalleActividadScreen(
 }
 
 @Composable
-private fun ActivityInfoRow(
+private fun ActivityInfoCard(
     icon: @Composable () -> Unit,
     title: String,
     value: String
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Surface)
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         Box(
             modifier = Modifier
-                .padding(end = 14.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(
+                    mx.tec.familias.ui.theme.TealLight
+                )
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
         ) {
             icon()
         }
 
-        Column {
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = title,
                 fontSize = 13.sp,
@@ -261,11 +284,12 @@ private fun ActivityInfoRow(
                 color = TextSecondary
             )
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(3.dp))
 
             Text(
                 text = value,
                 fontSize = 15.sp,
+                lineHeight = 20.sp,
                 color = TextPrimary
             )
         }

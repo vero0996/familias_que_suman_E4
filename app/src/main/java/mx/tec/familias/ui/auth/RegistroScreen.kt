@@ -4,11 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -21,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +33,7 @@ import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.viewmodel.FamilyViewModel
 
 @Composable
@@ -59,14 +64,20 @@ fun RegistroScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Background)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // TÍTULO
         Text(
-            text = "¡Bienvenido a Familias que Suman +!",
-            fontSize = 26.sp,
+            text = "Crea tu perfil",
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 28.sp,
+            lineHeight = 34.sp,
             fontWeight = FontWeight.Bold,
             color = TealPrimary
         )
@@ -74,8 +85,10 @@ fun RegistroScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Registra tus datos para comenzar",
-            fontSize = 15.sp,
+            text = "Únete a Familias que Suman + y encuentra oportunidades para participar en tu comunidad.",
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
             color = TextSecondary
         )
 
@@ -92,10 +105,11 @@ fun RegistroScreen(
             placeholder = {
                 Text("Ingresa tu nombre")
             },
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // CORREO
         OutlinedTextField(
@@ -108,16 +122,18 @@ fun RegistroScreen(
             placeholder = {
                 Text("ejemplo@correo.com")
             },
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // TELÉFONO
         OutlinedTextField(
             value = telefono,
             onValueChange = { nuevoTelefono ->
-                if (nuevoTelefono.all { it.isDigit() } &&
+                if (
+                    nuevoTelefono.all { it.isDigit() } &&
                     nuevoTelefono.length <= 10
                 ) {
                     telefono = nuevoTelefono
@@ -127,25 +143,30 @@ fun RegistroScreen(
             label = {
                 Text("Teléfono")
             },
+            placeholder = {
+                Text("10 dígitos")
+            },
             prefix = {
                 Text("+52 ")
             },
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
+        // REGISTRAR FAMILIARES
         Text(
             text = "¿Registrarás a otras personas de tu familia?",
             modifier = Modifier.fillMaxWidth(),
             fontSize = 16.sp,
+            lineHeight = 22.sp,
             fontWeight = FontWeight.SemiBold,
             color = TextPrimary
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // NO, SOLO YO
         RowOption(
             text = "No, solo yo",
             selected = !registrarOtros,
@@ -154,7 +175,8 @@ fun RegistroScreen(
             }
         )
 
-        // SÍ, REGISTRARÉ A OTRAS PERSONAS
+        Spacer(modifier = Modifier.height(4.dp))
+
         RowOption(
             text = "Sí, registraré a otras personas",
             selected = registrarOtros,
@@ -165,6 +187,7 @@ fun RegistroScreen(
 
         Spacer(modifier = Modifier.height(28.dp))
 
+        // BOTÓN
         Button(
             onClick = {
 
@@ -178,7 +201,15 @@ fun RegistroScreen(
                     nombre.trim(),
                     registrarOtros
                 )
-            }
+            },
+            enabled = puedeContinuar,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = TealPrimary
+            )
         ) {
             Text(
                 text = "Continuar",
@@ -186,6 +217,18 @@ fun RegistroScreen(
                 fontWeight = FontWeight.Bold
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Podrás explorar campañas y actividades sin registrarte.",
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 12.sp,
+            lineHeight = 17.sp,
+            color = TextSecondary
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -195,22 +238,33 @@ private fun RowOption(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    androidx.compose.foundation.layout.Row(
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(
+                color = Surface,
+                shape = RoundedCornerShape(12.dp)
+            )
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(
+                horizontal = 8.dp,
+                vertical = 4.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         RadioButton(
             selected = selected,
             onClick = onClick
         )
 
+        Spacer(modifier = Modifier.width(4.dp))
+
         Text(
             text = text,
             color = TextPrimary,
-            fontSize = 15.sp
+            fontSize = 14.sp
         )
     }
 }
