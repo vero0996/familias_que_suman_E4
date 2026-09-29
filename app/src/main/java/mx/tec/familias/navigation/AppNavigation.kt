@@ -26,6 +26,8 @@ import mx.tec.familias.viewmodel.FamilyViewModel
 import mx.tec.familias.ui.screens.confirmacion.ConfirmacionInscripcionScreen
 import mx.tec.familias.ui.screens.perfil.PerfilScreen
 import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
+import mx.tec.familias.ui.screens.actividades.CalendarioScreen
+import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 
 @Composable
 fun AppNavigation() {
@@ -263,12 +265,72 @@ fun AppNavigation() {
 
         composable(Routes.Actividades.route) {
 
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("PANTALLA DE ACTIVIDADES")
+            if (familyViewModel.usuario.value == null) {
+
+                navController.navigate(Routes.Registro.route)
+
+            } else {
+
+                var mostrarMisActividades by remember {
+                    mutableStateOf(false)
+                }
+
+                if (mostrarMisActividades) {
+
+                    MisActividadesScreen(
+
+                        onInicioClick = {
+                            navController.navigate(Routes.Inicio.route) {
+                                popUpTo(Routes.Inicio.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+
+                        onExplorarClick = {
+                            navController.navigate(Routes.Explorar.route)
+                        },
+
+                        onPerfilClick = {
+                            navController.navigate(Routes.Perfil.route)
+                        },
+
+                        onCalendarioClick = {
+                            mostrarMisActividades = false
+                        }
+                    )
+
+                } else {
+
+                    CalendarioScreen(
+
+                        onInicioClick = {
+                            navController.navigate(Routes.Inicio.route) {
+                                popUpTo(Routes.Inicio.route) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+
+                        onExplorarClick = {
+                            navController.navigate(Routes.Explorar.route)
+                        },
+
+                        onPerfilClick = {
+                            navController.navigate(Routes.Perfil.route)
+                        },
+
+                        onActividadClick = {
+                            navController.navigate(
+                                Routes.DetalleActividad.route
+                            )
+                        },
+
+                        onMisActividadesClick = {
+                            mostrarMisActividades = true
+                        }
+                    )
+                }
             }
         }
 
