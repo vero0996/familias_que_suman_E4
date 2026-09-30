@@ -39,6 +39,7 @@ import mx.tec.familias.viewmodel.FamilyViewModel
 @Composable
 fun RegistroScreen(
     viewModel: FamilyViewModel,
+    onBackClick: () -> Unit = {}, // <-- Asegúrate de tener esto
     onContinuar: (String, Boolean) -> Unit = { _, _ -> }
 ) {
 
