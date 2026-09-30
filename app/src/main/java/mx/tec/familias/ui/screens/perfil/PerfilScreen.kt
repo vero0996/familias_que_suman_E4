@@ -47,7 +47,8 @@ fun PerfilScreen(
     onInicioClick: () -> Unit = {},
     onExplorarClick: () -> Unit = {},
     onActividadesClick: () -> Unit = {},
-    onAgregarIntegrante: () -> Unit = {}
+    onAgregarIntegrante: () -> Unit = {},
+    onCambiarRolClick: () -> Unit
 ) {
 
     val usuario = viewModel.usuario.value

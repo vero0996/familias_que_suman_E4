@@ -46,7 +46,7 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.SelectorRol.route // Pantalla inicial para el prototipo
+        startDestination = Routes.SelectorRol.route
     ) {
 
         // ==========================================
@@ -89,6 +89,7 @@ fun AppNavigation() {
         composable(Routes.Registro.route) {
             RegistroScreen(
                 viewModel = familyViewModel,
+                onBackClick = { navController.popBackStack() },
                 onContinuar = { nombre, registrarOtros ->
                     nombreUsuario = nombre
                     if (registrarOtros) {
@@ -231,7 +232,12 @@ fun AppNavigation() {
                 },
                 onExplorarClick = { navController.navigate(Routes.Explorar.route) },
                 onActividadesClick = { navController.navigate(Routes.Actividades.route) },
-                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) }
+                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
+                onCambiarRolClick = {
+                    navController.navigate(Routes.SelectorRol.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -362,9 +368,11 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 },
-                onCerrarSesionClick = { navController.navigate(Routes.SelectorRol.route) {
-                    popUpTo(0) // Limpia todo el historial al cerrar sesión y vuelve al menú de roles
-                } }
+                onCerrarSesionClick = {
+                    navController.navigate(Routes.SelectorRol.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
