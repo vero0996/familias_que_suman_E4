@@ -1,22 +1,18 @@
 package mx.tec.familias.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
 import mx.tec.familias.ui.auth.IntegrantesScreen
 import mx.tec.familias.ui.auth.RegistroScreen
+import mx.tec.familias.ui.auth.SelectorRolScreen
 import mx.tec.familias.ui.screens.actividades.InscripcionScreen
 import mx.tec.familias.ui.screens.explorar.DetalleActividadScreen
 import mx.tec.familias.ui.screens.explorar.DetalleCampaniaScreen
@@ -31,68 +27,60 @@ import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 
 import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
-import mx.tec.familias.ui.screens.admin.campanias.GestionMensajesCampaniaScreen
 import mx.tec.familias.ui.screens.admin.campanias.CrearCampaniaColaborativaScreen
 import mx.tec.familias.ui.screens.admin.campanias.ReutilizarCampaniaScreen
 import mx.tec.familias.ui.screens.admin.campanias.VistaPreviaCampaniaScreen
 import mx.tec.familias.ui.screens.admin.mensajes.MensajesAdminScreen
 import mx.tec.familias.ui.screens.admin.configuracion.ConfiguracionAdminScreen
+import mx.tec.familias.ui.screens.admin.campanias.GestionMensajesCampaniaScreen
 import mx.tec.familias.ui.screens.mensajes.ChatScreen
 
 @Composable
 fun AppNavigation() {
-
     val navController = rememberNavController()
-
     val familyViewModel: FamilyViewModel = viewModel()
 
-    var nombreUsuario by remember {
-        mutableStateOf("")
-    }
-
-    // Guarda a qué pantalla debemos ir después del registro
-    var rutaDespuesDeRegistro by remember {
-        mutableStateOf(Routes.Inicio.route)
-    }
-
-    var rutaDespuesDeIntegrantes by remember {
-        mutableStateOf(Routes.Inicio.route)
-    }
+    var nombreUsuario by remember { mutableStateOf("") }
+    var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
+    var rutaDespuesDeIntegrantes by remember { mutableStateOf(Routes.Inicio.route) }
 
     NavHost(
         navController = navController,
-        startDestination = Routes.DashboardAdmin.route
+        startDestination = Routes.SelectorRol.route // Pantalla inicial para el prototipo
     ) {
-        composable(Routes.Inicio.route) {
 
+        // ==========================================
+        // PANTALLA DE PROTOTIPO (SELECCIÓN DE ROL)
+        // ==========================================
+        composable(Routes.SelectorRol.route) {
+            SelectorRolScreen(
+                onFamiliaClick = {
+                    navController.navigate(Routes.Inicio.route) {
+                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+                    }
+                },
+                onAsociacionClick = {
+                    navController.navigate(Routes.DashboardAdmin.route) {
+                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ==========================================
+        // RUTAS DE USUARIO FAMILIA
+        // ==========================================
+        composable(Routes.Inicio.route) {
             InicioScreen(
                 nombreUsuario = nombreUsuario.ifEmpty { "Usuario" },
-
-                onExplorarClick = {
-                    navController.navigate(Routes.Explorar.route)
-                },
-
-                onActividadesClick = {
-                    navController.navigate(Routes.Actividades.route)
-                },
-
+                onExplorarClick = { navController.navigate(Routes.Explorar.route) },
+                onActividadesClick = { navController.navigate(Routes.Actividades.route) },
                 onPerfilClick = {
-
-                    // Si todavía no tiene perfil,
-                    // primero lo mandamos a registro
                     if (familyViewModel.usuario.value == null) {
-
                         rutaDespuesDeRegistro = Routes.Perfil.route
-
-                        navController.navigate(
-                            Routes.Registro.route
-                        )
-
+                        navController.navigate(Routes.Registro.route)
                     } else {
-
-                        navController.navigate(
-                            Routes.Perfil.route
-                        )
+                        navController.navigate(Routes.Perfil.route)
                     }
                 }
             )
@@ -102,13 +90,13 @@ fun AppNavigation() {
             RegistroScreen(
                 viewModel = familyViewModel,
                 onContinuar = { nombre, registrarOtros ->
-
                     nombreUsuario = nombre
-
                     if (registrarOtros) {
                         navController.navigate(Routes.Integrantes.route)
                     } else {
-                        navController.navigate(rutaDespuesDeRegistro)
+                        navController.navigate(rutaDespuesDeRegistro) {
+                            popUpTo(Routes.Registro.route) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -118,146 +106,76 @@ fun AppNavigation() {
             IntegrantesScreen(
                 viewModel = familyViewModel,
                 onContinuar = {
-                    navController.navigate(rutaDespuesDeIntegrantes)
+                    navController.navigate(rutaDespuesDeIntegrantes) {
+                        popUpTo(Routes.Integrantes.route) { inclusive = true }
+                    }
                 }
             )
         }
 
         composable(Routes.Explorar.route) {
-
             ExplorarScreen(
-
                 onInicioClick = {
-                    navController.navigate(
-                        Routes.Inicio.route
-                    )
+                    navController.navigate(Routes.Inicio.route) {
+                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                    }
                 },
-
-                onCampaniaClick = {
-                    navController.navigate(
-                        Routes.DetalleCampania.route
-                    )
-                },
-
-                onActividadClick = {
-                    navController.navigate(
-                        Routes.DetalleActividad.route
-                    )
-                },
-
+                onCampaniaClick = { navController.navigate(Routes.DetalleCampania.route) },
+                onActividadClick = { navController.navigate(Routes.DetalleActividad.route) },
                 onPerfilClick = {
-
                     if (familyViewModel.usuario.value == null) {
-
                         rutaDespuesDeRegistro = Routes.Perfil.route
-
-                        navController.navigate(
-                            Routes.Registro.route
-                        )
-
+                        navController.navigate(Routes.Registro.route)
                     } else {
-
-                        navController.navigate(
-                            Routes.Perfil.route
-                        )
+                        navController.navigate(Routes.Perfil.route)
                     }
                 }
             )
         }
 
         composable(Routes.DetalleCampania.route) {
-
             DetalleCampaniaScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
+                onBackClick = { navController.popBackStack() },
                 onParticiparClick = {
-
                     if (familyViewModel.usuario.value == null) {
-
-                        rutaDespuesDeRegistro =
-                            Routes.DetalleCampania.route
-
-                        navController.navigate(
-                            Routes.Registro.route
-                        )
-
+                        rutaDespuesDeRegistro = Routes.DetalleCampania.route
+                        navController.navigate(Routes.Registro.route)
                     } else {
-
-                        navController.navigate(
-                            Routes.ConfirmacionCampania.route
-                        )
+                        navController.navigate(Routes.ConfirmacionCampania.route)
                     }
                 }
             )
         }
 
         composable(Routes.ConfirmacionCampania.route) {
-
             ConfirmacionCampaniaScreen(
                 onExplorarClick = {
                     navController.navigate(Routes.Explorar.route) {
-                        popUpTo(Routes.Explorar.route) {
-                            inclusive = true
-                        }
+                        popUpTo(Routes.Explorar.route) { inclusive = true }
                     }
                 }
             )
         }
 
         composable(Routes.DetalleActividad.route) {
-
             DetalleActividadScreen(
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
+                onBackClick = { navController.popBackStack() },
                 onInscribirseClick = {
-
-                    // Aquí es donde verificamos si
-                    // el usuario ya tiene perfil
-
                     if (familyViewModel.usuario.value == null) {
-
-                        // Guardamos que después del registro
-                        // queremos ir a inscripción
-                        rutaDespuesDeRegistro =
-                            Routes.Inscripcion.route
-
-                        navController.navigate(
-                            Routes.Registro.route
-                        )
-
+                        rutaDespuesDeRegistro = Routes.Inscripcion.route
+                        navController.navigate(Routes.Registro.route)
                     } else {
-
-                        // Si ya tiene perfil,
-                        // va directo a inscripción
-                        navController.navigate(
-                            Routes.Inscripcion.route
-                        )
+                        navController.navigate(Routes.Inscripcion.route)
                     }
                 }
             )
         }
 
         composable(Routes.Inscripcion.route) {
-
             InscripcionScreen(
-
                 viewModel = familyViewModel,
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onConfirmarClick = {
-
-                    navController.navigate(
-                        Routes.ConfirmacionInscripcion.route
-                    )
-                }
+                onBackClick = { navController.popBackStack() },
+                onConfirmarClick = { navController.navigate(Routes.ConfirmacionInscripcion.route) }
             )
         }
 
@@ -265,80 +183,39 @@ fun AppNavigation() {
             ConfirmacionInscripcionScreen(
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) {
-                            inclusive = true
-                        }
+                        popUpTo(Routes.Inicio.route) { inclusive = true }
                     }
                 }
             )
         }
 
         composable(Routes.Actividades.route) {
-
             if (familyViewModel.usuario.value == null) {
-
                 navController.navigate(Routes.Registro.route)
-
             } else {
-
-                var mostrarMisActividades by remember {
-                    mutableStateOf(false)
-                }
-
+                var mostrarMisActividades by remember { mutableStateOf(false) }
                 if (mostrarMisActividades) {
-
                     MisActividadesScreen(
-
                         onInicioClick = {
                             navController.navigate(Routes.Inicio.route) {
-                                popUpTo(Routes.Inicio.route) {
-                                    inclusive = true
-                                }
+                                popUpTo(Routes.Inicio.route) { inclusive = true }
                             }
                         },
-
-                        onExplorarClick = {
-                            navController.navigate(Routes.Explorar.route)
-                        },
-
-                        onPerfilClick = {
-                            navController.navigate(Routes.Perfil.route)
-                        },
-
-                        onCalendarioClick = {
-                            mostrarMisActividades = false
-                        }
+                        onExplorarClick = { navController.navigate(Routes.Explorar.route) },
+                        onPerfilClick = { navController.navigate(Routes.Perfil.route) },
+                        onCalendarioClick = { mostrarMisActividades = false }
                     )
-
                 } else {
-
                     CalendarioScreen(
-
                         onInicioClick = {
                             navController.navigate(Routes.Inicio.route) {
-                                popUpTo(Routes.Inicio.route) {
-                                    inclusive = true
-                                }
+                                popUpTo(Routes.Inicio.route) { inclusive = true }
                             }
                         },
-
-                        onExplorarClick = {
-                            navController.navigate(Routes.Explorar.route)
-                        },
-
-                        onPerfilClick = {
-                            navController.navigate(Routes.Perfil.route)
-                        },
-
-                        onActividadClick = {
-                            navController.navigate(
-                                Routes.DetalleActividad.route
-                            )
-                        },
-
-                        onMisActividadesClick = {
-                            mostrarMisActividades = true
-                        }
+                        onExplorarClick = { navController.navigate(Routes.Explorar.route) },
+                        onPerfilClick = { navController.navigate(Routes.Perfil.route) },
+                        onActividadClick = { navController.navigate(Routes.DetalleActividad.route) },
+                        onMisActividadesClick = { mostrarMisActividades = true }
                     )
                 }
             }
@@ -347,262 +224,175 @@ fun AppNavigation() {
         composable(Routes.Perfil.route) {
             PerfilScreen(
                 viewModel = familyViewModel,
-
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) {
-                            inclusive = true
-                        }
+                        popUpTo(Routes.Inicio.route) { inclusive = true }
                     }
                 },
-
-                onExplorarClick = {
-                    navController.navigate(Routes.Explorar.route)
-                },
-
-                onActividadesClick = {
-                    navController.navigate(Routes.Actividades.route)
-                },
-
-                onAgregarIntegrante = {
-                    navController.navigate(Routes.Integrantes.route)
-                }
+                onExplorarClick = { navController.navigate(Routes.Explorar.route) },
+                onActividadesClick = { navController.navigate(Routes.Actividades.route) },
+                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) }
             )
         }
 
-        // ADMIN
-
+        // ==========================================
+        // RUTAS DE ADMINISTRADOR (ASOCIACIÓN)
+        // ==========================================
         composable(Routes.DashboardAdmin.route) {
-
             DashboardAdminScreen(
-
                 onCampaniasClick = {
-                    navController.navigate(
-                        Routes.MisCampanias.route
-                    )
+                    navController.navigate(Routes.MisCampanias.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
                 onMensajesClick = {
-                    navController.navigate(
-                        Routes.MensajesAdmin.route
-                    )
+                    navController.navigate(Routes.MensajesAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
                 onConfiguracionClick = {
-                    navController.navigate(
-                        Routes.ConfiguracionAdmin.route
-                    )
+                    navController.navigate(Routes.ConfiguracionAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
-                onPerfilClick = {
-                    navController.navigate(
-                        Routes.ConfiguracionAdmin.route
-                    )
-                },
-
-                onCrearCampaniaClick = {
-                    navController.navigate(
-                        Routes.CrearCampaniaColaborativa.route
-                    )
-                },
-
-                onReutilizarCampaniaClick = {
-                    navController.navigate(
-                        Routes.ReutilizarCampania.route
-                    )
-                }
+                onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) },
+                onCrearCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
+                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) }
             )
         }
 
         composable(Routes.MisCampanias.route) {
-
             MisCampaniasScreen(
-
                 onInicioClick = {
-                    navController.navigate(
-                        Routes.DashboardAdmin.route
-                    )
+                    navController.navigate(Routes.DashboardAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+                    }
                 },
-
                 onMensajesClick = {
-                    navController.navigate(
-                        Routes.MensajesAdmin.route
-                    )
+                    navController.navigate(Routes.MensajesAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
                 onConfiguracionClick = {
-                    navController.navigate(
-                        Routes.ConfiguracionAdmin.route
-                    )
+                    navController.navigate(Routes.ConfiguracionAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
-                onNuevaCampaniaClick = {
-                    navController.navigate(
-                        Routes.CrearCampaniaColaborativa.route
-                    )
-                },
-
-                onGestionCampaniaClick = {
-                    navController.navigate(
-                        Routes.GestionMensajesCampania.route
-                    )
-                }
+                onNuevaCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
+                onGestionCampaniaClick = { navController.navigate(Routes.GestionMensajesCampania.route) }
             )
         }
 
         composable(Routes.CrearCampaniaColaborativa.route) {
-
             CrearCampaniaColaborativaScreen(
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onContinuarClick = {
-                    navController.navigate(
-                        Routes.GestionMensajesCampania.route
-                    )
-                }
+                onBackClick = { navController.popBackStack() },
+                onContinuarClick = { navController.navigate(Routes.GestionMensajesCampania.route) }
             )
         }
 
         composable(Routes.ReutilizarCampania.route) {
-
             ReutilizarCampaniaScreen(
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onVistaPreviaClick = {
-                    navController.navigate(
-                        Routes.VistaPreviaCampania.route
-                    )
-                }
+                onBackClick = { navController.popBackStack() },
+                onVistaPreviaClick = { navController.navigate(Routes.VistaPreviaCampania.route) }
             )
         }
 
         composable(Routes.VistaPreviaCampania.route) {
-
             VistaPreviaCampaniaScreen(
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
+                onBackClick = { navController.popBackStack() },
                 onPublicarClick = {
-                    navController.navigate(
-                        Routes.MisCampanias.route
-                    )
+                    navController.navigate(Routes.MisCampanias.route) {
+                        popUpTo(Routes.MisCampanias.route) { inclusive = true }
+                    }
                 }
             )
         }
 
         composable(Routes.MensajesAdmin.route) {
-
             MensajesAdminScreen(
-
                 onInicioClick = {
-                    navController.navigate(
-                        Routes.DashboardAdmin.route
-                    )
+                    navController.navigate(Routes.DashboardAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+                    }
                 },
-
                 onCampaniasClick = {
-                    navController.navigate(
-                        Routes.MisCampanias.route
-                    )
+                    navController.navigate(Routes.MisCampanias.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
-                onChatClick = {
-                    navController.navigate(
-                        Routes.ChatAdmin.route
-                    )
-                },
-
+                onChatClick = { navController.navigate(Routes.ChatAdmin.route) },
                 onConfiguracionClick = {
-                    navController.navigate(
-                        Routes.ConfiguracionAdmin.route
-                    )
+                    navController.navigate(Routes.ConfiguracionAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
-                onPerfilClick = {
-                    navController.navigate(
-                        Routes.ConfiguracionAdmin.route
-                    )
-                }
+                onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) }
             )
         }
 
         composable(Routes.ChatAdmin.route) {
-
             ChatScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                }
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         composable(Routes.ConfiguracionAdmin.route) {
-
             ConfiguracionAdminScreen(
-
                 onInicioClick = {
-                    navController.navigate(
-                        Routes.DashboardAdmin.route
-                    )
+                    navController.navigate(Routes.DashboardAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+                    }
                 },
-
                 onCampaniasClick = {
-                    navController.navigate(
-                        Routes.MisCampanias.route
-                    )
+                    navController.navigate(Routes.MisCampanias.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
                 onMensajesClick = {
-                    navController.navigate(
-                        Routes.MensajesAdmin.route
-                    )
+                    navController.navigate(Routes.MensajesAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
-                onCerrarSesionClick = {
-                    navController.navigate(
-                        Routes.Inicio.route
-                    )
-                }
+                onCerrarSesionClick = { navController.navigate(Routes.SelectorRol.route) {
+                    popUpTo(0) // Limpia todo el historial al cerrar sesión y vuelve al menú de roles
+                } }
             )
         }
 
         composable(Routes.GestionMensajesCampania.route) {
-
             GestionMensajesCampaniaScreen(
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
+                onBackClick = { navController.popBackStack() },
                 onInicioClick = {
-                    navController.navigate(
-                        Routes.DashboardAdmin.route
-                    )
+                    navController.navigate(Routes.DashboardAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+                    }
                 },
-
                 onCampaniasClick = {
-                    navController.navigate(
-                        Routes.MisCampanias.route
-                    )
+                    navController.navigate(Routes.MisCampanias.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
                 onMensajesClick = {
-                    navController.navigate(
-                        Routes.MensajesAdmin.route
-                    )
+                    navController.navigate(Routes.MensajesAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 },
-
                 onConfiguracionClick = {
-                    navController.navigate(
-                        Routes.ConfiguracionAdmin.route
-                    )
+                    navController.navigate(Routes.ConfiguracionAdmin.route) {
+                        popUpTo(Routes.DashboardAdmin.route)
+                        launchSingleTop = true
+                    }
                 }
             )
         }

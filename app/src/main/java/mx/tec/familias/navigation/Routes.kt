@@ -1,6 +1,7 @@
 package mx.tec.familias.navigation
 
 sealed class Routes(val route: String) {
+    data object SelectorRol : Routes("selectorRol")
 
     data object Registro : Routes("registro")
 
