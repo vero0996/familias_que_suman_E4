@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,8 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +27,14 @@ import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
 
 @Composable
-fun DashboardAdminScreen() {
+fun DashboardAdminScreen(
+    onCampaniasClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
+    onConfiguracionClick: () -> Unit = {},
+    onPerfilClick: () -> Unit = {},
+    onCrearCampaniaClick: () -> Unit = {},
+    onReutilizarCampaniaClick: () -> Unit = {}
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Background,
@@ -39,26 +45,26 @@ fun DashboardAdminScreen() {
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") },
                     selected = true,
-                    onClick = { /* TODO */ },
+                    onClick = { },
                     colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
                     label = { Text("Campañas") },
                     selected = false,
-                    onClick = { /* TODO */ }
+                    onClick = onCampaniasClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
                     label = { Text("Mensajes") },
                     selected = false,
-                    onClick = { /* TODO */ }
+                    onClick = onMensajesClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                     label = { Text("Configuración") },
                     selected = false,
-                    onClick = { /* TODO */ }
+                    onClick = onConfiguracionClick
                 )
             }
         }
@@ -98,6 +104,9 @@ fun DashboardAdminScreen() {
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape) // Esto la recorta en círculo perfecto
+                        .clickable {
+                            onPerfilClick()
+                        }
                 )
             }
 
@@ -156,7 +165,7 @@ fun DashboardAdminScreen() {
 
                 // Botón Crear Campaña (con ícono integrado)
                 Button(
-                    onClick = { },
+                    onClick = onCrearCampaniaClick,
                     colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(0.dp),
@@ -171,7 +180,7 @@ fun DashboardAdminScreen() {
 
                 // Botón Reutilizar (con ícono integrado)
                 OutlinedButton(
-                    onClick = { },
+                    onClick = onReutilizarCampaniaClick,
                     border = BorderStroke(1.dp, TealPrimary),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Surface),
@@ -229,7 +238,15 @@ fun DashboardAdminScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Próximas Actividades", color = TealPrimary, style = MaterialTheme.typography.titleLarge)
-                    Text("Ver todas", color = TealPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Ver todas",
+                        color = TealPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            onCampaniasClick()
+                        }
+                    )
                 }
 
                 // Tarjeta Actividad 1 (Borde Rojo)

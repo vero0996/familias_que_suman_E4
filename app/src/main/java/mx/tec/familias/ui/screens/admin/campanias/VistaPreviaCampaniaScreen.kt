@@ -30,7 +30,10 @@ import mx.tec.familias.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VistaPreviaCampaniaScreen() {
+fun VistaPreviaCampaniaScreen(
+    onBackClick: () -> Unit = {},
+    onPublicarClick: () -> Unit = {}
+) {
     Scaffold(
         containerColor = Background,
         topBar = {
@@ -45,7 +48,7 @@ fun VistaPreviaCampaniaScreen() {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Cerrar */ }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = TealPrimary)
                     }
                 },
@@ -196,7 +199,7 @@ fun VistaPreviaCampaniaScreen() {
 
             // 3. Botones Finales
             Button(
-                onClick = { },
+                onClick = onPublicarClick,
                 colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
@@ -209,7 +212,7 @@ fun VistaPreviaCampaniaScreen() {
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = { },
+                onClick = onBackClick,
                 border = BorderStroke(1.dp, TealPrimary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(56.dp)

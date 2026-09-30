@@ -1,6 +1,7 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -11,7 +12,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,7 +24,15 @@ import mx.tec.familias.ui.components.CampaignManagementCard
 import mx.tec.familias.ui.theme.*
 
 @Composable
-fun MisCampaniasScreen() {
+fun MisCampaniasScreen(
+    onInicioClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
+    onConfiguracionClick: () -> Unit = {},
+    onNuevaCampaniaClick: () -> Unit = {},
+    onGestionCampaniaClick: () -> Unit = {}
+) {
+    var tabSeleccionada by remember { mutableStateOf(0) }
+
     Scaffold(
         containerColor = Background,
         // Barra de navegación idéntica a la del Dashboard
@@ -33,7 +42,7 @@ fun MisCampaniasScreen() {
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") },
                     selected = false,
-                    onClick = { }
+                    onClick = onInicioClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
@@ -46,13 +55,13 @@ fun MisCampaniasScreen() {
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
                     label = { Text("Mensajes") },
                     selected = false,
-                    onClick = { }
+                    onClick = onMensajesClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                     label = { Text("Configuración") },
                     selected = false,
-                    onClick = { }
+                    onClick = onConfiguracionClick
                 )
             }
         }
@@ -78,7 +87,7 @@ fun MisCampaniasScreen() {
                 )
 
                 IconButton(
-                    onClick = { /* TODO: Nueva Campaña */ },
+                    onClick = onNuevaCampaniaClick,
                     modifier = Modifier
                         .size(48.dp) // Lo hice un poco más grande según Figma
                         .clip(CircleShape)
@@ -90,13 +99,40 @@ fun MisCampaniasScreen() {
 
             // Pestañas (Activas, Próximas, Anteriores)
             TabRow(
-                selectedTabIndex = 0,
+                selectedTabIndex = tabSeleccionada,
                 containerColor = Background,
                 contentColor = TealPrimary,
             ) {
-                Tab(selected = true, onClick = { }, text = { Text("Activas", fontWeight = FontWeight.Bold) })
-                Tab(selected = false, onClick = { }, text = { Text("Próximas") })
-                Tab(selected = false, onClick = { }, text = { Text("Anteriores") })
+                Tab(
+                    selected = tabSeleccionada == 0,
+                    onClick = { tabSeleccionada = 0 },
+                    text = {
+                        Text(
+                            "Activas",
+                            fontWeight = if (tabSeleccionada == 0) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
+                Tab(
+                    selected = tabSeleccionada == 1,
+                    onClick = { tabSeleccionada = 1 },
+                    text = {
+                        Text(
+                            "Próximas",
+                            fontWeight = if (tabSeleccionada == 1) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
+                Tab(
+                    selected = tabSeleccionada == 2,
+                    onClick = { tabSeleccionada = 2 },
+                    text = {
+                        Text(
+                            "Anteriores",
+                            fontWeight = if (tabSeleccionada == 2) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
             }
 
             // Lista de Tarjetas
@@ -104,28 +140,146 @@ fun MisCampaniasScreen() {
                 contentPadding = PaddingValues(20.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                item {
-                    CampaignManagementCard(
-                        titulo = "Recogida de Invierno",
-                        fecha = "15 Nov - 30 Nov, 2023",
-                        hora = "10:00 - 14:00",
-                        cuposOcupados = 12,
-                        cuposTotales = 20,
-                        estado = "Activa",
-                        imagenId = R.drawable.recorridainvierno // Tu nueva foto
-                    )
-                }
 
-                item {
-                    CampaignManagementCard(
-                        titulo = "Reforestación Urbana",
-                        fecha = "02 Dic, 2023",
-                        hora = "09:00 - 13:30",
-                        cuposOcupados = 45,
-                        cuposTotales = 50,
-                        estado = "Activa",
-                        imagenId = R.drawable.reforestacionurbana // Tu nueva foto
-                    )
+                when (tabSeleccionada) {
+
+                    0 -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onGestionCampaniaClick()
+                                    }
+                            ) {
+                                CampaignManagementCard(
+                                    titulo = "Recogida de Invierno",
+                                    fecha = "15 Nov - 30 Nov, 2023",
+                                    hora = "10:00 - 14:00",
+                                    cuposOcupados = 12,
+                                    cuposTotales = 20,
+                                    estado = "Activa",
+                                    imagenId = R.drawable.recorridainvierno // Tu nueva foto
+                                )
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onGestionCampaniaClick()
+                                    }
+                            ) {
+                                CampaignManagementCard(
+                                    titulo = "Reforestación Urbana",
+                                    fecha = "02 Dic, 2023",
+                                    hora = "09:00 - 13:30",
+                                    cuposOcupados = 45,
+                                    cuposTotales = 50,
+                                    estado = "Activa",
+                                    imagenId = R.drawable.reforestacionurbana // Tu nueva foto
+                                )
+                            }
+                        }
+                    }
+
+                    1 -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onGestionCampaniaClick()
+                                    }
+                            ) {
+                                CampaignManagementCard(
+                                    titulo = "Colecta de útiles escolares",
+                                    fecha = "12 Dic, 2024",
+                                    hora = "10:00 - 14:00",
+                                    cuposOcupados = 8,
+                                    cuposTotales = 25,
+                                    estado = "Próxima",
+                                    imagenId = R.drawable.recorridainvierno
+                                )
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onGestionCampaniaClick()
+                                    }
+                            ) {
+                                CampaignManagementCard(
+                                    titulo = "Jornada de apoyo comunitario",
+                                    fecha = "20 Dic, 2024",
+                                    hora = "09:00 - 13:00",
+                                    cuposOcupados = 5,
+                                    cuposTotales = 30,
+                                    estado = "Próxima",
+                                    imagenId = R.drawable.reforestacionurbana
+                                )
+                            }
+                        }
+                    }
+
+                    2 -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onGestionCampaniaClick()
+                                    }
+                            ) {
+                                CampaignManagementCard(
+                                    titulo = "Donación de alimentos",
+                                    fecha = "10 Oct, 2023",
+                                    hora = "10:00 - 14:00",
+                                    cuposOcupados = 20,
+                                    cuposTotales = 20,
+                                    estado = "Finalizada",
+                                    imagenId = R.drawable.recorridainvierno
+                                )
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onGestionCampaniaClick()
+                                    }
+                            ) {
+                                CampaignManagementCard(
+                                    titulo = "Limpieza de parque",
+                                    fecha = "18 Sep, 2023",
+                                    hora = "08:00 - 12:00",
+                                    cuposOcupados = 30,
+                                    cuposTotales = 30,
+                                    estado = "Finalizada",
+                                    imagenId = R.drawable.reforestacionurbana
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

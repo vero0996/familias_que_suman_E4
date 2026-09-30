@@ -28,7 +28,10 @@ import mx.tec.familias.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReutilizarCampaniaScreen() {
+fun ReutilizarCampaniaScreen(
+    onBackClick: () -> Unit = {},
+    onVistaPreviaClick: () -> Unit = {}
+) {
     // Variables de estado para los campos de texto (con los datos de tu diseño)
     var fecha by remember { mutableStateOf("11/15/2024") }
     var horaInicio by remember { mutableStateOf("10:00 AM") }
@@ -52,7 +55,7 @@ fun ReutilizarCampaniaScreen() {
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* TODO: Regresar */ }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = TealPrimary)
                     }
                 },
@@ -246,7 +249,7 @@ fun ReutilizarCampaniaScreen() {
 
             // 5. Botones Finales
             Button(
-                onClick = { },
+                onClick = onVistaPreviaClick,
                 colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
@@ -259,7 +262,7 @@ fun ReutilizarCampaniaScreen() {
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = { },
+                onClick = onBackClick,
                 border = BorderStroke(1.dp, TealPrimary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
@@ -271,4 +274,3 @@ fun ReutilizarCampaniaScreen() {
         }
     }
 }
-

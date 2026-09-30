@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,7 +28,7 @@ import mx.tec.familias.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GestionComunicacionScreen(
+fun GestionMensajesCampaniaScreen(
     onBackClick: () -> Unit = {},
     onInicioClick: () -> Unit = {},
     onCampaniasClick: () -> Unit = {},
@@ -52,37 +51,77 @@ fun GestionComunicacionScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = TealPrimary)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar",
+                            tint = TealPrimary
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Background
+                )
             )
         },
         bottomBar = {
             // Barra de navegación inferior con "Campañas" seleccionado
             NavigationBar(containerColor = Surface) {
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
+                    icon = {
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription = "Inicio"
+                        )
+                    },
+                    label = {
+                        Text("Inicio")
+                    },
                     selected = false,
                     onClick = onInicioClick
                 )
+
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
-                    label = { Text("Campañas") },
+                    icon = {
+                        Icon(
+                            Icons.Default.Event,
+                            contentDescription = "Campañas"
+                        )
+                    },
+                    label = {
+                        Text("Campañas")
+                    },
                     selected = true,
                     onClick = onCampaniasClick,
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = TealPrimary,
+                        indicatorColor = TealLight
+                    )
                 )
+
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
-                    label = { Text("Mensajes") },
+                    icon = {
+                        Icon(
+                            Icons.Default.Chat,
+                            contentDescription = "Mensajes"
+                        )
+                    },
+                    label = {
+                        Text("Mensajes")
+                    },
                     selected = false,
                     onClick = onMensajesClick
                 )
+
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
-                    label = { Text("Configuración") },
+                    icon = {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Configuración"
+                        )
+                    },
+                    label = {
+                        Text("Configuración")
+                    },
                     selected = false,
                     onClick = onConfiguracionClick
                 )
@@ -100,22 +139,39 @@ fun GestionComunicacionScreen(
 
             // 1. Tarjeta: Resumen de Inscritos
             Card(
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    modifier = Modifier.padding(20.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(TealLight.copy(alpha = 0.2f))
+                                .background(
+                                    TealLight.copy(alpha = 0.2f)
+                                )
                         ) {
-                            Icon(Icons.Default.Group, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(18.dp))
+                            Icon(
+                                Icons.Default.Group,
+                                contentDescription = null,
+                                tint = TealPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
+
                         Spacer(modifier = Modifier.width(12.dp))
+
                         Text(
                             text = "Resumen de Inscritos",
                             color = TealPrimary,
@@ -137,6 +193,7 @@ fun GestionComunicacionScreen(
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
+
                         Text(
                             text = "90% Completado",
                             color = TealLight,
@@ -149,7 +206,12 @@ fun GestionComunicacionScreen(
 
                     LinearProgressIndicator(
                         progress = { 0.9f },
-                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(9999.dp)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(
+                                RoundedCornerShape(9999.dp)
+                            ),
                         color = TealLight,
                         trackColor = Divider
                     )
@@ -173,7 +235,9 @@ fun GestionComunicacionScreen(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
+
             Spacer(modifier = Modifier.height(4.dp))
+
             Text(
                 text = "El sistema gestiona estos envíos por ti para que ahorres tiempo.",
                 color = TextSecondary,
@@ -185,12 +249,20 @@ fun GestionComunicacionScreen(
 
             // 2. Tarjeta Automatización 1: Confirmación de inscripción
             Card(
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 1.dp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -198,11 +270,20 @@ fun GestionComunicacionScreen(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(TealLight.copy(alpha = 0.2f))
+                            .background(
+                                TealLight.copy(alpha = 0.2f)
+                            )
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(18.dp))
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = TealPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
+
                     Spacer(modifier = Modifier.width(16.dp))
+
                     Column {
                         Text(
                             text = "Confirmación de inscripción",
@@ -210,7 +291,9 @@ fun GestionComunicacionScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
+
                         Spacer(modifier = Modifier.height(2.dp))
+
                         Text(
                             text = "Enviado automáticamente",
                             color = TealLight,
@@ -223,12 +306,18 @@ fun GestionComunicacionScreen(
 
             // 3. Tarjeta Automatización 2: Recordatorio de actividad
             Card(
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 1.dp
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -236,11 +325,20 @@ fun GestionComunicacionScreen(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(OrangePrimary.copy(alpha = 0.2f))
+                            .background(
+                                OrangePrimary.copy(alpha = 0.2f)
+                            )
                     ) {
-                        Icon(Icons.Default.Schedule, contentDescription = null, tint = BrownPrimary, modifier = Modifier.size(18.dp))
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = BrownPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
+
                     Spacer(modifier = Modifier.width(16.dp))
+
                     Column {
                         Text(
                             text = "Recordatorio de actividad (24h antes)",
@@ -248,7 +346,9 @@ fun GestionComunicacionScreen(
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
+
                         Spacer(modifier = Modifier.height(2.dp))
+
                         Text(
                             text = "Programado",
                             color = BrownPrimary,
@@ -263,10 +363,19 @@ fun GestionComunicacionScreen(
 
             // 4. Tarjeta Inferior Destacada: Enviar actualización urgente
             Card(
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                border = BorderStroke(1.dp, Divider.copy(alpha = 0.5f)),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Divider.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -277,9 +386,16 @@ fun GestionComunicacionScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Error.copy(alpha = 0.15f))
+                            .background(
+                                Error.copy(alpha = 0.15f)
+                            )
                     ) {
-                        Icon(Icons.Default.Campaign, contentDescription = null, tint = Error, modifier = Modifier.size(24.dp))
+                        Icon(
+                            Icons.Default.Campaign,
+                            contentDescription = null,
+                            tint = Error,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -309,20 +425,38 @@ fun GestionComunicacionScreen(
                             mensajeEnviado = true
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (mensajeEnviado) TealPrimary else BrownPrimary
+                            containerColor =
+                                if (mensajeEnviado) {
+                                    TealPrimary
+                                } else {
+                                    BrownPrimary
+                                }
                         ),
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
                     ) {
                         Icon(
-                            if (mensajeEnviado) Icons.Default.Check else Icons.AutoMirrored.Filled.Send,
+                            if (mensajeEnviado) {
+                                Icons.Default.Check
+                            } else {
+                                Icons.AutoMirrored.Filled.Send
+                            },
                             contentDescription = null,
                             tint = TextOnPrimary,
                             modifier = Modifier.size(16.dp)
                         )
+
                         Spacer(modifier = Modifier.width(8.dp))
+
                         Text(
-                            if (mensajeEnviado) "Mensaje enviado" else "Enviar mensaje a participantes",
+                            text =
+                                if (mensajeEnviado) {
+                                    "Mensaje enviado"
+                                } else {
+                                    "Enviar mensaje a participantes"
+                                },
                             color = TextOnPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp

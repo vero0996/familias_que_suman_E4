@@ -29,6 +29,16 @@ import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
 import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 
+import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
+import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
+import mx.tec.familias.ui.screens.admin.campanias.GestionMensajesCampaniaScreen
+import mx.tec.familias.ui.screens.admin.campanias.CrearCampaniaColaborativaScreen
+import mx.tec.familias.ui.screens.admin.campanias.ReutilizarCampaniaScreen
+import mx.tec.familias.ui.screens.admin.campanias.VistaPreviaCampaniaScreen
+import mx.tec.familias.ui.screens.admin.mensajes.MensajesAdminScreen
+import mx.tec.familias.ui.screens.admin.configuracion.ConfiguracionAdminScreen
+import mx.tec.familias.ui.screens.mensajes.ChatScreen
+
 @Composable
 fun AppNavigation() {
 
@@ -51,7 +61,7 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.Inicio.route
+        startDestination = Routes.DashboardAdmin.route
     ) {
         composable(Routes.Inicio.route) {
 
@@ -356,6 +366,243 @@ fun AppNavigation() {
 
                 onAgregarIntegrante = {
                     navController.navigate(Routes.Integrantes.route)
+                }
+            )
+        }
+
+        // ADMIN
+
+        composable(Routes.DashboardAdmin.route) {
+
+            DashboardAdminScreen(
+
+                onCampaniasClick = {
+                    navController.navigate(
+                        Routes.MisCampanias.route
+                    )
+                },
+
+                onMensajesClick = {
+                    navController.navigate(
+                        Routes.MensajesAdmin.route
+                    )
+                },
+
+                onConfiguracionClick = {
+                    navController.navigate(
+                        Routes.ConfiguracionAdmin.route
+                    )
+                },
+
+                onPerfilClick = {
+                    navController.navigate(
+                        Routes.ConfiguracionAdmin.route
+                    )
+                },
+
+                onCrearCampaniaClick = {
+                    navController.navigate(
+                        Routes.CrearCampaniaColaborativa.route
+                    )
+                },
+
+                onReutilizarCampaniaClick = {
+                    navController.navigate(
+                        Routes.ReutilizarCampania.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.MisCampanias.route) {
+
+            MisCampaniasScreen(
+
+                onInicioClick = {
+                    navController.navigate(
+                        Routes.DashboardAdmin.route
+                    )
+                },
+
+                onMensajesClick = {
+                    navController.navigate(
+                        Routes.MensajesAdmin.route
+                    )
+                },
+
+                onConfiguracionClick = {
+                    navController.navigate(
+                        Routes.ConfiguracionAdmin.route
+                    )
+                },
+
+                onNuevaCampaniaClick = {
+                    navController.navigate(
+                        Routes.CrearCampaniaColaborativa.route
+                    )
+                },
+
+                onGestionCampaniaClick = {
+                    navController.navigate(
+                        Routes.GestionMensajesCampania.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.CrearCampaniaColaborativa.route) {
+
+            CrearCampaniaColaborativaScreen(
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onContinuarClick = {
+                    navController.navigate(
+                        Routes.GestionMensajesCampania.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.ReutilizarCampania.route) {
+
+            ReutilizarCampaniaScreen(
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onVistaPreviaClick = {
+                    navController.navigate(
+                        Routes.VistaPreviaCampania.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.VistaPreviaCampania.route) {
+
+            VistaPreviaCampaniaScreen(
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onPublicarClick = {
+                    navController.navigate(
+                        Routes.MisCampanias.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.MensajesAdmin.route) {
+
+            MensajesAdminScreen(
+
+                onInicioClick = {
+                    navController.navigate(
+                        Routes.DashboardAdmin.route
+                    )
+                },
+
+                onCampaniasClick = {
+                    navController.navigate(
+                        Routes.MisCampanias.route
+                    )
+                },
+
+                onChatClick = {
+                    navController.navigate(
+                        Routes.ChatAdmin.route
+                    )
+                },
+
+                onConfiguracionClick = {
+                    navController.navigate(
+                        Routes.ConfiguracionAdmin.route
+                    )
+                },
+
+                onPerfilClick = {
+                    navController.navigate(
+                        Routes.ConfiguracionAdmin.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.ChatAdmin.route) {
+
+            ChatScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Routes.ConfiguracionAdmin.route) {
+
+            ConfiguracionAdminScreen(
+
+                onInicioClick = {
+                    navController.navigate(
+                        Routes.DashboardAdmin.route
+                    )
+                },
+
+                onCampaniasClick = {
+                    navController.navigate(
+                        Routes.MisCampanias.route
+                    )
+                },
+
+                onMensajesClick = {
+                    navController.navigate(
+                        Routes.MensajesAdmin.route
+                    )
+                },
+
+                onCerrarSesionClick = {
+                    navController.navigate(
+                        Routes.Inicio.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.GestionMensajesCampania.route) {
+
+            GestionMensajesCampaniaScreen(
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onInicioClick = {
+                    navController.navigate(
+                        Routes.DashboardAdmin.route
+                    )
+                },
+
+                onCampaniasClick = {
+                    navController.navigate(
+                        Routes.MisCampanias.route
+                    )
+                },
+
+                onMensajesClick = {
+                    navController.navigate(
+                        Routes.MensajesAdmin.route
+                    )
+                },
+
+                onConfiguracionClick = {
+                    navController.navigate(
+                        Routes.ConfiguracionAdmin.route
+                    )
                 }
             )
         }

@@ -2,6 +2,7 @@ package mx.tec.familias.ui.screens.admin.mensajes
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -25,7 +26,13 @@ import mx.tec.familias.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MensajesAdminScreen() {
+fun MensajesAdminScreen(
+    onInicioClick: () -> Unit = {},
+    onCampaniasClick: () -> Unit = {},
+    onChatClick: () -> Unit = {},
+    onConfiguracionClick: () -> Unit = {},
+    onPerfilClick: () -> Unit = {}
+) {
     Scaffold(
         containerColor = Background,
         topBar = {
@@ -38,11 +45,17 @@ fun MensajesAdminScreen() {
                         painter = painterResource(id = R.drawable.fotoperfil), // Tu foto de perfil
                         contentDescription = "Perfil",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.padding(start = 20.dp).size(40.dp).clip(CircleShape)
+                        modifier = Modifier
+                            .padding(start = 20.dp)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                onPerfilClick()
+                            }
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Notificaciones */ }, modifier = Modifier.padding(end = 8.dp)) {
+                    IconButton(onClick = { }, modifier = Modifier.padding(end = 8.dp)) {
                         Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones", tint = TealPrimary)
                     }
                 },
@@ -56,13 +69,13 @@ fun MensajesAdminScreen() {
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") },
                     selected = false,
-                    onClick = { }
+                    onClick = onInicioClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
                     label = { Text("Campañas") },
                     selected = false, // <-- Corregido: Ya no está seleccionado
-                    onClick = { }
+                    onClick = onCampaniasClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
@@ -75,7 +88,7 @@ fun MensajesAdminScreen() {
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                     label = { Text("Configuración") },
                     selected = false,
-                    onClick = { }
+                    onClick = onConfiguracionClick
                 )
             }
         }
@@ -97,7 +110,8 @@ fun MensajesAdminScreen() {
                     hora = "10:30",
                     noLeidos = 1,
                     esAnuncio = true,
-                    imagenId = R.drawable.utilesescolares // <-- TU FOTO 1 AQUÍ
+                    imagenId = R.drawable.utilesescolares, // <-- TU FOTO 1 AQUÍ
+                    onClick = onChatClick
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -109,7 +123,8 @@ fun MensajesAdminScreen() {
                     hora = "Ayer",
                     noLeidos = 0,
                     esAnuncio = false,
-                    imagenId = R.drawable.comedorcomunitario // <-- TU FOTO 2 AQUÍ
+                    imagenId = R.drawable.comedorcomunitario, // <-- TU FOTO 2 AQUÍ
+                    onClick = onChatClick
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -121,7 +136,8 @@ fun MensajesAdminScreen() {
                     hora = "Lunes",
                     noLeidos = 0,
                     esAnuncio = false,
-                    imagenId = R.drawable.eco // <-- TU FOTO 3 AQUÍ
+                    imagenId = R.drawable.eco, // <-- TU FOTO 3 AQUÍ
+                    onClick = onChatClick
                 )
             }
         }
@@ -137,12 +153,17 @@ fun MensajeCard(
     hora: String,
     noLeidos: Int,
     esAnuncio: Boolean,
-    imagenId: Int
+    imagenId: Int,
+    onClick: () -> Unit = {}
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
