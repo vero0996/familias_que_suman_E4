@@ -69,9 +69,11 @@ data class ActividadCalendario(
 fun CalendarioScreen(
     onInicioClick: () -> Unit = {},
     onExplorarClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onActividadClick: (ActividadCalendario) -> Unit = {},
-    onMisActividadesClick: () -> Unit = {}
+    onMisActividadesClick: () -> Unit = {},
+    mostrarMensajes: Boolean = true
 ) {
 
     var diaSeleccionado by remember {
@@ -289,6 +291,7 @@ fun CalendarioScreen(
 
         BottomNavigationBar(
             currentDestination = FamilyDestination.ACTIVIDADES,
+            mostrarMensajes = mostrarMensajes,
             onDestinationSelected = { destination ->
 
                 when (destination) {
@@ -300,6 +303,9 @@ fun CalendarioScreen(
                         onExplorarClick()
 
                     FamilyDestination.ACTIVIDADES -> {}
+
+                    FamilyDestination.MENSAJES ->
+                        onMensajesClick()
 
                     FamilyDestination.PERFIL ->
                         onPerfilClick()

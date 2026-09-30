@@ -35,6 +35,9 @@ import mx.tec.familias.ui.screens.admin.configuracion.ConfiguracionAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.GestionMensajesCampaniaScreen
 import mx.tec.familias.ui.screens.mensajes.ChatScreen
 
+import mx.tec.familias.ui.screens.mensajes.MensajesScreen
+import mx.tec.familias.ui.screens.mensajes.ChatMessages
+import mx.tec.familias.ui.screens.mensajes.Conversacion
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -43,6 +46,10 @@ fun AppNavigation() {
     var nombreUsuario by remember { mutableStateOf("") }
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
     var rutaDespuesDeIntegrantes by remember { mutableStateOf(Routes.Inicio.route) }
+
+    var conversacionSeleccionada by remember {
+        mutableStateOf<Conversacion?>(null)
+    }
 
     NavHost(
         navController = navController,
@@ -73,8 +80,26 @@ fun AppNavigation() {
         composable(Routes.Inicio.route) {
             InicioScreen(
                 nombreUsuario = nombreUsuario.ifEmpty { "Usuario" },
-                onExplorarClick = { navController.navigate(Routes.Explorar.route) },
-                onActividadesClick = { navController.navigate(Routes.Actividades.route) },
+
+                onExplorarClick = {
+                    navController.navigate(Routes.Explorar.route)
+                },
+
+                onActividadesClick = {
+                    if (familyViewModel.usuario.value == null) {
+                        rutaDespuesDeRegistro = Routes.Actividades.route
+                        navController.navigate(Routes.Registro.route)
+                    } else {
+                        navController.navigate(Routes.Actividades.route)
+                    }
+                },
+
+                onMensajesClick = {
+                    navController.navigate(Routes.Mensajes.route)
+                },
+
+                mostrarMensajes = familyViewModel.usuario.value != null,
+
                 onPerfilClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Perfil.route
@@ -121,8 +146,31 @@ fun AppNavigation() {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
                     }
                 },
-                onCampaniaClick = { navController.navigate(Routes.DetalleCampania.route) },
-                onActividadClick = { navController.navigate(Routes.DetalleActividad.route) },
+
+                onActividadesClick = {
+                    navController.navigate(
+                        Routes.Actividades.route
+                    )
+                },
+
+                onMensajesClick = {
+                    navController.navigate(
+                        Routes.Mensajes.route
+                    )
+                },
+
+                onCampaniaClick = {
+                    navController.navigate(
+                        Routes.DetalleCampania.route
+                    )
+                },
+
+                onActividadClick = {
+                    navController.navigate(
+                        Routes.DetalleActividad.route
+                    )
+                },
+
                 onPerfilClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Perfil.route
@@ -130,7 +178,9 @@ fun AppNavigation() {
                     } else {
                         navController.navigate(Routes.Perfil.route)
                     }
-                }
+                },
+
+                mostrarMensajes = familyViewModel.usuario.value != null
             )
         }
 
@@ -202,9 +252,24 @@ fun AppNavigation() {
                                 popUpTo(Routes.Inicio.route) { inclusive = true }
                             }
                         },
-                        onExplorarClick = { navController.navigate(Routes.Explorar.route) },
-                        onPerfilClick = { navController.navigate(Routes.Perfil.route) },
-                        onCalendarioClick = { mostrarMisActividades = false }
+
+                        onExplorarClick = {
+                            navController.navigate(Routes.Explorar.route)
+                        },
+
+                        onMensajesClick = {
+                            navController.navigate(Routes.Mensajes.route)
+                        },
+
+                        onPerfilClick = {
+                            navController.navigate(Routes.Perfil.route)
+                        },
+
+                        onCalendarioClick = {
+                            mostrarMisActividades = false
+                        },
+
+                        mostrarMensajes = familyViewModel.usuario.value != null
                     )
                 } else {
                     CalendarioScreen(
@@ -213,12 +278,85 @@ fun AppNavigation() {
                                 popUpTo(Routes.Inicio.route) { inclusive = true }
                             }
                         },
-                        onExplorarClick = { navController.navigate(Routes.Explorar.route) },
-                        onPerfilClick = { navController.navigate(Routes.Perfil.route) },
-                        onActividadClick = { navController.navigate(Routes.DetalleActividad.route) },
-                        onMisActividadesClick = { mostrarMisActividades = true }
+
+                        onExplorarClick = {
+                            navController.navigate(Routes.Explorar.route)
+                        },
+
+                        onMensajesClick = {
+                            navController.navigate(Routes.Mensajes.route)
+                        },
+
+                        onPerfilClick = {
+                            navController.navigate(Routes.Perfil.route)
+                        },
+
+                        onActividadClick = {
+                            navController.navigate(
+                                Routes.DetalleActividad.route
+                            )
+                        },
+
+                        onMisActividadesClick = {
+                            mostrarMisActividades = true
+                        },
+
+                        mostrarMensajes = familyViewModel.usuario.value != null
                     )
                 }
+            }
+        }
+
+        composable(Routes.Mensajes.route) {
+
+            MensajesScreen(
+
+                onInicioClick = {
+                    navController.navigate(Routes.Inicio.route) {
+                        popUpTo(Routes.Inicio.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+
+                onExplorarClick = {
+                    navController.navigate(Routes.Explorar.route)
+                },
+
+                onActividadesClick = {
+                    navController.navigate(Routes.Actividades.route)
+                },
+
+                onPerfilClick = {
+                    navController.navigate(Routes.Perfil.route)
+                },
+
+                onConversacionClick = { conversacion ->
+
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("conversacion", conversacion)
+
+                    navController.navigate(Routes.ChatMessages.route)
+                }
+            )
+        }
+
+        composable(Routes.ChatMessages.route) {
+
+            val conversacion =
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Conversacion>("conversacion")
+
+            if (conversacion != null) {
+
+                ChatMessages(
+                    conversacion = conversacion,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
 
@@ -401,6 +539,12 @@ fun AppNavigation() {
                         popUpTo(Routes.DashboardAdmin.route)
                         launchSingleTop = true
                     }
+                onMensajesClick = {
+                    navController.navigate(Routes.Mensajes.route)
+                },
+
+                onAgregarIntegrante = {
+                    navController.navigate(Routes.Integrantes.route)
                 }
             )
         }

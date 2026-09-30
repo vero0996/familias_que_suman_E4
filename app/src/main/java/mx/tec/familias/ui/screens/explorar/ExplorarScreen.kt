@@ -63,9 +63,11 @@ import androidx.compose.material3.FilterChipDefaults
 fun ExplorarScreen(
     onInicioClick: () -> Unit = {},
     onActividadesClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCampaniaClick: () -> Unit = {},
-    onActividadClick: () -> Unit = {}
+    onActividadClick: () -> Unit = {},
+    mostrarMensajes: Boolean = false
 ) {
 
     var searchText by remember {
@@ -243,6 +245,7 @@ fun ExplorarScreen(
 
         BottomNavigationBar(
             currentDestination = FamilyDestination.EXPLORAR,
+            mostrarMensajes = mostrarMensajes,
 
             onDestinationSelected = { destination ->
 
@@ -256,6 +259,9 @@ fun ExplorarScreen(
 
                     FamilyDestination.ACTIVIDADES ->
                         onActividadesClick()
+
+                    FamilyDestination.MENSAJES ->
+                        onMensajesClick()
 
                     FamilyDestination.PERFIL ->
                         onPerfilClick()

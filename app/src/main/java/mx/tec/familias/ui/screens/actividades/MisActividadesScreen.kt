@@ -79,8 +79,10 @@ data class ActividadListaEspera(
 fun MisActividadesScreen(
     onInicioClick: () -> Unit = {},
     onExplorarClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
-    onCalendarioClick: () -> Unit = {}
+    onCalendarioClick: () -> Unit = {},
+    mostrarMensajes: Boolean = true
 ) {
 
     var actividadesInscritas by remember {
@@ -322,6 +324,7 @@ fun MisActividadesScreen(
 
         BottomNavigationBar(
             currentDestination = FamilyDestination.ACTIVIDADES,
+            mostrarMensajes = mostrarMensajes,
             onDestinationSelected = { destination ->
 
                 when (destination) {
@@ -333,6 +336,9 @@ fun MisActividadesScreen(
                         onExplorarClick()
 
                     FamilyDestination.ACTIVIDADES -> {}
+
+                    FamilyDestination.MENSAJES ->
+                        onMensajesClick()
 
                     FamilyDestination.PERFIL ->
                         onPerfilClick()

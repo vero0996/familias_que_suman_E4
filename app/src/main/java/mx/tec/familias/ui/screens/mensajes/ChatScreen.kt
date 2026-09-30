@@ -1,397 +1,287 @@
 package mx.tec.familias.ui.screens.mensajes
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.tec.familias.R
-import mx.tec.familias.ui.theme.*
+import mx.tec.familias.ui.theme.Background
+import mx.tec.familias.ui.theme.TealLight
+import mx.tec.familias.ui.theme.TealPrimary
+import mx.tec.familias.ui.theme.TextPrimary
+import mx.tec.familias.ui.theme.TextSecondary
+import mx.tec.familias.ui.theme.Surface
 
-@OptIn(ExperimentalMaterial3Api::class)
+data class MensajeChat(
+    val id: Int,
+    val texto: String,
+    val hora: String,
+    val enviadoPorUsuario: Boolean
+)
+
 @Composable
-fun ChatScreen(
+fun ChatMessages(
+    conversacion: Conversacion,
     onBackClick: () -> Unit = {}
 ) {
-    var mensaje by remember { mutableStateOf("") }
-    var mensajeEnviado by remember { mutableStateOf("") }
+    val mensajes = remember {
+        mutableStateListOf(
+            MensajeChat(
+                id = 1,
+                texto = "Hola, tenemos una actualización sobre tu actividad.",
+                hora = "10:32 AM",
+                enviadoPorUsuario = false
+            ),
+            MensajeChat(
+                id = 2,
+                texto = "¡Hola! Claro, ¿qué pasó?",
+                hora = "10:35 AM",
+                enviadoPorUsuario = true
+            ),
+            MensajeChat(
+                id = 3,
+                texto = "Se modificó ligeramente el horario de la actividad.",
+                hora = "10:37 AM",
+                enviadoPorUsuario = false
+            )
+        )
+    }
 
-    Scaffold(
-        containerColor = Background,
-        topBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Background)
+    var mensaje by remember {
+        mutableStateOf("")
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background)
+    ) {
+
+        // Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            IconButton(
+                onClick = onBackClick
             ) {
-                TopAppBar(
-                    title = {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Colecta de útiles escolares",
-                                color = TealPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
-                            )
-                            Text(
-                                text = "Fundación Aprender Juntos • 124",
-                                color = TextSecondary,
-                                fontSize = 12.sp
-                            )
-                            Text(
-                                text = "participantes",
-                                color = TextSecondary,
-                                fontSize = 12.sp
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Regresar",
-                                tint = TealPrimary
-                            )
-                        }
-                    },
-                    actions = {
-                        Image(
-                            painter = painterResource(id = R.drawable.asociacionsol),
-                            contentDescription = "Perfil",
-                            modifier = Modifier.padding(end = 12.dp).size(36.dp).clip(CircleShape)
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Regresar",
+                    tint = TealPrimary
                 )
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "● Canal Oficial",
-                        color = TealPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "Hoy",
-                        color = TealPrimary,
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-
-                Divider(color = Divider)
             }
-        },
-        bottomBar = {
-            Surface(
-                color = Surface,
-                shadowElevation = 8.dp
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                        .clip(CircleShape)
+                        .background(TealLight)
+                        .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = { },
-                        modifier = Modifier.size(38.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.AddCircleOutline,
-                            contentDescription = "Agregar",
-                            tint = TealPrimary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = TealPrimary
+                    )
+                }
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                    OutlinedTextField(
-                        value = mensaje,
-                        onValueChange = { mensaje = it },
-                        placeholder = {
-                            Text(
-                                text = "Escribe un mensaje...",
-                                color = TextSecondary,
-                                fontSize = 14.sp
-                            )
-                        },
-                        modifier = Modifier.weight(1f).height(62.dp),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
+                Column {
+                    Text(
+                        text = conversacion.nombre,
+                        fontSize = 18.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    IconButton(
-                        onClick = {
-                            if (mensaje.isNotBlank()) {
-                                mensajeEnviado = mensaje
-                                mensaje = ""
-                            }
-                        },
-                        modifier = Modifier.size(42.dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Enviar",
-                            tint = TealPrimary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    Text(
+                        text = "En línea",
+                        fontSize = 12.sp,
+                        color = TealPrimary
+                    )
                 }
             }
         }
-    ) { paddingValues ->
+
+        // Mensajes
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            reverseLayout = false
+        ) {
+
+            items(
+                items = mensajes,
+                key = { it.id }
+            ) { mensajeActual ->
+
+                MessageBubble(
+                    mensaje = mensajeActual
+                )
+            }
+        }
+
+        // Campo para escribir
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Surface)
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            TextField(
+                value = mensaje,
+                onValueChange = { mensaje = it },
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(
+                        text = "Escribe un mensaje...",
+                        color = TextSecondary
+                    )
+                },
+                shape = RoundedCornerShape(24.dp),
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Background,
+                    unfocusedContainerColor = Background,
+                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            IconButton(
+                onClick = {
+                    if (mensaje.isNotBlank()) {
+
+                        mensajes.add(
+                            MensajeChat(
+                                id = (mensajes.maxOfOrNull { it.id } ?: 0) + 1,
+                                texto = mensaje.trim(),
+                                hora = "Ahora",
+                                enviadoPorUsuario = true
+                            )
+                        )
+
+                        mensaje = ""
+                    }
+                },
+                enabled = mensaje.isNotBlank()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = "Enviar mensaje",
+                    tint = TealPrimary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageBubble(
+    mensaje: MensajeChat
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (mensaje.enviadoPorUsuario) {
+            Arrangement.End
+        } else {
+            Arrangement.Start
+        }
+    ) {
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 12.dp)
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(18.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Campaign,
-                            contentDescription = null,
-                            tint = BrownPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Column {
-                            Text(
-                                text = "Asociación Fundación Aprender",
-                                color = TealPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = "Juntos",
-                                color = TealPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "09:00 AM",
-                                color = TextSecondary,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = "ANUNCIO",
-                        color = BrownPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp
+                .width(280.dp)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = if (mensaje.enviadoPorUsuario) 16.dp else 4.dp,
+                        bottomEnd = if (mensaje.enviadoPorUsuario) 4.dp else 16.dp
                     )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Familia García  09:15 AM",
-                color = TealPrimary,
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "¡Estaremos allí! Llevaremos dos mochilas y varios cuadernos.",
-                color = TealPrimary,
-                fontSize = 16.sp,
-                lineHeight = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text(
-                text = "Familia Pérez  09:30 AM",
-                color = TealPrimary,
-                fontSize = 14.sp
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "¿Hay algún punto de recogida adicional por si no llegamos a las 10?",
-                color = TealPrimary,
-                fontSize = 16.sp,
-                lineHeight = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Column {
-                            Text(
-                                text = "Fundación Aprender",
-                                color = TealPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = "Juntos",
-                                color = TealPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                        }
-
-                        Row {
-                            Text(
-                                text = "Asociación",
-                                color = TextSecondary,
-                                fontSize = 11.sp
-                            )
-
-                            Spacer(modifier = Modifier.width(14.dp))
-
-                            Column {
-                                Text(
-                                    text = "09:45",
-                                    color = TealPrimary,
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    text = "AM",
-                                    color = TealPrimary,
-                                    fontSize = 13.sp
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text(
-                        text = "Hola Familia Pérez, sí, pueden dejarlos en la oficina central (Calle Primavera 123) de lunes a viernes hasta las 5 PM. ¡Gracias por sumar!",
-                        color = TealPrimary,
-                        fontSize = 16.sp,
-                        lineHeight = 22.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "10:05 AM  Tú",
-                color = TealPrimary,
-                fontSize = 14.sp,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.width(270.dp)
-                ) {
-                    Text(
-                        text = "Perfecto, nosotros llevaremos lápices de colores y tijeras.",
-                        color = TealPrimary,
-                        fontSize = 16.sp,
-                        lineHeight = 22.sp,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
-
-            if (mensajeEnviado.isNotBlank()) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Tú",
-                    color = TealPrimary,
-                    fontSize = 14.sp,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.End
                 )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.width(270.dp)
-                    ) {
-                        Text(
-                            text = mensajeEnviado,
-                            color = TealPrimary,
-                            fontSize = 16.sp,
-                            lineHeight = 22.sp,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                .background(
+                    if (mensaje.enviadoPorUsuario) {
+                        TealPrimary
+                    } else {
+                        Surface
                     }
-                }
-            }
+                )
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+        ) {
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Text(
+                text = mensaje.texto,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                color = if (mensaje.enviadoPorUsuario) {
+                    androidx.compose.ui.graphics.Color.White
+                } else {
+                    TextPrimary
+                }
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = mensaje.hora,
+                fontSize = 11.sp,
+                color = if (mensaje.enviadoPorUsuario) {
+                    TealLight
+                } else {
+                    TextSecondary
+                }
+            )
         }
     }
 }

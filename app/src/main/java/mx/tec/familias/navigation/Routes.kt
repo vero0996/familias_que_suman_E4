@@ -45,4 +45,9 @@ sealed class Routes(val route: String) {
     data object ReutilizarCampania : Routes("reutilizarCampania")
 
     data object VistaPreviaCampania : Routes("vistaPreviaCampania")
+
+    data object Mensajes : Routes("mensajes")
+
+    data object ChatMessages : Routes("chatMessages")
+
 }

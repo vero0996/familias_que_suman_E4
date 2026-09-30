@@ -47,8 +47,8 @@ fun PerfilScreen(
     onInicioClick: () -> Unit = {},
     onExplorarClick: () -> Unit = {},
     onActividadesClick: () -> Unit = {},
-    onAgregarIntegrante: () -> Unit = {},
-    onCambiarRolClick: () -> Unit
+    onMensajesClick: () -> Unit = {},
+    onAgregarIntegrante: () -> Unit = {}
 ) {
 
     val usuario = viewModel.usuario.value
@@ -339,6 +339,7 @@ fun PerfilScreen(
 
         BottomNavigationBar(
             currentDestination = FamilyDestination.PERFIL,
+            mostrarMensajes = viewModel.usuario.value != null,
             onDestinationSelected = { destination ->
 
                 when (destination) {
@@ -353,6 +354,10 @@ fun PerfilScreen(
 
                     FamilyDestination.ACTIVIDADES -> {
                         onActividadesClick()
+                    }
+
+                    FamilyDestination.MENSAJES -> {
+                        onMensajesClick()
                     }
 
                     FamilyDestination.PERFIL -> {
