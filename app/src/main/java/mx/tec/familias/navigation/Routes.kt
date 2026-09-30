@@ -22,4 +22,7 @@ sealed class Routes(val route: String) {
 
     data object Perfil : Routes("perfil")
     data object ConfirmacionCampania : Routes("confirmacionCampania")
+    data object Mensajes : Routes("mensajes")
+
+    data object ChatMessages : Routes("chatMessages")
 }

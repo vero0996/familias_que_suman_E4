@@ -28,7 +28,9 @@ import mx.tec.familias.ui.screens.perfil.PerfilScreen
 import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
 import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
-
+import mx.tec.familias.ui.screens.mensajes.MensajesScreen
+import mx.tec.familias.ui.screens.mensajes.ChatMessages
+import mx.tec.familias.ui.screens.mensajes.Conversacion
 @Composable
 fun AppNavigation() {
 
@@ -49,6 +51,10 @@ fun AppNavigation() {
         mutableStateOf(Routes.Inicio.route)
     }
 
+    var conversacionSeleccionada by remember {
+        mutableStateOf<Conversacion?>(null)
+    }
+
     NavHost(
         navController = navController,
         startDestination = Routes.Inicio.route
@@ -63,8 +69,19 @@ fun AppNavigation() {
                 },
 
                 onActividadesClick = {
-                    navController.navigate(Routes.Actividades.route)
+                    if (familyViewModel.usuario.value == null) {
+                        rutaDespuesDeRegistro = Routes.Actividades.route
+                        navController.navigate(Routes.Registro.route)
+                    } else {
+                        navController.navigate(Routes.Actividades.route)
+                    }
                 },
+
+                onMensajesClick = {
+                    navController.navigate(Routes.Mensajes.route)
+                },
+
+                mostrarMensajes = familyViewModel.usuario.value != null,
 
                 onPerfilClick = {
 
@@ -123,6 +140,18 @@ fun AppNavigation() {
                     )
                 },
 
+                onActividadesClick = {
+                    navController.navigate(
+                        Routes.Actividades.route
+                    )
+                },
+
+                onMensajesClick = {
+                    navController.navigate(
+                        Routes.Mensajes.route
+                    )
+                },
+
                 onCampaniaClick = {
                     navController.navigate(
                         Routes.DetalleCampania.route
@@ -151,7 +180,9 @@ fun AppNavigation() {
                             Routes.Perfil.route
                         )
                     }
-                }
+                },
+
+                mostrarMensajes = familyViewModel.usuario.value != null
             )
         }
 
@@ -291,13 +322,19 @@ fun AppNavigation() {
                             navController.navigate(Routes.Explorar.route)
                         },
 
+                        onMensajesClick = {
+                            navController.navigate(Routes.Mensajes.route)
+                        },
+
                         onPerfilClick = {
                             navController.navigate(Routes.Perfil.route)
                         },
 
                         onCalendarioClick = {
                             mostrarMisActividades = false
-                        }
+                        },
+
+                        mostrarMensajes = familyViewModel.usuario.value != null
                     )
 
                 } else {
@@ -316,6 +353,10 @@ fun AppNavigation() {
                             navController.navigate(Routes.Explorar.route)
                         },
 
+                        onMensajesClick = {
+                            navController.navigate(Routes.Mensajes.route)
+                        },
+
                         onPerfilClick = {
                             navController.navigate(Routes.Perfil.route)
                         },
@@ -328,9 +369,64 @@ fun AppNavigation() {
 
                         onMisActividadesClick = {
                             mostrarMisActividades = true
-                        }
+                        },
+
+                        mostrarMensajes = familyViewModel.usuario.value != null
                     )
                 }
+            }
+        }
+
+        composable(Routes.Mensajes.route) {
+
+            MensajesScreen(
+
+                onInicioClick = {
+                    navController.navigate(Routes.Inicio.route) {
+                        popUpTo(Routes.Inicio.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+
+                onExplorarClick = {
+                    navController.navigate(Routes.Explorar.route)
+                },
+
+                onActividadesClick = {
+                    navController.navigate(Routes.Actividades.route)
+                },
+
+                onPerfilClick = {
+                    navController.navigate(Routes.Perfil.route)
+                },
+
+                onConversacionClick = { conversacion ->
+
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("conversacion", conversacion)
+
+                    navController.navigate(Routes.ChatMessages.route)
+                }
+            )
+        }
+
+        composable(Routes.ChatMessages.route) {
+
+            val conversacion =
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Conversacion>("conversacion")
+
+            if (conversacion != null) {
+
+                ChatMessages(
+                    conversacion = conversacion,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
 
@@ -352,6 +448,10 @@ fun AppNavigation() {
 
                 onActividadesClick = {
                     navController.navigate(Routes.Actividades.route)
+                },
+
+                onMensajesClick = {
+                    navController.navigate(Routes.Mensajes.route)
                 },
 
                 onAgregarIntegrante = {

@@ -62,6 +62,8 @@ fun InicioScreen(
     nombreUsuario: String = "Usuario",
     onExplorarClick: () -> Unit = {},
     onActividadesClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
+    mostrarMensajes: Boolean = false,
     onPerfilClick: () -> Unit = {}
 ) {
 
@@ -219,6 +221,8 @@ fun InicioScreen(
         BottomNavigationBar(
             currentDestination = FamilyDestination.INICIO,
 
+            mostrarMensajes = mostrarMensajes,
+
             onDestinationSelected = { destination ->
 
                 when (destination) {
@@ -230,6 +234,9 @@ fun InicioScreen(
 
                     FamilyDestination.ACTIVIDADES ->
                         onActividadesClick()
+
+                    FamilyDestination.MENSAJES ->
+                        onMensajesClick()
 
                     FamilyDestination.PERFIL ->
                         onPerfilClick()
