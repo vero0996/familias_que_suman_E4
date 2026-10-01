@@ -80,7 +80,7 @@ fun ExplorarScreen(
     // Estado para saber qué filtro está seleccionado
     var filtroActual by remember { mutableStateOf("Todos") }
 
-    AdaptiveContainer(modifier = Modifier.background(Background)) {
+    // AdaptiveContainer(modifier = Modifier.background(Background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -237,7 +237,7 @@ fun ExplorarScreen(
             )
         }
     }
-}
+//}
 
 @Composable
 private fun ExplorarHeader(

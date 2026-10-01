@@ -87,6 +87,7 @@ fun CrearCampaniaColaborativaScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(20.dp)
                 ) {
                     // Tarjeta gris de resumen
@@ -228,7 +229,7 @@ fun CrearCampaniaColaborativaScreen(
             }
         }
     ) { paddingValues ->
-        AdaptiveContainer {
+        //AdaptiveContainer {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -315,7 +316,7 @@ fun CrearCampaniaColaborativaScreen(
             }
         }
     }
-}
+//}
 
 // Componente reutilizable para la tarjeta de las asociaciones
 @Composable

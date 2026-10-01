@@ -93,7 +93,7 @@ fun MensajesAdminScreen(
             }
         }
     ) { paddingValues ->
-        AdaptiveContainer {
+        //AdaptiveContainer {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -145,7 +145,7 @@ fun MensajesAdminScreen(
             }
         }
     }
-}
+//}
 
 // Componente reutilizable para cada chat de la lista
 @Composable

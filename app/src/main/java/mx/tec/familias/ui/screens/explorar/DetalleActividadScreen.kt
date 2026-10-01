@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -50,7 +51,7 @@ fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onInscribirseClick: () -> Unit = {}
 ) {
-    AdaptiveContainer(modifier = Modifier.background(Background)) {
+    //AdaptiveContainer(modifier = Modifier.background(Background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -229,6 +230,7 @@ fun DetalleActividadScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Surface)
+                    .navigationBarsPadding()
                     .padding(
                         horizontal = 20.dp,
                         vertical = 16.dp
@@ -253,7 +255,7 @@ fun DetalleActividadScreen(
             }
         }
     }
-}
+//}
 
 @Composable
 private fun ActivityInfoCard(

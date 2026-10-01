@@ -53,7 +53,7 @@ fun InicioScreen(
     // Estado para los filtros de categorías interactivos
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
 
-    AdaptiveContainer(modifier = Modifier.background(Background)) {
+    //AdaptiveContainer(modifier = Modifier.background(Background)) {
             Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -198,7 +198,7 @@ fun InicioScreen(
             )
         }
     }
-}
+//}
 
 @Composable
 private fun InicioHeader(onProfileClick: () -> Unit) {

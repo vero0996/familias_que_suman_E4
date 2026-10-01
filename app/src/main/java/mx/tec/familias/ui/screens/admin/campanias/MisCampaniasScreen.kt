@@ -105,7 +105,7 @@ fun MisCampaniasScreen(
             }
         }
     ) { paddingValues ->
-        AdaptiveContainer {
+        //AdaptiveContainer {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -147,7 +147,7 @@ fun MisCampaniasScreen(
             }
         }
     }
-}
+//}
 
 @Composable
 fun CampaignManagementCard(

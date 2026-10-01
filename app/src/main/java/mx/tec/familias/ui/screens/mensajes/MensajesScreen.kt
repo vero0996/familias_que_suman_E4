@@ -96,7 +96,7 @@ fun MensajesScreen(
                 it.ultimoMensaje.contains(busqueda, ignoreCase = true)
     }
 
-    AdaptiveContainer(modifier = Modifier.background(Background)) {
+    //AdaptiveContainer(modifier = Modifier.background(Background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -198,7 +198,7 @@ fun MensajesScreen(
             )
         }
     }
-}
+//}
 
 @Composable
 private fun ConversacionCard(
