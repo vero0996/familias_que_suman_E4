@@ -51,7 +51,7 @@ data class Conversacion(
     val ultimoMensaje: String,
     val hora: String,
     val mensajesSinLeer: Int = 0
-)
+): java.io.Serializable
 
 @Composable
 fun MensajesScreen(

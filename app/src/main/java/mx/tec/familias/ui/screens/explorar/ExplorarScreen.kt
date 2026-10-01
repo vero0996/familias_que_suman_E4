@@ -331,7 +331,7 @@ private fun CampaignCard(
 
             // Imagen Real en lugar de Box gris
             Image(
-                painter = painterResource(id = R.drawable.icon), // Cambia 'icon' por tu imagen
+                painter = painterResource(id = R.drawable.reforestacionurbana), // Cambia 'icon' por tu imagen
                 contentDescription = "Imagen de Campaña",
                 contentScale = ContentScale.Crop, // Esto hace que la imagen se adapte bien
                 modifier = Modifier
@@ -397,7 +397,7 @@ private fun ActivityCard(
 
             // Imagen Real en lugar de Box gris
             Image(
-                painter = painterResource(id = R.drawable.icon), // Cambia 'icon' por tu imagen
+                painter = painterResource(id = R.drawable.utilesescolares), // Cambia 'icon' por tu imagen
                 contentDescription = "Imagen de Actividad",
                 contentScale = ContentScale.Crop, // Adapta la imagen
                 modifier = Modifier

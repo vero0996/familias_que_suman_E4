@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import mx.tec.familias.R
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -186,6 +187,7 @@ fun InicioScreen(
                     )
 
                     CauseCard(
+                        imageRes = R.drawable.reforestacionurbana, // <-- Pon aquí el nombre de tu foto en drawable
                         category = "MEDIO AMBIENTE",
                         title = "Reforestación Familiar",
                         organization = "Asociación Bosque Vivo",
@@ -200,7 +202,9 @@ fun InicioScreen(
                         modifier = Modifier.height(18.dp)
                     )
 
+// Segunda tarjeta (Apoyo Escolar)
                     CauseCard(
+                        imageRes = R.drawable.utilesescolares, // <-- Pon aquí la otra foto de tu drawable
                         category = "EDUCACIÓN",
                         title = "Apoyo Escolar en el Barrio",
                         organization = "Fundación Aprender Juntos",
@@ -473,6 +477,7 @@ private fun CategoryChip(
 
 @Composable
 private fun CauseCard(
+    imageRes: Int,
     category: String,
     title: String,
     organization: String,
@@ -502,11 +507,13 @@ private fun CauseCard(
         ) {
 
             // IMAGEN
-            Box(
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = imageRes),
+                contentDescription = title,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(175.dp)
-                    .background(Divider)
             )
 
             Column(

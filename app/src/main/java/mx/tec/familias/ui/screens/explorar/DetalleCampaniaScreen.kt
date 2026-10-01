@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.explorar
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,9 +27,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import mx.tec.familias.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,10 +109,13 @@ fun DetalleCampaniaScreen(
                     .background(Divider),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Imagen de la campaña",
-                    fontSize = 14.sp,
-                    color = TextSecondary
+                Image(
+                    painter = painterResource(id = R.drawable.comedorcomunitario), // Nombre de tu foto para esta campaña
+                    contentDescription = "Imagen de la campaña",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(175.dp)
                 )
             }
 

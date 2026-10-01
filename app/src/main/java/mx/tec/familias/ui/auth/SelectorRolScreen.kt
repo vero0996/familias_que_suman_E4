@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,9 +35,12 @@ fun SelectorRolScreen(
     ) {
         // Logo de la app (Asegúrate de tener un R.drawable.icon)
         Image(
-            painter = painterResource(id = R.drawable.icon),
-            contentDescription = "Logo",
-            modifier = Modifier.size(100.dp)
+            painter = painterResource(id = R.drawable.famqsum), // Reemplaza 'tu_logo' por el nombre real de tu imagen en drawable
+            contentDescription = "Logo de la organización",
+            modifier = Modifier
+                .height(110.dp) // Controla aquí la altura ideal para que destaque bien
+                .fillMaxWidth(), // Hace que ocupe el ancho disponible de forma centrada
+            contentScale = ContentScale.Fit // Mantiene las proporciones originales sin estirarse de más
         )
 
         Spacer(modifier = Modifier.height(24.dp))
