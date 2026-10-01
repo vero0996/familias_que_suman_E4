@@ -1,6 +1,7 @@
 package mx.tec.familias.ui.auth
 
 import androidx.compose.foundation.background
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,241 +70,243 @@ fun IntegrantesScreen(
                 edad.toInt() >= 0 &&
                 parentesco.isNotBlank()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-    ) {
-
-        LazyColumn(
+    AdaptiveContainer(modifier = Modifier.background(Background)) {
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                start = 20.dp,
-                top = 50.dp,
-                end = 20.dp,
-                bottom = 24.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .background(Background)
         ) {
 
-            // HEADER
-            item {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    start = 20.dp,
+                    top = 50.dp,
+                    end = 20.dp,
+                    bottom = 24.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
 
-                Text(
-                    text = "Integrantes de la familia",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 28.sp,
-                    lineHeight = 34.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TealPrimary
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Agrega a las personas que forman parte de tu familia para poder participar juntos en actividades.",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                    color = TextSecondary
-                )
-            }
-
-            // INTEGRANTES REGISTRADOS
-            if (integrantes.isNotEmpty()) {
-
+                // HEADER
                 item {
 
                     Text(
-                        text = "Personas registradas",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
+                        text = "Integrantes de la familia",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 28.sp,
+                        lineHeight = 34.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = TealPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Agrega a las personas que forman parte de tu familia para poder participar juntos en actividades.",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 14.sp,
+                        lineHeight = 21.sp,
+                        color = TextSecondary
                     )
                 }
 
-                items(
-                    items = integrantes,
-                    key = { it.id }
-                ) { integrante ->
+                // INTEGRANTES REGISTRADOS
+                if (integrantes.isNotEmpty()) {
 
-                    IntegranteCard(
-                        integrante = integrante,
-                        onDelete = {
-                            viewModel.eliminarIntegrante(integrante.id)
-                        }
-                    )
-                }
-            }
-
-            // BOTÓN AGREGAR
-            item {
-
-                if (!mostrarFormulario) {
-
-                    OutlinedButton(
-                        onClick = {
-                            mostrarFormulario = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Agregar integrante",
-                            tint = TealPrimary
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
+                    item {
 
                         Text(
-                            text = "Agregar integrante",
-                            fontSize = 15.sp,
-                            color = TealPrimary
+                            text = "Personas registradas",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
                         )
                     }
 
-                } else {
+                    items(
+                        items = integrantes,
+                        key = { it.id }
+                    ) { integrante ->
 
-                    NuevoIntegranteCard(
-                        nombre = nombre,
-                        edad = edad,
-                        parentesco = parentesco,
-                        datosValidos = datosValidos,
-                        onNombreChange = {
-                            nombre = it
-                        },
-                        onEdadChange = {
-                            if (it.all { char -> char.isDigit() }) {
-                                edad = it
+                        IntegranteCard(
+                            integrante = integrante,
+                            onDelete = {
+                                viewModel.eliminarIntegrante(integrante.id)
                             }
-                        },
-                        onParentescoChange = {
-                            parentesco = it
-                        },
-                        onCancelar = {
-                            mostrarFormulario = false
-                            nombre = ""
-                            edad = ""
-                            parentesco = ""
-                        },
-                        onAgregar = {
+                        )
+                    }
+                }
 
-                            if (datosValidos) {
+                // BOTÓN AGREGAR
+                item {
 
-                                viewModel.agregarIntegrante(
-                                    nombre = nombre,
-                                    edad = edad.toInt(),
-                                    parentesco = parentesco
-                                )
+                    if (!mostrarFormulario) {
 
+                        OutlinedButton(
+                            onClick = {
+                                mostrarFormulario = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Agregar integrante",
+                                tint = TealPrimary
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Text(
+                                text = "Agregar integrante",
+                                fontSize = 15.sp,
+                                color = TealPrimary
+                            )
+                        }
+
+                    } else {
+
+                        NuevoIntegranteCard(
+                            nombre = nombre,
+                            edad = edad,
+                            parentesco = parentesco,
+                            datosValidos = datosValidos,
+                            onNombreChange = {
+                                nombre = it
+                            },
+                            onEdadChange = {
+                                if (it.all { char -> char.isDigit() }) {
+                                    edad = it
+                                }
+                            },
+                            onParentescoChange = {
+                                parentesco = it
+                            },
+                            onCancelar = {
+                                mostrarFormulario = false
                                 nombre = ""
                                 edad = ""
                                 parentesco = ""
+                            },
+                            onAgregar = {
 
-                                mostrarFormulario = false
+                                if (datosValidos) {
+
+                                    viewModel.agregarIntegrante(
+                                        nombre = nombre,
+                                        edad = edad.toInt(),
+                                        parentesco = parentesco
+                                    )
+
+                                    nombre = ""
+                                    edad = ""
+                                    parentesco = ""
+
+                                    mostrarFormulario = false
+                                }
                             }
-                        }
-                    )
-                }
-            }
-
-            // MENSAJE CUANDO NO HAY INTEGRANTES
-            if (integrantes.isEmpty() && !mostrarFormulario) {
-
-                item {
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Surface
-                        ),
-                        shape = RoundedCornerShape(18.dp),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 1.dp
                         )
-                    ) {
+                    }
+                }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                // MENSAJE CUANDO NO HAY INTEGRANTES
+                if (integrantes.isEmpty() && !mostrarFormulario) {
+
+                    item {
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Surface
+                            ),
+                            shape = RoundedCornerShape(18.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 1.dp
+                            )
                         ) {
 
-                            Box(
+                            Column(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(TealLight)
-                                    .padding(16.dp)
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
 
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = TealPrimary
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(TealLight)
+                                        .padding(16.dp)
+                                ) {
+
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = TealPrimary
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Text(
+                                    text = "Aún no hay integrantes",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = "Puedes agregar a las personas de tu familia que participarán contigo.",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    fontSize = 14.sp,
+                                    lineHeight = 21.sp,
+                                    color = TextSecondary,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
                             }
-
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Text(
-                                text = "Aún no hay integrantes",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            Text(
-                                text = "Puedes agregar a las personas de tu familia que participarán contigo.",
-                                modifier = Modifier.fillMaxWidth(),
-                                fontSize = 14.sp,
-                                lineHeight = 21.sp,
-                                color = TextSecondary,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
                         }
                     }
                 }
             }
-        }
 
-        // BOTÓN CONTINUAR
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Surface)
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 16.dp
-                )
-        ) {
-
-            Button(
-                onClick = onContinuar,
+            // BOTÓN CONTINUAR
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                enabled = integrantes.isNotEmpty(),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary
-                )
+                    .background(Surface)
+                    .padding(
+                        horizontal = 20.dp,
+                        vertical = 16.dp
+                    )
             ) {
 
-                Text(
-                    text = "Continuar",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Button(
+                    onClick = onContinuar,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    enabled = integrantes.isNotEmpty(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TealPrimary
+                    )
+                ) {
+
+                    Text(
+                        text = "Continuar",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package mx.tec.familias.ui.screens.mensajes
 
 import androidx.compose.foundation.background
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -95,105 +96,107 @@ fun MensajesScreen(
                 it.ultimoMensaje.contains(busqueda, ignoreCase = true)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-    ) {
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                start = 20.dp,
-                top = 16.dp,
-                end = 20.dp,
-                bottom = 24.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    AdaptiveContainer(modifier = Modifier.background(Background)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Background)
         ) {
 
-            item {
-
-                TopBar(
-                    title = "Mensajes",
-                    showProfile = true,
-                    onProfileClick = onPerfilClick
-                )
-
-                Spacer(modifier = Modifier.padding(top = 4.dp))
-
-                OutlinedTextField(
-                    value = busqueda,
-                    onValueChange = {
-                        busqueda = it
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "Buscar mensajes",
-                            fontSize = 14.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Buscar",
-                            tint = TextSecondary
-                        )
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp)
-                )
-            }
-
-            if (conversacionesFiltradas.isEmpty()) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    start = 20.dp,
+                    top = 16.dp,
+                    end = 20.dp,
+                    bottom = 24.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
 
                 item {
 
-                    EmptyMessagesCard()
+                    TopBar(
+                        title = "Mensajes",
+                        showProfile = true,
+                        onProfileClick = onPerfilClick
+                    )
 
-                }
+                    Spacer(modifier = Modifier.padding(top = 4.dp))
 
-            } else {
-
-                items(
-                    items = conversacionesFiltradas,
-                    key = { it.id }
-                ) { conversacion ->
-
-                    ConversacionCard(
-                        conversacion = conversacion,
-                        onClick = {
-                            onConversacionClick(conversacion)
-                        }
+                    OutlinedTextField(
+                        value = busqueda,
+                        onValueChange = {
+                            busqueda = it
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(
+                                text = "Buscar mensajes",
+                                fontSize = 14.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Buscar",
+                                tint = TextSecondary
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp)
                     )
                 }
-            }
-        }
 
-        BottomNavigationBar(
-            currentDestination = FamilyDestination.MENSAJES,
-            mostrarMensajes = true,
-            onDestinationSelected = { destination ->
+                if (conversacionesFiltradas.isEmpty()) {
 
-                when (destination) {
+                    item {
 
-                    FamilyDestination.INICIO ->
-                        onInicioClick()
+                        EmptyMessagesCard()
 
-                    FamilyDestination.EXPLORAR ->
-                        onExplorarClick()
+                    }
 
-                    FamilyDestination.ACTIVIDADES ->
-                        onActividadesClick()
+                } else {
 
-                    FamilyDestination.MENSAJES -> Unit
+                    items(
+                        items = conversacionesFiltradas,
+                        key = { it.id }
+                    ) { conversacion ->
 
-                    FamilyDestination.PERFIL ->
-                        onPerfilClick()
+                        ConversacionCard(
+                            conversacion = conversacion,
+                            onClick = {
+                                onConversacionClick(conversacion)
+                            }
+                        )
+                    }
                 }
             }
-        )
+
+            BottomNavigationBar(
+                currentDestination = FamilyDestination.MENSAJES,
+                mostrarMensajes = true,
+                onDestinationSelected = { destination ->
+
+                    when (destination) {
+
+                        FamilyDestination.INICIO ->
+                            onInicioClick()
+
+                        FamilyDestination.EXPLORAR ->
+                            onExplorarClick()
+
+                        FamilyDestination.ACTIVIDADES ->
+                            onActividadesClick()
+
+                        FamilyDestination.MENSAJES -> Unit
+
+                        FamilyDestination.PERFIL ->
+                            onPerfilClick()
+                    }
+                }
+            )
+        }
     }
 }
 

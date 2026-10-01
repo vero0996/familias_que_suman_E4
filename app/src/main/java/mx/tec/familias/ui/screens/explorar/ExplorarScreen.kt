@@ -3,6 +3,7 @@ package mx.tec.familias.ui.screens.explorar
 import androidx.compose.foundation.Image // Importante para las fotos
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,160 +80,162 @@ fun ExplorarScreen(
     // Estado para saber qué filtro está seleccionado
     var filtroActual by remember { mutableStateOf("Todos") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-    ) {
-
-        LazyColumn(
+    AdaptiveContainer(modifier = Modifier.background(Background)) {
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-
-            contentPadding = PaddingValues(
-                top = 8.dp,
-                bottom = 32.dp
-            )
+                .fillMaxSize()
+                .background(Background)
         ) {
 
-            item {
-                ExplorarHeader(
-                    onProfileClick = onPerfilClick
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+
+                contentPadding = PaddingValues(
+                    top = 8.dp,
+                    bottom = 32.dp
                 )
-            }
+            ) {
 
-            item {
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                ) {
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "Explorar",
-                        fontSize = 28.sp,
-                        lineHeight = 34.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TealPrimary
+                item {
+                    ExplorarHeader(
+                        onProfileClick = onPerfilClick
                     )
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                item {
 
-                    OutlinedTextField(
-                        value = searchText,
-                        onValueChange = { searchText = it },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        placeholder = { Text(text = "Buscar causas, asociaciones...") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar",
-                                tint = TealPrimary
-                            )
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                    ) {
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    // Le pasamos el filtro actual y la función para cambiarlo
-                    ExplorarFilters(
-                        filtroActual = filtroActual,
-                        onFiltroChange = { nuevoFiltro -> filtroActual = nuevoFiltro }
-                    )
-
-                    Spacer(modifier = Modifier.height(30.dp))
-
-                    Text(
-                        text = "Campañas",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mostrar campañas dinámicamente según el filtro
-                    if (filtroActual == "Todos" || filtroActual == "Donaciones") {
-                        CampaignCard(
-                            tag = "URGENTE",
-                            tagColor = BrownPrimary,
-                            title = "Útiles Escolares para Todos",
-                            organization = "Fundación Aprender Juntos",
-                            description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.",
-                            progress = 0.80f,
-                            progressText = "80%",
-                            buttonText = "Ver campaña",
-                            onClick = onCampaniaClick
+                        Text(
+                            text = "Explorar",
+                            fontSize = 28.sp,
+                            lineHeight = 34.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TealPrimary
                         )
-                        Spacer(modifier = Modifier.height(18.dp))
 
-                        CampaignCard(
-                            tag = "DONACIÓN",
-                            tagColor = TealDark,
-                            title = "Canasta Solidaria de Invierno",
-                            organization = "Asociación Manos Unidas",
-                            description = "Apoya a familias de la comunidad con alimentos y productos básicos.",
-                            progress = 0.45f,
-                            progressText = "45%",
-                            buttonText = "Ver campaña",
-                            onClick = onCampaniaClick
-                        )
-                        Spacer(modifier = Modifier.height(30.dp))
-                    }
-
-                    Text(
-                        text = "Actividades",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (filtroActual == "Todos" || filtroActual == "Voluntariado" || filtroActual == "Eventos") {
-                        ActivityCard(
-                            title = "Plantación de Árboles en El Pardo",
-                            organization = "Asociación Bosque Vivo",
-                            participants = "5 familias inscritas",
-                            date = "Sábado 24 de mayo",
-                            onClick = onActividadClick
-                        )
-                        Spacer(modifier = Modifier.height(18.dp))
-
-                        ActivityCard(
-                            title = "Lectura Compartida",
-                            organization = "Fundación Aprender Juntos",
-                            participants = "2 familias inscritas",
-                            date = "Domingo 25 de mayo",
-                            onClick = onActividadClick
-                        )
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = searchText,
+                            onValueChange = { searchText = it },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            placeholder = { Text(text = "Buscar causas, asociaciones...") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar",
+                                    tint = TealPrimary
+                                )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Le pasamos el filtro actual y la función para cambiarlo
+                        ExplorarFilters(
+                            filtroActual = filtroActual,
+                            onFiltroChange = { nuevoFiltro -> filtroActual = nuevoFiltro }
+                        )
+
+                        Spacer(modifier = Modifier.height(30.dp))
+
+                        Text(
+                            text = "Campañas",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Mostrar campañas dinámicamente según el filtro
+                        if (filtroActual == "Todos" || filtroActual == "Donaciones") {
+                            CampaignCard(
+                                tag = "URGENTE",
+                                tagColor = BrownPrimary,
+                                title = "Útiles Escolares para Todos",
+                                organization = "Fundación Aprender Juntos",
+                                description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.",
+                                progress = 0.80f,
+                                progressText = "80%",
+                                buttonText = "Ver campaña",
+                                onClick = onCampaniaClick
+                            )
+                            Spacer(modifier = Modifier.height(18.dp))
+
+                            CampaignCard(
+                                tag = "DONACIÓN",
+                                tagColor = TealDark,
+                                title = "Canasta Solidaria de Invierno",
+                                organization = "Asociación Manos Unidas",
+                                description = "Apoya a familias de la comunidad con alimentos y productos básicos.",
+                                progress = 0.45f,
+                                progressText = "45%",
+                                buttonText = "Ver campaña",
+                                onClick = onCampaniaClick
+                            )
+                            Spacer(modifier = Modifier.height(30.dp))
+                        }
+
+                        Text(
+                            text = "Actividades",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (filtroActual == "Todos" || filtroActual == "Voluntariado" || filtroActual == "Eventos") {
+                            ActivityCard(
+                                title = "Plantación de Árboles en El Pardo",
+                                organization = "Asociación Bosque Vivo",
+                                participants = "5 familias inscritas",
+                                date = "Sábado 24 de mayo",
+                                onClick = onActividadClick
+                            )
+                            Spacer(modifier = Modifier.height(18.dp))
+
+                            ActivityCard(
+                                title = "Lectura Compartida",
+                                organization = "Fundación Aprender Juntos",
+                                participants = "2 familias inscritas",
+                                date = "Domingo 25 de mayo",
+                                onClick = onActividadClick
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
             }
-        }
 
-        BottomNavigationBar(
-            currentDestination = FamilyDestination.EXPLORAR,
-            mostrarMensajes = mostrarMensajes,
-            onDestinationSelected = { destination ->
-                when (destination) {
-                    FamilyDestination.INICIO -> onInicioClick()
-                    FamilyDestination.EXPLORAR -> Unit
-                    FamilyDestination.ACTIVIDADES -> onActividadesClick()
-                    FamilyDestination.MENSAJES -> onMensajesClick()
-                    FamilyDestination.PERFIL -> onPerfilClick()
+            BottomNavigationBar(
+                currentDestination = FamilyDestination.EXPLORAR,
+                mostrarMensajes = mostrarMensajes,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        FamilyDestination.INICIO -> onInicioClick()
+                        FamilyDestination.EXPLORAR -> Unit
+                        FamilyDestination.ACTIVIDADES -> onActividadesClick()
+                        FamilyDestination.MENSAJES -> onMensajesClick()
+                        FamilyDestination.PERFIL -> onPerfilClick()
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
 

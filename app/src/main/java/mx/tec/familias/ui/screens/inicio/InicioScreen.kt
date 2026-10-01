@@ -1,6 +1,7 @@
 package mx.tec.familias.ui.screens.inicio
 
 import androidx.compose.foundation.Image
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -52,148 +53,150 @@ fun InicioScreen(
     // Estado para los filtros de categorías interactivos
     var filtroSeleccionado by remember { mutableStateOf("Todos") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-    ) {
-
-        LazyColumn(
+    AdaptiveContainer(modifier = Modifier.background(Background)) {
+            Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(
-                top = 50.dp,
-                bottom = 32.dp
-            )
+                .fillMaxSize()
+                .background(Background)
         ) {
 
-            item {
-                InicioHeader(
-                    onProfileClick = onPerfilClick
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    top = 50.dp,
+                    bottom = 32.dp
                 )
-            }
+            ) {
 
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "¡Hola, $nombreUsuario!",
-                        fontSize = 28.sp,
-                        lineHeight = 34.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TealPrimary
+                item {
+                    InicioHeader(
+                        onProfileClick = onPerfilClick
                     )
+                }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "\"La familia es el primer núcleo de solidaridad y servicio.\"",
-                        fontSize = 14.sp,
-                        lineHeight = 21.sp,
-                        color = TextSecondary
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    ImpactCard()
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    OutlinedTextField(
-                        value = searchText,
-                        onValueChange = { searchText = it },
+                item {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        placeholder = {
-                            Text(text = "Buscar causas, asociaciones...")
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar",
-                                tint = TealPrimary
-                            )
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
-                    )
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // FILTROS INTERACTIVOS CONECTADOS
-                    CategoryFilters(
-                        filtroActual = filtroSeleccionado,
-                        onFiltroChange = { nuevoFiltro -> filtroSeleccionado = nuevoFiltro }
-                    )
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    Text(
-                        text = "Causas destacadas",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mostrar tarjetas dinámicamente según el filtro seleccionado
-                    if (filtroSeleccionado == "Todos" || filtroSeleccionado == "Voluntariado" || filtroSeleccionado == "Eventos") {
-                        CauseCard(
-                            imageRes = R.drawable.reforestacionurbana, // Cambia por tu imagen en drawable
-                            category = "MEDIO AMBIENTE",
-                            title = "Reforestación Familiar",
-                            organization = "Asociación Bosque Vivo",
-                            description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente oportunidad para contribuir en familia.",
-                            progressLabel = "Progreso de voluntarios",
-                            progress = 0.80f,
-                            progressText = "80%",
-                            buttonText = "Unirse como Familia",
-                            onButtonClick = onCampaniaClick // <-- Conectado al botón
+                        Text(
+                            text = "¡Hola, $nombreUsuario!",
+                            fontSize = 28.sp,
+                            lineHeight = 34.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TealPrimary
                         )
-                        Spacer(modifier = Modifier.height(18.dp))
-                    }
 
-                    if (filtroSeleccionado == "Todos" || filtroSeleccionado == "Donaciones" || filtroSeleccionado == "Talleres") {
-                        CauseCard(
-                            imageRes = R.drawable.utilesescolares, // Cambia por tu otra imagen en drawable
-                            category = "EDUCACIÓN",
-                            title = "Apoyo Escolar en el Barrio",
-                            organization = "Fundación Aprender Juntos",
-                            description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a apoyar a estudiantes.",
-                            progressLabel = "Meta de donaciones",
-                            progress = 0.45f,
-                            progressText = "45%",
-                            buttonText = "Ver detalles",
-                            onButtonClick = onCampaniaClick // <-- Conectado al botón
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "\"La familia es el primer núcleo de solidaridad y servicio.\"",
+                            fontSize = 14.sp,
+                            lineHeight = 21.sp,
+                            color = TextSecondary
                         )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        ImpactCard()
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        OutlinedTextField(
+                            value = searchText,
+                            onValueChange = { searchText = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            placeholder = {
+                                Text(text = "Buscar causas, asociaciones...")
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar",
+                                    tint = TealPrimary
+                                )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp)
+                        )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        // FILTROS INTERACTIVOS CONECTADOS
+                        CategoryFilters(
+                            filtroActual = filtroSeleccionado,
+                            onFiltroChange = { nuevoFiltro -> filtroSeleccionado = nuevoFiltro }
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        Text(
+                            text = "Causas destacadas",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Mostrar tarjetas dinámicamente según el filtro seleccionado
+                        if (filtroSeleccionado == "Todos" || filtroSeleccionado == "Voluntariado" || filtroSeleccionado == "Eventos") {
+                            CauseCard(
+                                imageRes = R.drawable.reforestacionurbana, // Cambia por tu imagen en drawable
+                                category = "MEDIO AMBIENTE",
+                                title = "Reforestación Familiar",
+                                organization = "Asociación Bosque Vivo",
+                                description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente oportunidad para contribuir en familia.",
+                                progressLabel = "Progreso de voluntarios",
+                                progress = 0.80f,
+                                progressText = "80%",
+                                buttonText = "Unirse como Familia",
+                                onButtonClick = onCampaniaClick // <-- Conectado al botón
+                            )
+                            Spacer(modifier = Modifier.height(18.dp))
+                        }
+
+                        if (filtroSeleccionado == "Todos" || filtroSeleccionado == "Donaciones" || filtroSeleccionado == "Talleres") {
+                            CauseCard(
+                                imageRes = R.drawable.utilesescolares, // Cambia por tu otra imagen en drawable
+                                category = "EDUCACIÓN",
+                                title = "Apoyo Escolar en el Barrio",
+                                organization = "Fundación Aprender Juntos",
+                                description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a apoyar a estudiantes.",
+                                progressLabel = "Meta de donaciones",
+                                progress = 0.45f,
+                                progressText = "45%",
+                                buttonText = "Ver detalles",
+                                onButtonClick = onCampaniaClick // <-- Conectado al botón
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
                 }
             }
-        }
 
-        BottomNavigationBar(
-            currentDestination = FamilyDestination.INICIO,
-            mostrarMensajes = mostrarMensajes,
-            onDestinationSelected = { destination ->
-                when (destination) {
-                    FamilyDestination.INICIO -> Unit
-                    FamilyDestination.EXPLORAR -> onExplorarClick()
-                    FamilyDestination.ACTIVIDADES -> onActividadesClick()
-                    FamilyDestination.MENSAJES -> onMensajesClick()
-                    FamilyDestination.PERFIL -> onPerfilClick()
+            BottomNavigationBar(
+                currentDestination = FamilyDestination.INICIO,
+                mostrarMensajes = mostrarMensajes,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        FamilyDestination.INICIO -> Unit
+                        FamilyDestination.EXPLORAR -> onExplorarClick()
+                        FamilyDestination.ACTIVIDADES -> onActividadesClick()
+                        FamilyDestination.MENSAJES -> onMensajesClick()
+                        FamilyDestination.PERFIL -> onPerfilClick()
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
 

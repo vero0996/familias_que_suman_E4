@@ -2,6 +2,7 @@ package mx.tec.familias.ui.screens.explorar
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,204 +50,206 @@ fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onInscribirseClick: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-    ) {
-
-        // HEADER
-        Row(
+    AdaptiveContainer(modifier = Modifier.background(Background)) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = 16.dp,
-                    vertical = 25.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(Background)
         ) {
-            IconButton(
-                onClick = onBackClick
+
+            // HEADER
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 16.dp,
+                        vertical = 25.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = TealPrimary
+                IconButton(
+                    onClick = onBackClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar",
+                        tint = TealPrimary
+                    )
+                }
+
+                Text(
+                    text = "Detalle de actividad",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
                 )
             }
 
-            Text(
-                text = "Detalle de actividad",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = TealPrimary
-            )
-        }
+            // CONTENIDO
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        horizontal = 20.dp
+                    )
+            ) {
 
-        // CONTENIDO
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = 20.dp
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // IMAGEN
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(210.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Divider),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.recorridainvierno), // Nombre de tu foto para esta campaña
+                        contentDescription = "Imagen de la campaña",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(175.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // CATEGORÍA
+                Text(
+                    text = "VOLUNTARIADO",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BrownPrimary
                 )
-        ) {
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-            // IMAGEN
+                // TÍTULO
+                Text(
+                    text = "Plantación de Árboles en El Pardo",
+                    fontSize = 28.sp,
+                    lineHeight = 34.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // ORGANIZACIÓN
+                Text(
+                    text = "Asociación Bosque Vivo",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TealDark
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // SOBRE LA ACTIVIDAD
+                Text(
+                    text = "Sobre esta actividad",
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Únete con tu familia a una jornada de reforestación en El Pardo. Plantaremos árboles nativos y aprenderemos sobre la importancia de cuidar y conservar nuestros espacios naturales.",
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                    color = TextSecondary
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // INFORMACIÓN
+                Text(
+                    text = "Información de la actividad",
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                ActivityInfoCard(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            tint = TealPrimary
+                        )
+                    },
+                    title = "Fecha y hora",
+                    value = "Sábado 24 de mayo · 9:00 AM"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                ActivityInfoCard(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = TealPrimary
+                        )
+                    },
+                    title = "Lugar",
+                    value = "Parque El Pardo"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                ActivityInfoCard(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.People,
+                            contentDescription = null,
+                            tint = TealPrimary
+                        )
+                    },
+                    title = "Participación",
+                    value = "5 familias inscritas"
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+            }
+
+            // BOTÓN FIJO
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(210.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Divider),
-                contentAlignment = Alignment.Center
+                    .background(Surface)
+                    .padding(
+                        horizontal = 20.dp,
+                        vertical = 16.dp
+                    )
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.recorridainvierno), // Nombre de tu foto para esta campaña
-                    contentDescription = "Imagen de la campaña",
-                    contentScale = ContentScale.Crop,
+                Button(
+                    onClick = onInscribirseClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(175.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // CATEGORÍA
-            Text(
-                text = "VOLUNTARIADO",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = BrownPrimary
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // TÍTULO
-            Text(
-                text = "Plantación de Árboles en El Pardo",
-                fontSize = 28.sp,
-                lineHeight = 34.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // ORGANIZACIÓN
-            Text(
-                text = "Asociación Bosque Vivo",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TealDark
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // SOBRE LA ACTIVIDAD
-            Text(
-                text = "Sobre esta actividad",
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Únete con tu familia a una jornada de reforestación en El Pardo. Plantaremos árboles nativos y aprenderemos sobre la importancia de cuidar y conservar nuestros espacios naturales.",
-                fontSize = 14.sp,
-                lineHeight = 21.sp,
-                color = TextSecondary
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // INFORMACIÓN
-            Text(
-                text = "Información de la actividad",
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            ActivityInfoCard(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = TealPrimary
+                        .height(50.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TealPrimary
                     )
-                },
-                title = "Fecha y hora",
-                value = "Sábado 24 de mayo · 9:00 AM"
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            ActivityInfoCard(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = TealPrimary
+                ) {
+                    Text(
+                        text = "Inscribirme como Familia",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                },
-                title = "Lugar",
-                value = "Parque El Pardo"
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            ActivityInfoCard(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.People,
-                        contentDescription = null,
-                        tint = TealPrimary
-                    )
-                },
-                title = "Participación",
-                value = "5 familias inscritas"
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-        }
-
-        // BOTÓN FIJO
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Surface)
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 16.dp
-                )
-        ) {
-            Button(
-                onClick = onInscribirseClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary
-                )
-            ) {
-                Text(
-                    text = "Inscribirme como Familia",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                }
             }
         }
     }

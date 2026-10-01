@@ -1,6 +1,7 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
 import androidx.compose.foundation.Image
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -104,44 +105,46 @@ fun MisCampaniasScreen(
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
+        AdaptiveContainer {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // ================= PRIMERA TARJETA =================
-            CampaignManagementCard(
-                titulo = "Colecta de Invierno 2026",
-                fecha = "15 de Octubre, 2026",
-                hora = "10:00 AM - 4:00 PM",
-                cuposOcupados = 35,
-                cuposTotales = 50,
-                estado = "Activa",
-                imagenId = R.drawable.recorridainvierno, // <-- CAMBIA 'campania1' por el nombre de tu foto en drawable
-                onEditarClick = onEditarCampaniaClick,
-                onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
-                onReutilizarClick = onReutilizarCampaniaClick
-            )
+                // ================= PRIMERA TARJETA =================
+                CampaignManagementCard(
+                    titulo = "Colecta de Invierno 2026",
+                    fecha = "15 de Octubre, 2026",
+                    hora = "10:00 AM - 4:00 PM",
+                    cuposOcupados = 35,
+                    cuposTotales = 50,
+                    estado = "Activa",
+                    imagenId = R.drawable.recorridainvierno, // <-- CAMBIA 'campania1' por el nombre de tu foto en drawable
+                    onEditarClick = onEditarCampaniaClick,
+                    onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
+                    onReutilizarClick = onReutilizarCampaniaClick
+                )
 
-            // ================= SEGUNDA TARJETA =================
-            CampaignManagementCard(
-                titulo = "Reforestación Comunitaria",
-                fecha = "22 de Octubre, 2026",
-                hora = "9:00 AM - 1:00 PM",
-                cuposOcupados = 20,
-                cuposTotales = 30,
-                estado = "Próxima",
-                imagenId = R.drawable.reforestacionurbana, // <-- CAMBIA 'campania2' por tu otra foto en drawable
-                onEditarClick = onEditarCampaniaClick,
-                onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
-                onReutilizarClick = onReutilizarCampaniaClick
-            )
+                // ================= SEGUNDA TARJETA =================
+                CampaignManagementCard(
+                    titulo = "Reforestación Comunitaria",
+                    fecha = "22 de Octubre, 2026",
+                    hora = "9:00 AM - 1:00 PM",
+                    cuposOcupados = 20,
+                    cuposTotales = 30,
+                    estado = "Próxima",
+                    imagenId = R.drawable.reforestacionurbana, // <-- CAMBIA 'campania2' por tu otra foto en drawable
+                    onEditarClick = onEditarCampaniaClick,
+                    onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
+                    onReutilizarClick = onReutilizarCampaniaClick
+                )
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
     }
 }

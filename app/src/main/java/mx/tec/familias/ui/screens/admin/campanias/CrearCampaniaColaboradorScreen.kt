@@ -1,6 +1,7 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
 import androidx.compose.foundation.BorderStroke
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -227,89 +228,91 @@ fun CrearCampaniaColaborativaScreen(
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
+        AdaptiveContainer {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // Texto descriptivo superior
-            Text(
-                text = "Colaborar con otra asociación permite combinar recursos y trabajar juntos en una misma iniciativa.",
-                color = TextSecondary,
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
+                // Texto descriptivo superior
+                Text(
+                    text = "Colaborar con otra asociación permite combinar recursos y trabajar juntos en una misma iniciativa.",
+                    color = TextSecondary,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // Buscador
-            OutlinedTextField(
-                value = buscador,
-                onValueChange = { buscador = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "Buscar una asociación",
-                        color = Divider
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Buscar",
-                        tint = TextSecondary
-                    )
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Divider,
-                    focusedBorderColor = TealPrimary
-                ),
-                singleLine = true
-            )
+                // Buscador
+                OutlinedTextField(
+                    value = buscador,
+                    onValueChange = { buscador = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            "Buscar una asociación",
+                            color = Divider
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Buscar",
+                            tint = TextSecondary
+                        )
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Divider,
+                        focusedBorderColor = TealPrimary
+                    ),
+                    singleLine = true
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                "SUGERENCIAS PARA TI",
-                color = TextSecondary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+                Text(
+                    "SUGERENCIAS PARA TI",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // Lista de Tarjetas usando nuestro componente
-            AsociacionCard(
-                nombre = "Asociación EcoVerde",
-                descripcion = "Especialistas en...",
-                ubicacion = "Madrid Centro",
-                estadoInvitada = ecoVerdeInvitada,
-                logoId = R.drawable.eco,
-                onInvitarClick = {
-                    ecoVerdeInvitada = !ecoVerdeInvitada
-                }
-            )
+                // Lista de Tarjetas usando nuestro componente
+                AsociacionCard(
+                    nombre = "Asociación EcoVerde",
+                    descripcion = "Especialistas en...",
+                    ubicacion = "Madrid Centro",
+                    estadoInvitada = ecoVerdeInvitada,
+                    logoId = R.drawable.eco,
+                    onInvitarClick = {
+                        ecoVerdeInvitada = !ecoVerdeInvitada
+                    }
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            AsociacionCard(
-                nombre = "Red Solidaria",
-                descripcion = "Apoyo vecinal y logística...",
-                ubicacion = "Vallecas, Madrid",
-                estadoInvitada = redSolidariaInvitada,
-                logoId = R.drawable.manosunidas,
-                onInvitarClick = {
-                    redSolidariaInvitada = !redSolidariaInvitada
-                }
-            )
+                AsociacionCard(
+                    nombre = "Red Solidaria",
+                    descripcion = "Apoyo vecinal y logística...",
+                    ubicacion = "Vallecas, Madrid",
+                    estadoInvitada = redSolidariaInvitada,
+                    logoId = R.drawable.manosunidas,
+                    onInvitarClick = {
+                        redSolidariaInvitada = !redSolidariaInvitada
+                    }
+                )
 
-            // Espacio extra al final para que el scroll no quede oculto detrás de la barra pegajosa
-            Spacer(modifier = Modifier.height(40.dp))
+                // Espacio extra al final para que el scroll no quede oculto detrás de la barra pegajosa
+                Spacer(modifier = Modifier.height(40.dp))
+            }
         }
     }
 }

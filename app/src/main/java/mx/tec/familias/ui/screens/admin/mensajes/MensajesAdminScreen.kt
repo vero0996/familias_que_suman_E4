@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -92,53 +93,55 @@ fun MensajesAdminScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-            contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
-        ) {
-            item {
-                val titulo1 = "Coleta de útiles esc..."
-                MensajeCard(
-                    titulo = titulo1,
-                    remitente = "Fundación Aprender Juntos",
-                    mensaje = "¡Hola! No olviden traer las m...",
-                    hora = "10:30",
-                    noLeidos = 1,
-                    esAnuncio = true,
-                    imagenId = R.drawable.utilesescolares,
-                    onClick = { onChatClick(titulo1, R.drawable.utilesescolares) } // <-- CAMBIO 2: Pasamos el título de este chat
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            item {
-                val titulo2 = "Apoyo al comedor comun..."
-                MensajeCard(
-                    titulo = titulo2,
-                    remitente = "Red Solidaria",
-                    mensaje = "Se ha confirmado el punto de encuentro.",
-                    hora = "Ayer",
-                    noLeidos = 0,
-                    esAnuncio = false,
-                    imagenId = R.drawable.comedorcomunitario,
-                    onClick = { onChatClick(titulo2, R.drawable.comedorcomunitario) } // <-- CAMBIO 2: Pasamos el título de este chat
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            item {
-                val titulo3 = "Jornada familiar de volur..."
-                MensajeCard(
-                    titulo = titulo3,
-                    remitente = "Asociación EcoVerde",
-                    mensaje = "Gracias por participar en la reforestación.",
-                    hora = "Lunes",
-                    noLeidos = 0,
-                    esAnuncio = false,
-                    imagenId = R.drawable.eco,
-                    onClick = { onChatClick(titulo3, R.drawable.eco) } // <-- CAMBIO 2: Pasamos el título de este chat
-                )
+        AdaptiveContainer {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp),
+                contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
+            ) {
+                item {
+                    val titulo1 = "Coleta de útiles esc..."
+                    MensajeCard(
+                        titulo = titulo1,
+                        remitente = "Fundación Aprender Juntos",
+                        mensaje = "¡Hola! No olviden traer las m...",
+                        hora = "10:30",
+                        noLeidos = 1,
+                        esAnuncio = true,
+                        imagenId = R.drawable.utilesescolares,
+                        onClick = { onChatClick(titulo1, R.drawable.utilesescolares) } // <-- CAMBIO 2: Pasamos el título de este chat
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                item {
+                    val titulo2 = "Apoyo al comedor comun..."
+                    MensajeCard(
+                        titulo = titulo2,
+                        remitente = "Red Solidaria",
+                        mensaje = "Se ha confirmado el punto de encuentro.",
+                        hora = "Ayer",
+                        noLeidos = 0,
+                        esAnuncio = false,
+                        imagenId = R.drawable.comedorcomunitario,
+                        onClick = { onChatClick(titulo2, R.drawable.comedorcomunitario) } // <-- CAMBIO 2: Pasamos el título de este chat
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                item {
+                    val titulo3 = "Jornada familiar de volur..."
+                    MensajeCard(
+                        titulo = titulo3,
+                        remitente = "Asociación EcoVerde",
+                        mensaje = "Gracias por participar en la reforestación.",
+                        hora = "Lunes",
+                        noLeidos = 0,
+                        esAnuncio = false,
+                        imagenId = R.drawable.eco,
+                        onClick = { onChatClick(titulo3, R.drawable.eco) } // <-- CAMBIO 2: Pasamos el título de este chat
+                    )
+                }
             }
         }
     }
