@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,12 +29,14 @@ fun CampaignManagementCard(
     titulo: String,
     fecha: String,
     hora: String,
-    cuposOcupados: Int,
-    cuposTotales: Int,
+    inscritos: Int,
+    meta: Int,
     estado: String,
-    imagenId: Int // Nuevo parámetro para la foto
+    onEditarClick: () -> Unit = {},
+    onMensajesClick: () -> Unit = {},
+    onReutilizarClick: () -> Unit = {}
 ) {
-    val progreso = cuposOcupados.toFloat() / cuposTotales.toFloat()
+    val progreso = if (meta > 0) inscritos.toFloat() / meta.toFloat() else 0f
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
@@ -43,28 +44,28 @@ fun CampaignManagementCard(
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
     ) {
         Column {
-            // 1. Imagen que abarca todo el ancho arriba
             Image(
-                painter = painterResource(id = imagenId),
+                painter = painterResource(id = R.drawable.icon),
                 contentDescription = "Portada de campaña",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp) // Altura de la foto según Figma
+                    .height(140.dp)
             )
 
-            // 2. Contenido de texto e iconos
             Column(modifier = Modifier.padding(16.dp)) {
-
-                // Título y Chip de estado
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = titulo, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = TealPrimary)
-
-                    // Chip de "Activa" con fondo verde clarito
+                    Text(
+                        text = titulo,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = TealPrimary,
+                        modifier = Modifier.weight(1f)
+                    )
                     Box(
                         modifier = Modifier
                             .background(TealLight.copy(alpha = 0.2f), RoundedCornerShape(9999.dp))
@@ -76,7 +77,6 @@ fun CampaignManagementCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Fecha
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.CalendarToday, contentDescription = null, modifier = Modifier.size(16.dp), tint = TextSecondary)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -85,7 +85,6 @@ fun CampaignManagementCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Hora
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(16.dp), tint = TextSecondary)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -94,14 +93,14 @@ fun CampaignManagementCard(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Barra de progreso de cupos
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
                 ) {
-                    Text(text = "Cupos ocupados", fontSize = 12.sp, color = TextSecondary)
-                    Text(text = cuposOcupados.toString() + "/" + cuposTotales.toString(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "Familias inscritas", fontSize = 12.sp, color = TextSecondary)
+                    Text(text = inscritos.toString() + " / " + meta.toString(), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 }
+
                 LinearProgressIndicator(
                     progress = { progreso },
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(9999.dp)),
@@ -109,38 +108,33 @@ fun CampaignManagementCard(
                     trackColor = Divider
                 )
 
-                // Línea separadora delgada
                 Divider(modifier = Modifier.padding(vertical = 16.dp), color = Divider)
 
-                // Botones redondos de acción
                 Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Botón Editar
                     IconButton(
-                        onClick = { },
+                        onClick = onEditarClick,
                         modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar", tint = TealPrimary, modifier = Modifier.size(20.dp))
                     }
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Botón Participantes
                     IconButton(
-                        onClick = { },
+                        onClick = onMensajesClick,
                         modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
                     ) {
                         Icon(Icons.Default.Group, contentDescription = "Participantes", tint = TealPrimary, modifier = Modifier.size(20.dp))
                     }
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Botón Actualizar/Reciclar
                     IconButton(
-                        onClick = { },
+                        onClick = onReutilizarClick,
                         modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = TealPrimary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Refresh, contentDescription = "Reutilizar", tint = TealPrimary, modifier = Modifier.size(20.dp))
                     }
                 }
             }

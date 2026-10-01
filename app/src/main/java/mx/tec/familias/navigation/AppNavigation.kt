@@ -24,20 +24,22 @@ import mx.tec.familias.ui.screens.perfil.PerfilScreen
 import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
 import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
+import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
+
 
 import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
-import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
 import mx.tec.familias.ui.screens.admin.campanias.CrearCampaniaColaborativaScreen
 import mx.tec.familias.ui.screens.admin.campanias.ReutilizarCampaniaScreen
 import mx.tec.familias.ui.screens.admin.campanias.VistaPreviaCampaniaScreen
 import mx.tec.familias.ui.screens.admin.mensajes.MensajesAdminScreen
 import mx.tec.familias.ui.screens.admin.configuracion.ConfiguracionAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.GestionMensajesCampaniaScreen
-import mx.tec.familias.ui.screens.mensajes.ChatScreen
 
+// Se eliminó ChatScreen porque tu compañero lo reemplazó por estos:
 import mx.tec.familias.ui.screens.mensajes.MensajesScreen
 import mx.tec.familias.ui.screens.mensajes.ChatMessages
 import mx.tec.familias.ui.screens.mensajes.Conversacion
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -91,7 +93,13 @@ fun AppNavigation() {
                 },
 
                 onMensajesClick = {
-                    navController.navigate(Routes.Mensajes.route)
+                    // Validar inicio de sesión para Mensajes
+                    if (familyViewModel.usuario.value == null) {
+                        rutaDespuesDeRegistro = Routes.Mensajes.route
+                        navController.navigate(Routes.Registro.route)
+                    } else {
+                        navController.navigate(Routes.Mensajes.route)
+                    }
                 },
 
                 mostrarMensajes = familyViewModel.usuario.value != null,
@@ -106,7 +114,6 @@ fun AppNavigation() {
                 }
             )
         }
-
         composable(Routes.Registro.route) {
             RegistroScreen(
                 viewModel = familyViewModel,
@@ -144,27 +151,25 @@ fun AppNavigation() {
                 },
 
                 onActividadesClick = {
-                    navController.navigate(
-                        Routes.Actividades.route
-                    )
+                    navController.navigate(Routes.Actividades.route)
                 },
 
                 onMensajesClick = {
-                    navController.navigate(
-                        Routes.Mensajes.route
-                    )
+                    // Validar inicio de sesión para Mensajes
+                    if (familyViewModel.usuario.value == null) {
+                        rutaDespuesDeRegistro = Routes.Mensajes.route
+                        navController.navigate(Routes.Registro.route)
+                    } else {
+                        navController.navigate(Routes.Mensajes.route)
+                    }
                 },
 
                 onCampaniaClick = {
-                    navController.navigate(
-                        Routes.DetalleCampania.route
-                    )
+                    navController.navigate(Routes.DetalleCampania.route)
                 },
 
                 onActividadClick = {
-                    navController.navigate(
-                        Routes.DetalleActividad.route
-                    )
+                    navController.navigate(Routes.DetalleActividad.route)
                 },
 
                 onPerfilClick = {
@@ -248,23 +253,18 @@ fun AppNavigation() {
                                 popUpTo(Routes.Inicio.route) { inclusive = true }
                             }
                         },
-
                         onExplorarClick = {
                             navController.navigate(Routes.Explorar.route)
                         },
-
                         onMensajesClick = {
                             navController.navigate(Routes.Mensajes.route)
                         },
-
                         onPerfilClick = {
                             navController.navigate(Routes.Perfil.route)
                         },
-
                         onCalendarioClick = {
                             mostrarMisActividades = false
                         },
-
                         mostrarMensajes = familyViewModel.usuario.value != null
                     )
                 } else {
@@ -274,29 +274,21 @@ fun AppNavigation() {
                                 popUpTo(Routes.Inicio.route) { inclusive = true }
                             }
                         },
-
                         onExplorarClick = {
                             navController.navigate(Routes.Explorar.route)
                         },
-
                         onMensajesClick = {
                             navController.navigate(Routes.Mensajes.route)
                         },
-
                         onPerfilClick = {
                             navController.navigate(Routes.Perfil.route)
                         },
-
                         onActividadClick = {
-                            navController.navigate(
-                                Routes.DetalleActividad.route
-                            )
+                            navController.navigate(Routes.DetalleActividad.route)
                         },
-
                         onMisActividadesClick = {
                             mostrarMisActividades = true
                         },
-
                         mostrarMensajes = familyViewModel.usuario.value != null
                     )
                 }
@@ -304,9 +296,7 @@ fun AppNavigation() {
         }
 
         composable(Routes.Mensajes.route) {
-
             MensajesScreen(
-
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) {
@@ -314,39 +304,31 @@ fun AppNavigation() {
                         }
                     }
                 },
-
                 onExplorarClick = {
                     navController.navigate(Routes.Explorar.route)
                 },
-
                 onActividadesClick = {
                     navController.navigate(Routes.Actividades.route)
                 },
-
                 onPerfilClick = {
                     navController.navigate(Routes.Perfil.route)
                 },
-
                 onConversacionClick = { conversacion ->
-
                     navController.currentBackStackEntry
                         ?.savedStateHandle
                         ?.set("conversacion", conversacion)
-
                     navController.navigate(Routes.ChatMessages.route)
                 }
             )
         }
 
         composable(Routes.ChatMessages.route) {
-
-            val conversacion =
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.get<Conversacion>("conversacion")
+            // CORRECCIÓN: Se fuerza el tipo de dato (as? Conversacion) para que Android Studio no marque error.
+            val conversacion = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get("conversacion") as? Conversacion
 
             if (conversacion != null) {
-
                 ChatMessages(
                     conversacion = conversacion,
                     onBackClick = {
@@ -366,8 +348,13 @@ fun AppNavigation() {
                 },
                 onExplorarClick = { navController.navigate(Routes.Explorar.route) },
                 onActividadesClick = { navController.navigate(Routes.Actividades.route) },
-                onMensajesClick = { navController.navigate(Routes.Mensajes.route) },
-                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) }
+                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
+                // CORRECCIÓN: Se regresó al nombre de parámetro que usó tu compañero.
+                onCambiarRolClick = {
+                    navController.navigate(Routes.SelectorRol.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -474,9 +461,8 @@ fun AppNavigation() {
         }
 
         composable(Routes.ChatAdmin.route) {
-            ChatScreen(
-                onBackClick = { navController.popBackStack() }
-            )
+            // CORRECCIÓN: Como tu compañero borró ChatScreen, dejamos este espacio
+            // protegido para que no truene si le pican, o en el futuro conecten el chat del admin.
         }
 
         composable(Routes.ConfiguracionAdmin.route) {

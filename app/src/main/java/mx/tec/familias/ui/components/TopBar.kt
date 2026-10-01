@@ -1,35 +1,104 @@
 package mx.tec.familias.ui.components
 
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import mx.tec.familias.R
+import mx.tec.familias.ui.theme.TealPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
+    onProfileClick: (() -> Unit)? = null,
+    showProfile: Boolean = true,
+    title: String = "Familias que Suman +"
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Opción: Dejar un icono de menú genérico si en el futuro se quiere añadir un Navigation Drawer
+        Icon(
+            imageVector = Icons.Default.Menu,
+            contentDescription = "Menú",
+            tint = TealPrimary,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = TealPrimary,
+            modifier = Modifier.weight(1f).padding(horizontal = 16.dp)
+        )
+
+        if (showProfile && onProfileClick != null) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(TealPrimary)
+                    .clickable { onProfileClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.size(40.dp)) // Para mantener el balance
+        }
+    }
+}
+
+// TopBar para las pantallas del Administrador, que mantienen el diseño de Dashboard
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminTopBar(
     title: String,
-    showBackButton: Boolean = false,
-    onBackClick: (() -> Unit)? = null,
-    showProfile: Boolean = false,
     onProfileClick: (() -> Unit)? = null
 ) {
-    TopAppBar(
-        title = { Text(text = title) },
+    CenterAlignedTopAppBar(
+        title = {
+            Text(title, color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        },
         navigationIcon = {
-            if (showBackButton && onBackClick != null) {
-                TextButton(onClick = onBackClick) {
-                    Text(text = "←")
-                }
+            if (onProfileClick != null) {
+                Image(
+                    painter = painterResource(id = R.drawable.icon), // Puede ser el logo de la Asoc.
+                    contentDescription = "Perfil",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .padding(start = 20.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable { onProfileClick() }
+                )
             }
         },
-        actions = {
-            if (showProfile && onProfileClick != null) {
-                TextButton(onClick = onProfileClick) {
-                    Text(text = "Perfil")
-                }
-            }
-        }
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
     )
 }
