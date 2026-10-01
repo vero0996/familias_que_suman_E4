@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.admin.configuracion
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +26,10 @@ fun ConfiguracionAdminScreen(
 ) {
     var notificaciones by remember { mutableStateOf(true) }
     var recordatorios by remember { mutableStateOf(true) }
+
+    // Estado para controlar la ventana emergente de "Acerca de"
+    var mostrarAcercaDeAdmin by remember { mutableStateOf(false) }
+    var mostrarProximamente by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Background,
@@ -94,14 +99,16 @@ fun ConfiguracionAdminScreen(
 
             ConfiguracionFila(
                 icono = Icons.Default.Person,
-                titulo = "Editar perfil"
+                titulo = "Editar perfil",
+                onClick = { mostrarProximamente = true }
             )
 
             Divider(color = Divider)
 
             ConfiguracionFila(
                 icono = Icons.Default.Lock,
-                titulo = "Seguridad"
+                titulo = "Seguridad",
+                onClick = { mostrarProximamente = true }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -137,9 +144,7 @@ fun ConfiguracionAdminScreen(
 
                 Switch(
                     checked = notificaciones,
-                    onCheckedChange = {
-                        notificaciones = it
-                    }
+                    onCheckedChange = { notificaciones = it }
                 )
             }
 
@@ -167,9 +172,7 @@ fun ConfiguracionAdminScreen(
 
                 Switch(
                     checked = recordatorios,
-                    onCheckedChange = {
-                        recordatorios = it
-                    }
+                    onCheckedChange = { recordatorios = it }
                 )
             }
 
@@ -186,14 +189,17 @@ fun ConfiguracionAdminScreen(
 
             ConfiguracionFila(
                 icono = Icons.Default.Help,
-                titulo = "Centro de ayuda"
+                titulo = "Centro de ayuda",
+                onClick = { mostrarProximamente = true }
             )
 
             Divider(color = Divider)
 
+            // AQUÍ ESTÁ EL BOTÓN DE "Acerca de" CONECTADO
             ConfiguracionFila(
                 icono = Icons.Default.Info,
-                titulo = "Acerca de"
+                titulo = "Acerca de",
+                onClick = { mostrarAcercaDeAdmin = true }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -222,17 +228,73 @@ fun ConfiguracionAdminScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+
+        // VENTANA EMERGENTE (DIALOG) PARA "ACERCA DE" (SOCIO FORMADOR)
+        if (mostrarAcercaDeAdmin) {
+            AlertDialog(
+                onDismissRequest = { mostrarAcercaDeAdmin = false },
+                title = {
+                    Text(
+                        text = "Familias que Suman +",
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Somos una organización socio formadora aliada con el Tecnológico de Monterrey, dedicada a fomentar el voluntariado, la participación ciudadana y la solidaridad desde el núcleo familiar, conectando activamente a las familias con causas de impacto social en nuestra comunidad.",
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { mostrarAcercaDeAdmin = false }) {
+                        Text("Cerrar", color = TealPrimary, fontWeight = FontWeight.Bold)
+                    }
+                },
+                containerColor = Surface
+            )
+        }
+
+        // VENTANA EMERGENTE PARA FUNCIONES PRÓXIMAS (Editar perfil / Seguridad)
+        if (mostrarProximamente) {
+            AlertDialog(
+                onDismissRequest = { mostrarProximamente = false },
+                title = {
+                    Text(
+                        text = "Próximamente",
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Esta función de administración estará disponible en la siguiente actualización del prototipo.",
+                        color = TextPrimary
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { mostrarProximamente = false }) {
+                        Text("Entendido", color = TealPrimary, fontWeight = FontWeight.Bold)
+                    }
+                },
+                containerColor = Surface
+            )
+        }
     }
 }
 
 @Composable
 fun ConfiguracionFila(
     icono: androidx.compose.ui.graphics.vector.ImageVector,
-    titulo: String
+    titulo: String,
+    onClick: () -> Unit // <-- Añadido el parámetro de clic
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() } // <-- Hace que toda la fila sea interactiva
             .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

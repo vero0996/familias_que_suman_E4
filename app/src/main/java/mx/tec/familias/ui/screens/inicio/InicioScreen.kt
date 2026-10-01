@@ -1,20 +1,9 @@
 package mx.tec.familias.ui.screens.inicio
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import mx.tec.familias.R
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,28 +12,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import mx.tec.familias.R
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.theme.Background
@@ -65,12 +44,13 @@ fun InicioScreen(
     onActividadesClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     mostrarMensajes: Boolean = false,
-    onPerfilClick: () -> Unit = {}
+    onPerfilClick: () -> Unit = {},
+    onCampaniaClick: () -> Unit = {} // <-- Acción para abrir el detalle de campaña / unirse
 ) {
+    var searchText by remember { mutableStateOf("") }
 
-    var searchText by remember {
-        mutableStateOf("")
-    }
+    // Estado para los filtros de categorías interactivos
+    var filtroSeleccionado by remember { mutableStateOf("Todos") }
 
     Column(
         modifier = Modifier
@@ -82,7 +62,6 @@ fun InicioScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-
             contentPadding = PaddingValues(
                 top = 50.dp,
                 bottom = 32.dp
@@ -96,16 +75,12 @@ fun InicioScreen(
             }
 
             item {
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                 ) {
-
-                    Spacer(
-                        modifier = Modifier.height(20.dp)
-                    )
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     Text(
                         text = "¡Hola, $nombreUsuario!",
@@ -115,9 +90,7 @@ fun InicioScreen(
                         color = TealPrimary
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(8.dp)
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = "\"La familia es el primer núcleo de solidaridad y servicio.\"",
@@ -126,31 +99,21 @@ fun InicioScreen(
                         color = TextSecondary
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(24.dp)
-                    )
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     ImpactCard()
 
-                    Spacer(
-                        modifier = Modifier.height(24.dp)
-                    )
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     OutlinedTextField(
                         value = searchText,
-                        onValueChange = {
-                            searchText = it
-                        },
+                        onValueChange = { searchText = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-
                         placeholder = {
-                            Text(
-                                text = "Buscar causas, asociaciones..."
-                            )
+                            Text(text = "Buscar causas, asociaciones...")
                         },
-
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
@@ -158,21 +121,19 @@ fun InicioScreen(
                                 tint = TealPrimary
                             )
                         },
-
                         singleLine = true,
-
                         shape = RoundedCornerShape(14.dp)
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(16.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // FILTROS INTERACTIVOS CONECTADOS
+                    CategoryFilters(
+                        filtroActual = filtroSeleccionado,
+                        onFiltroChange = { nuevoFiltro -> filtroSeleccionado = nuevoFiltro }
                     )
 
-                    CategoryFilters()
-
-                    Spacer(
-                        modifier = Modifier.height(28.dp)
-                    )
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     Text(
                         text = "Causas destacadas",
@@ -182,68 +143,54 @@ fun InicioScreen(
                         color = TextPrimary
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(16.dp)
-                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    CauseCard(
-                        imageRes = R.drawable.reforestacionurbana, // <-- Pon aquí el nombre de tu foto en drawable
-                        category = "MEDIO AMBIENTE",
-                        title = "Reforestación Familiar",
-                        organization = "Asociación Bosque Vivo",
-                        description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente oportunidad para contribuir en familia.",
-                        progressLabel = "Progreso de voluntarios",
-                        progress = 0.80f,
-                        progressText = "80%",
-                        buttonText = "Unirse como Familia"
-                    )
+                    // Mostrar tarjetas dinámicamente según el filtro seleccionado
+                    if (filtroSeleccionado == "Todos" || filtroSeleccionado == "Voluntariado" || filtroSeleccionado == "Eventos") {
+                        CauseCard(
+                            imageRes = R.drawable.reforestacionurbana, // Cambia por tu imagen en drawable
+                            category = "MEDIO AMBIENTE",
+                            title = "Reforestación Familiar",
+                            organization = "Asociación Bosque Vivo",
+                            description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente oportunidad para contribuir en familia.",
+                            progressLabel = "Progreso de voluntarios",
+                            progress = 0.80f,
+                            progressText = "80%",
+                            buttonText = "Unirse como Familia",
+                            onButtonClick = onCampaniaClick // <-- Conectado al botón
+                        )
+                        Spacer(modifier = Modifier.height(18.dp))
+                    }
 
-                    Spacer(
-                        modifier = Modifier.height(18.dp)
-                    )
-
-// Segunda tarjeta (Apoyo Escolar)
-                    CauseCard(
-                        imageRes = R.drawable.utilesescolares, // <-- Pon aquí la otra foto de tu drawable
-                        category = "EDUCACIÓN",
-                        title = "Apoyo Escolar en el Barrio",
-                        organization = "Fundación Aprender Juntos",
-                        description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a apoyar a estudiantes.",
-                        progressLabel = "Meta de donaciones",
-                        progress = 0.45f,
-                        progressText = "45%",
-                        buttonText = "Ver detalles"
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(16.dp)
-                    )
+                    if (filtroSeleccionado == "Todos" || filtroSeleccionado == "Donaciones" || filtroSeleccionado == "Talleres") {
+                        CauseCard(
+                            imageRes = R.drawable.utilesescolares, // Cambia por tu otra imagen en drawable
+                            category = "EDUCACIÓN",
+                            title = "Apoyo Escolar en el Barrio",
+                            organization = "Fundación Aprender Juntos",
+                            description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a apoyar a estudiantes.",
+                            progressLabel = "Meta de donaciones",
+                            progress = 0.45f,
+                            progressText = "45%",
+                            buttonText = "Ver detalles",
+                            onButtonClick = onCampaniaClick // <-- Conectado al botón
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
 
         BottomNavigationBar(
             currentDestination = FamilyDestination.INICIO,
-
             mostrarMensajes = mostrarMensajes,
-
             onDestinationSelected = { destination ->
-
                 when (destination) {
-
                     FamilyDestination.INICIO -> Unit
-
-                    FamilyDestination.EXPLORAR ->
-                        onExplorarClick()
-
-                    FamilyDestination.ACTIVIDADES ->
-                        onActividadesClick()
-
-                    FamilyDestination.MENSAJES ->
-                        onMensajesClick()
-
-                    FamilyDestination.PERFIL ->
-                        onPerfilClick()
+                    FamilyDestination.EXPLORAR -> onExplorarClick()
+                    FamilyDestination.ACTIVIDADES -> onActividadesClick()
+                    FamilyDestination.MENSAJES -> onMensajesClick()
+                    FamilyDestination.PERFIL -> onPerfilClick()
                 }
             }
         )
@@ -251,57 +198,30 @@ fun InicioScreen(
 }
 
 @Composable
-private fun InicioHeader(
-    onProfileClick: () -> Unit
-) {
-
+private fun InicioHeader(onProfileClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = 16.dp,
-                vertical = 12.dp
-            ),
-
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        IconButton(
-            onClick = {}
-        ) {
-
-            Icon(
-                imageVector = Icons.Default.Menu,
-                contentDescription = "Menú",
-                tint = TealPrimary
-            )
+        IconButton(onClick = {}) {
+            Icon(imageVector = Icons.Default.Menu, contentDescription = "Menú", tint = TealPrimary)
         }
 
         Text(
             text = "Familias que Suman +",
-
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 4.dp),
-
+            modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = TealPrimary
         )
 
-        IconButton(
-            onClick = onProfileClick
-        ) {
-
+        IconButton(onClick = onProfileClick) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(TealDark),
-
+                modifier = Modifier.size(40.dp).clip(CircleShape).background(TealDark),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Perfil",
@@ -315,65 +235,38 @@ private fun InicioHeader(
 
 @Composable
 private fun ImpactCard() {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-
         shape = RoundedCornerShape(18.dp),
-
-        colors = CardDefaults.cardColors(
-            containerColor = TealPrimary
-        ),
-
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = TealPrimary),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 18.dp
-                ),
-
+                .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
                     .size(54.dp)
                     .clip(CircleShape)
                     .background(TealDark),
-
                 contentAlignment = Alignment.Center
             ) {
-
-                Text(
-                    text = "♥",
-                    color = Color.White,
-                    fontSize = 23.sp
-                )
+                Text(text = "♥", color = Color.White, fontSize = 23.sp)
             }
 
-            Spacer(
-                modifier = Modifier.width(16.dp)
-            )
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column {
-
                 Text(
                     text = "TU IMPACTO ESTE MES",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = OrangePrimary
                 )
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "3 Causas Apoyadas",
                     fontSize = 18.sp,
@@ -386,91 +279,49 @@ private fun ImpactCard() {
 }
 
 @Composable
-private fun CategoryFilters() {
-
+private fun CategoryFilters(
+    filtroActual: String,
+    onFiltroChange: (String) -> Unit
+) {
     val scrollState = rememberScrollState()
+    val categorias = listOf("Todos", "Voluntariado", "Donaciones", "Eventos", "Talleres")
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(scrollState),
-
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-
-        CategoryChip(
-            text = "Todos",
-            selected = true
-        )
-
-        CategoryChip(
-            text = "Voluntariado",
-            selected = false
-        )
-
-        CategoryChip(
-            text = "Donaciones",
-            selected = false
-        )
-
-        CategoryChip(
-            text = "Eventos",
-            selected = false
-        )
-
-        CategoryChip(
-            text = "Talleres",
-            selected = false
-        )
+        categorias.forEach { categoria ->
+            CategoryChip(
+                text = categoria,
+                selected = filtroActual == categoria,
+                onClick = { onFiltroChange(categoria) }
+            )
+        }
     }
 }
-
 
 @Composable
 private fun CategoryChip(
     text: String,
-    selected: Boolean
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
-
     TextButton(
-        onClick = {},
-
+        onClick = onClick,
         modifier = Modifier.height(38.dp),
-
         shape = RoundedCornerShape(20.dp),
-
-        contentPadding = PaddingValues(
-            horizontal = 16.dp
-        ),
-
+        contentPadding = PaddingValues(horizontal = 16.dp),
         colors = ButtonDefaults.textButtonColors(
-            containerColor =
-                if (selected) {
-                    OrangePrimary
-                } else {
-                    Surface
-                },
-
-            contentColor =
-                if (selected) {
-                    BrownDark
-                } else {
-                    TextSecondary
-                }
+            containerColor = if (selected) OrangePrimary else Surface,
+            contentColor = if (selected) BrownDark else TextSecondary
         )
     ) {
-
         Text(
             text = text,
-
             fontSize = 13.sp,
-
-            fontWeight =
-                if (selected) {
-                    FontWeight.Bold
-                } else {
-                    FontWeight.Normal
-                }
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }
@@ -485,154 +336,64 @@ private fun CauseCard(
     progressLabel: String,
     progress: Float,
     progressText: String,
-    buttonText: String
+    buttonText: String,
+    onButtonClick: () -> Unit // <-- Recibe la acción del botón
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-
         shape = RoundedCornerShape(18.dp),
-
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
 
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            // IMAGEN
-            androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(id = imageRes),
+            // IMAGEN REAL DE LA CAUSA
+            Image(
+                painter = painterResource(id = imageRes),
                 contentDescription = title,
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(175.dp)
             )
 
-            Column(
-                modifier = Modifier.padding(18.dp)
-            ) {
+            Column(modifier = Modifier.padding(18.dp)) {
+                Text(text = category, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = BrownPrimary)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(text = title, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(text = organization, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TealDark)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = description, fontSize = 14.sp, lineHeight = 21.sp, color = TextSecondary)
+                Spacer(modifier = Modifier.height(18.dp))
 
-                // CATEGORÍA
-                Text(
-                    text = category,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BrownPrimary
-                )
-
-                Spacer(
-                    modifier = Modifier.height(6.dp)
-                )
-
-                // TÍTULO
-                Text(
-                    text = title,
-                    fontSize = 20.sp,
-                    lineHeight = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-
-                Spacer(
-                    modifier = Modifier.height(5.dp)
-                )
-
-                // ORGANIZACIÓN
-                Text(
-                    text = organization,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TealDark
-                )
-
-                Spacer(
-                    modifier = Modifier.height(10.dp)
-                )
-
-                // DESCRIPCIÓN
-                Text(
-                    text = description,
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                    color = TextSecondary
-                )
-
-                Spacer(
-                    modifier = Modifier.height(18.dp)
-                )
-
-                // PROGRESO
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-
-                    horizontalArrangement =
-                        Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-
-                    Text(
-                        text = progressLabel,
-                        fontSize = 12.sp,
-                        color = TextSecondary
-                    )
-
-                    Text(
-                        text = progressText,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TealPrimary
-                    )
+                    Text(text = progressLabel, fontSize = 12.sp, color = TextSecondary)
+                    Text(text = progressText, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 }
 
-                Spacer(
-                    modifier = Modifier.height(7.dp)
-                )
+                Spacer(modifier = Modifier.height(7.dp))
 
                 LinearProgressIndicator(
                     progress = { progress },
-
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(
-                            RoundedCornerShape(4.dp)
-                        ),
-
+                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
                     color = TealPrimary,
                     trackColor = Divider
                 )
 
-                Spacer(
-                    modifier = Modifier.height(18.dp)
-                )
+                Spacer(modifier = Modifier.height(18.dp))
 
-                // BOTÓN
+                // BOTÓN CONECTADO
                 Button(
-                    onClick = {},
-
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-
+                    onClick = onButtonClick, // <-- Ejecuta la acción al hacer clic
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(10.dp),
-
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TealPrimary
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
                 ) {
-
-                    Text(
-                        text = buttonText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = buttonText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

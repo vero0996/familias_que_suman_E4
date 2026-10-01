@@ -9,6 +9,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import mx.tec.familias.ui.screens.admin.mensajes.ChatAdminScreen
+import mx.tec.familias.R
 
 import mx.tec.familias.ui.auth.IntegrantesScreen
 import mx.tec.familias.ui.auth.RegistroScreen
@@ -111,7 +113,11 @@ fun AppNavigation() {
                     } else {
                         navController.navigate(Routes.Perfil.route)
                     }
-                }
+                },
+                        onCampaniaClick = {
+                    // Esto abre la pantalla de detalles de la campaña al presionar "Unirse como Familia" o "Ver detalles"
+                    navController.navigate(Routes.DetalleCampania.route)
+                },
             )
         }
         composable(Routes.Registro.route) {
@@ -407,8 +413,10 @@ fun AppNavigation() {
                     }
                 },
                 onNuevaCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
-                onGestionCampaniaClick = { navController.navigate(Routes.GestionMensajesCampania.route) }
-            )
+                onGestionCampaniaClick = { navController.navigate(Routes.GestionMensajesCampania.route) }, // <-- Esto hace que el botón del medio abra los mensajes/chat
+                onEditarCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },   // <-- El lápiz abre la edición
+                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) }
+            )// <-- La flecha abre la reutilización
         }
 
         composable(Routes.CrearCampaniaColaborativa.route) {
@@ -446,14 +454,20 @@ fun AppNavigation() {
                 onCampaniasClick = {
                     navController.navigate(Routes.MisCampanias.route) {
                         popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
                     }
                 },
-                onChatClick = { navController.navigate(Routes.ChatAdmin.route) },
+                onChatClick = { tituloChat, imagenId ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("nombreChat", tituloChat)
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("imagenId", imagenId)
+                    navController.navigate(Routes.ChatAdmin.route)
+                },
                 onConfiguracionClick = {
                     navController.navigate(Routes.ConfiguracionAdmin.route) {
                         popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
                     }
                 },
                 onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) }
@@ -461,9 +475,21 @@ fun AppNavigation() {
         }
 
         composable(Routes.ChatAdmin.route) {
-            // CORRECCIÓN: Como tu compañero borró ChatScreen, dejamos este espacio
-            // protegido para que no truene si le pican, o en el futuro conecten el chat del admin.
+            val nombreChat = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get("nombreChat") ?: "Chat de Asociación"
+
+            val imagenId = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get("imagenId") ?: R.drawable.icon // <-- Recuperamos la foto
+
+            ChatAdminScreen(
+                nombreChat = nombreChat,
+                imagenId = imagenId, // <-- Se la inyectamos a la pantalla del chat
+                onBackClick = { navController.popBackStack() }
+            )
         }
+
 
         composable(Routes.ConfiguracionAdmin.route) {
             ConfiguracionAdminScreen(

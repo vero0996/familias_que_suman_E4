@@ -38,7 +38,9 @@ fun MisCampaniasScreen(
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
     onNuevaCampaniaClick: () -> Unit = {},
-    onGestionCampaniaClick: () -> Unit = {}
+    onGestionCampaniaClick: () -> Unit = {}, // Botón del medio (Mensajes de campaña)
+    onEditarCampaniaClick: () -> Unit = {},   // Botón lápiz (Editar)
+    onReutilizarCampaniaClick: () -> Unit = {} // Botón flecha (Reutilizar)
 ) {
     Scaffold(
         containerColor = Background,
@@ -111,6 +113,7 @@ fun MisCampaniasScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ================= PRIMERA TARJETA =================
             CampaignManagementCard(
                 titulo = "Colecta de Invierno 2026",
                 fecha = "15 de Octubre, 2026",
@@ -118,9 +121,13 @@ fun MisCampaniasScreen(
                 cuposOcupados = 35,
                 cuposTotales = 50,
                 estado = "Activa",
-                onMensajesClick = onGestionCampaniaClick
+                imagenId = R.drawable.recorridainvierno, // <-- CAMBIA 'campania1' por el nombre de tu foto en drawable
+                onEditarClick = onEditarCampaniaClick,
+                onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
+                onReutilizarClick = onReutilizarCampaniaClick
             )
 
+            // ================= SEGUNDA TARJETA =================
             CampaignManagementCard(
                 titulo = "Reforestación Comunitaria",
                 fecha = "22 de Octubre, 2026",
@@ -128,7 +135,10 @@ fun MisCampaniasScreen(
                 cuposOcupados = 20,
                 cuposTotales = 30,
                 estado = "Próxima",
-                onMensajesClick = onGestionCampaniaClick
+                imagenId = R.drawable.reforestacionurbana, // <-- CAMBIA 'campania2' por tu otra foto en drawable
+                onEditarClick = onEditarCampaniaClick,
+                onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
+                onReutilizarClick = onReutilizarCampaniaClick
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -157,7 +167,7 @@ fun CampaignManagementCard(
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
     ) {
         Column {
-            // Imagen de la campaña
+            // Imagen personalizada de la campaña
             Image(
                 painter = painterResource(id = imagenId),
                 contentDescription = "Portada de campaña",
@@ -243,7 +253,7 @@ fun CampaignManagementCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Botón Participantes (Personas -> Mensajes)
+                    // Botón Participantes / Mensajes (Del medio)
                     IconButton(
                         onClick = onMensajesClick,
                         modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
@@ -252,7 +262,7 @@ fun CampaignManagementCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Botón Reutilizar (Flecha girando)
+                    // Botón Reutilizar (Flecha circular)
                     IconButton(
                         onClick = onReutilizarClick,
                         modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)

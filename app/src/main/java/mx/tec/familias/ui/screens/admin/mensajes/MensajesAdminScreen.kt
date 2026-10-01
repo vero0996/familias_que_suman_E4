@@ -29,9 +29,9 @@ import mx.tec.familias.ui.theme.*
 fun MensajesAdminScreen(
     onInicioClick: () -> Unit = {},
     onCampaniasClick: () -> Unit = {},
-    onChatClick: () -> Unit = {},
+    onChatClick: (String, Int) -> Unit = {} as (String, Int) -> Unit, // <-- Recibe el título (String) y la imagen (Int)
     onConfiguracionClick: () -> Unit = {},
-    onPerfilClick: () -> Unit = {}
+    onPerfilClick: () -> Unit = {},
 ) {
     Scaffold(
         containerColor = Background,
@@ -42,7 +42,7 @@ fun MensajesAdminScreen(
                 },
                 navigationIcon = {
                     Image(
-                        painter = painterResource(id = R.drawable.fotoperfil), // Tu foto de perfil
+                        painter = painterResource(id = R.drawable.fotoperfil),
                         contentDescription = "Perfil",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -63,7 +63,6 @@ fun MensajesAdminScreen(
             )
         },
         bottomBar = {
-            // Barra de navegación inferior corregida según tu equipo
             NavigationBar(containerColor = Surface) {
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
@@ -74,13 +73,13 @@ fun MensajesAdminScreen(
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
                     label = { Text("Campañas") },
-                    selected = false, // <-- Corregido: Ya no está seleccionado
+                    selected = false,
                     onClick = onCampaniasClick
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
                     label = { Text("Mensajes") },
-                    selected = true, // <-- Corregido: Ahora Mensajes es el activo
+                    selected = true,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
                 )
@@ -93,8 +92,6 @@ fun MensajesAdminScreen(
             }
         }
     ) { paddingValues ->
-        // Usamos LazyColumn porque es una lista de chats que puede crecer
-        // Usamos LazyColumn porque es una lista de chats que puede crecer
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -103,41 +100,44 @@ fun MensajesAdminScreen(
             contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
         ) {
             item {
+                val titulo1 = "Coleta de útiles esc..."
                 MensajeCard(
-                    titulo = "Colecta de útiles esc...",
+                    titulo = titulo1,
                     remitente = "Fundación Aprender Juntos",
                     mensaje = "¡Hola! No olviden traer las m...",
                     hora = "10:30",
                     noLeidos = 1,
                     esAnuncio = true,
-                    imagenId = R.drawable.utilesescolares, // <-- TU FOTO 1 AQUÍ
-                    onClick = onChatClick
+                    imagenId = R.drawable.utilesescolares,
+                    onClick = { onChatClick(titulo1, R.drawable.utilesescolares) } // <-- CAMBIO 2: Pasamos el título de este chat
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
             item {
+                val titulo2 = "Apoyo al comedor comun..."
                 MensajeCard(
-                    titulo = "Apoyo al comedor comun...",
+                    titulo = titulo2,
                     remitente = "Red Solidaria",
                     mensaje = "Se ha confirmado el punto de encuentro.",
                     hora = "Ayer",
                     noLeidos = 0,
                     esAnuncio = false,
-                    imagenId = R.drawable.comedorcomunitario, // <-- TU FOTO 2 AQUÍ
-                    onClick = onChatClick
+                    imagenId = R.drawable.comedorcomunitario,
+                    onClick = { onChatClick(titulo2, R.drawable.comedorcomunitario) } // <-- CAMBIO 2: Pasamos el título de este chat
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
             item {
+                val titulo3 = "Jornada familiar de volur..."
                 MensajeCard(
-                    titulo = "Jornada familiar de volur...",
+                    titulo = titulo3,
                     remitente = "Asociación EcoVerde",
                     mensaje = "Gracias por participar en la reforestación.",
                     hora = "Lunes",
                     noLeidos = 0,
                     esAnuncio = false,
-                    imagenId = R.drawable.eco, // <-- TU FOTO 3 AQUÍ
-                    onClick = onChatClick
+                    imagenId = R.drawable.eco,
+                    onClick = { onChatClick(titulo3, R.drawable.eco) } // <-- CAMBIO 2: Pasamos el título de este chat
                 )
             }
         }
