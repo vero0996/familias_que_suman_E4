@@ -51,6 +51,22 @@ data class MensajeChat(
 )
 
 @Composable
+fun ChatScreen(
+    conversacion: Conversacion = Conversacion(
+        id = 1,
+        nombre = "Familia López",
+        ultimoMensaje = "",
+        hora = ""
+    ),
+    onBackClick: () -> Unit = {}
+) {
+    ChatMessages(
+        conversacion = conversacion,
+        onBackClick = onBackClick
+    )
+}
+
+@Composable
 fun ChatMessages(
     conversacion: Conversacion,
     onBackClick: () -> Unit = {}

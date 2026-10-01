@@ -47,10 +47,6 @@ fun AppNavigation() {
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
     var rutaDespuesDeIntegrantes by remember { mutableStateOf(Routes.Inicio.route) }
 
-    var conversacionSeleccionada by remember {
-        mutableStateOf<Conversacion?>(null)
-    }
-
     NavHost(
         navController = navController,
         startDestination = Routes.SelectorRol.route
@@ -370,12 +366,8 @@ fun AppNavigation() {
                 },
                 onExplorarClick = { navController.navigate(Routes.Explorar.route) },
                 onActividadesClick = { navController.navigate(Routes.Actividades.route) },
-                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
-                onCambiarRolClick = {
-                    navController.navigate(Routes.SelectorRol.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onMensajesClick = { navController.navigate(Routes.Mensajes.route) },
+                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) }
             )
         }
 
@@ -539,12 +531,6 @@ fun AppNavigation() {
                         popUpTo(Routes.DashboardAdmin.route)
                         launchSingleTop = true
                     }
-                onMensajesClick = {
-                    navController.navigate(Routes.Mensajes.route)
-                },
-
-                onAgregarIntegrante = {
-                    navController.navigate(Routes.Integrantes.route)
                 }
             )
         }

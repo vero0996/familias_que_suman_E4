@@ -100,7 +100,7 @@ fun MensajesAdminScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp)
+            contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
         ) {
             item {
                 MensajeCard(
