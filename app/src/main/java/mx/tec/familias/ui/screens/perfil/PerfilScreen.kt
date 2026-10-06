@@ -163,7 +163,7 @@ fun PerfilScreen(
                 ) {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Cancelar mi inscripción", color = Color.Red, fontWeight = FontWeight.Bold)
+                    Text("Eliminar cuenta", color = Color.Red, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -207,7 +207,7 @@ fun PerfilScreen(
                     Text("¿Estás seguro?", color = TealPrimary, fontWeight = FontWeight.Bold)
                 },
                 text = {
-                    Text("¿Estás seguro de cancelar tu inscripción y la de las personas que registraste contigo? Esta acción cerrará tu sesión.")
+                    Text("¿Estás seguro de eliminar tu cuenta y la de los integrantes registrados? Esta acción cerrará tu sesión permanentemente.")
                 },
                 confirmButton = {
                     Button(
@@ -217,7 +217,7 @@ fun PerfilScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                     ) {
-                        Text("Aceptar", color = Color.White)
+                        Text("Eliminar", color = Color.White)
                     }
                 },
                 dismissButton = {

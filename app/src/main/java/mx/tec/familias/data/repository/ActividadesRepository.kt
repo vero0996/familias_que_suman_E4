@@ -50,6 +50,38 @@ class ActividadesRepository(
         return nueva
     }
 
+    /** Cancela solamente la solicitud confirmada indicada de su familia.
+     * La baja y la promoción FIFO se hacen en la misma sección sincronizada.
+     * El prototipo elimina el registro cancelado; no conserva historial.
+     */
+    @Synchronized
+    fun cancelar(inscripcionId: String, familiaId: String): Boolean {
+        val indice = inscripciones.indexOfFirst { it.id == inscripcionId }
+        if (indice < 0) return false
+        val actual = inscripciones[indice]
+        require(actual.familiaId == familiaId && familiaId.isNotBlank()) {
+            "La inscripción no pertenece a tu familia."
+        }
+        require(actual.estado == EstadoInscripcion.CONFIRMADA) {
+            "Solo puedes cancelar una inscripción confirmada."
+        }
+        inscripciones.removeAt(indice)
+        val evento = eventos.first { it.id == actual.eventoId }
+        if (reloj() < evento.cierreInscripciones) {
+            val siguiente = inscripciones.filter {
+                it.eventoId == evento.id && it.estado == EstadoInscripcion.EN_ESPERA
+            }.minByOrNull { it.ordenEspera ?: Long.MAX_VALUE }
+            if (siguiente != null) {
+                val posicion = inscripciones.indexOfFirst { it.id == siguiente.id }
+                inscripciones[posicion] = siguiente.copy(
+                    estado = EstadoInscripcion.CONFIRMADA,
+                    ordenEspera = null
+                )
+            }
+        }
+        return true
+    }
+
     companion object {
         fun prototipo(): ActividadesRepository {
             // 24/25 noviembre 2026, 09:00 en Monterrey (UTC-6).

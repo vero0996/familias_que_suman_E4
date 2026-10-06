@@ -36,4 +36,27 @@ class ActividadesViewModel : ViewModel() {
             false
         }
     }
+
+    fun cancelarInscripcion(familiaId: String): Boolean {
+        error = null
+        val solicitud = estado.inscripciones.firstOrNull {
+            it.eventoId == eventoSeleccionadoId && it.familiaId == familiaId &&
+                    it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+        }
+        if (solicitud == null) {
+            error = "No tienes una inscripción confirmada en esta actividad."
+            return false
+        }
+        return try {
+            val cancelada = repositorio.cancelar(solicitud.id, familiaId)
+            estado = repositorio.consultar()
+            if (!cancelada) error = "La inscripción ya no está disponible."
+            if (cancelada && ultimaInscripcionId == solicitud.id) ultimaInscripcionId = null
+            cancelada
+        } catch (e: IllegalArgumentException) {
+            error = e.message ?: "No se pudo cancelar la inscripción."
+            false
+        }
+    }
+
 }

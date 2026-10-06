@@ -1,7 +1,9 @@
 package mx.tec.familias.viewmodel
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import mx.tec.familias.data.model.FamilyMember
 import mx.tec.familias.data.model.UserProfile
@@ -20,6 +22,9 @@ class FamilyViewModel : ViewModel() {
 
     // Familiares y acompañantes
     val integrantes = mutableStateListOf<FamilyMember>()
+
+    // Agrega esta variable dentro de tu FamilyViewModel:
+    var actividadInscrita by mutableStateOf(false)
 
     fun guardarUsuario(
         nombre: String,

@@ -121,4 +121,91 @@ class ActividadesRepositoryTest {
         val b = inscribir(r, "B")
         repeat(3) { assertEquals(b, r.consultar().inscripciones.first { it.id == b.id }) }
     }
+
+    @Test fun cancelarLiberaCupoSinCambiarOtroEvento() {
+        val r = ActividadesRepository(listOf(evento("e", 1), evento("otro", 1)), { 0L })
+        val a = inscribir(r, "A")
+        val otro = inscribir(r, "A", "otro")
+        assertTrue(r.cancelar(a.id, "A"))
+        assertEquals(1, r.consultar().disponibles("e"))
+        assertEquals(otro, r.consultar().inscripciones.single())
+    }
+
+    @Test fun cancelarPromuevePrimeraFamiliaYRecalculaPosiciones() {
+        val r = repo(1)
+        val a = inscribir(r, "A")
+        val b = r.inscribir("e", "B", listOf("titular", "hijo"), "Observación")
+        val c = inscribir(r, "C")
+        assertTrue(r.cancelar(a.id, "A"))
+        val datos = r.consultar()
+        val promovida = datos.inscripciones.first { it.id == b.id }
+        assertEquals(EstadoInscripcion.CONFIRMADA, promovida.estado)
+        assertEquals(b.participantesIds, promovida.participantesIds)
+        assertEquals(b.observaciones, promovida.observaciones)
+        assertEquals(1, datos.posicion(c))
+        assertEquals(1, datos.ocupados("e"))
+    }
+
+    @Test fun dobleCancelacionNoLiberaDosLugares() {
+        val r = repo(1)
+        val a = inscribir(r, "A")
+        val b = inscribir(r, "B")
+        val c = inscribir(r, "C")
+        assertTrue(r.cancelar(a.id, "A"))
+        assertFalse(r.cancelar(a.id, "A"))
+        assertEquals(EstadoInscripcion.CONFIRMADA, r.consultar().inscripciones.first { it.id == b.id }.estado)
+        assertEquals(EstadoInscripcion.EN_ESPERA, r.consultar().inscripciones.first { it.id == c.id }.estado)
+    }
+
+    @Test fun cancelarOtraFamiliaFallaSinModificarDatos() {
+        val r = repo()
+        val a = inscribir(r, "A")
+        assertThrows(IllegalArgumentException::class.java) { r.cancelar(a.id, "B") }
+        assertEquals(a, r.consultar().inscripciones.single())
+    }
+
+    @Test fun noPromueveDespuesDelCierre() {
+        var ahora = 0L
+        val r = ActividadesRepository(listOf(evento(capacidad = 1)), { ahora })
+        val a = inscribir(r, "A")
+        val b = inscribir(r, "B")
+        ahora = 1000L
+        r.cancelar(a.id, "A")
+        assertEquals(b, r.consultar().inscripciones.single())
+    }
+
+    @Test fun familiaCanceladaSeReincorporaAlFinalDeLaFila() {
+        val r = repo(1)
+        val a = inscribir(r, "A")
+        inscribir(r, "B")
+        val c = inscribir(r, "C")
+        r.cancelar(a.id, "A")
+        val nueva = inscribir(r, "A")
+        assertNotEquals(a.id, nueva.id)
+        assertEquals(EstadoInscripcion.EN_ESPERA, nueva.estado)
+        assertEquals(1, r.consultar().posicion(c))
+        assertEquals(2, r.consultar().posicion(nueva))
+    }
+
+    @Test fun cancelacionesConcurrentesRespetanCupoYOrden() {
+        val r = repo(2)
+        val a = inscribir(r, "A")
+        val b = inscribir(r, "B")
+        val c = inscribir(r, "C")
+        val d = inscribir(r, "D")
+        val e = inscribir(r, "E")
+        val pool = Executors.newFixedThreadPool(2)
+        try {
+            val t1 = pool.submit { r.cancelar(a.id, "A") }
+            val t2 = pool.submit { r.cancelar(b.id, "B") }
+            t1.get(10, TimeUnit.SECONDS); t2.get(10, TimeUnit.SECONDS)
+            val datos = r.consultar()
+            assertEquals(setOf(c.id, d.id), datos.inscripciones.filter {
+                it.estado == EstadoInscripcion.CONFIRMADA
+            }.map { it.id }.toSet())
+            assertEquals(2, datos.ocupados("e"))
+            assertEquals(1, datos.posicion(e))
+        } finally { pool.shutdownNow() }
+    }
+
 }

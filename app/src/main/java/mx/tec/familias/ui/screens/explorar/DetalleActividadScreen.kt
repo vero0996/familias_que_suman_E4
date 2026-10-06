@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import android.widget.Toast
 
 import mx.tec.familias.R
+import mx.tec.familias.data.model.Activity
 import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.BrownPrimary
 import mx.tec.familias.ui.theme.Divider
@@ -65,10 +67,19 @@ import mx.tec.familias.ui.theme.TextSecondary
 @Composable
 fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
-    onInscribirseClick: () -> Unit = {}
+    onInscribirseClick: () -> Unit = {},
+    actividad: Activity,
+    ocupados: Int,
+    disponibles: Int,
+    inscripcionActiva: Boolean = false,
+    inscripcionConfirmada: Boolean = false,
+    inscripcionesCerradas: Boolean = false,
+    error: String? = null,
+    onCancelarInscripcionClick: () -> Boolean
 ) {
 
-    var mostrarDialogoCompartir by remember {
+    var mostrarDialogoCancelar by remember(actividad.id) { mutableStateOf(false) }
+    var mostrarDialogoCompartir by remember(actividad.id) {
         mutableStateOf(false)
     }
 
@@ -77,7 +88,7 @@ fun DetalleActividadScreen(
 
     // URL simulada para la demostración.
     // En una versión futura puede reemplazarse por una URL real.
-    val codigoActividad = remember {
+    val codigoActividad = remember(actividad.id) {
         ('A'..'Z').shuffled().take(3).joinToString("") +
                 (100..999).random().toString()
     }
@@ -210,7 +221,7 @@ fun DetalleActividadScreen(
             // --------------------------------------------------
 
             Text(
-                text = "Plantación de Árboles en El Pardo",
+                text = actividad.nombre,
                 fontSize = 28.sp,
                 lineHeight = 34.sp,
                 fontWeight = FontWeight.Bold,
@@ -227,7 +238,7 @@ fun DetalleActividadScreen(
             // --------------------------------------------------
 
             Text(
-                text = "Asociación Bosque Vivo",
+                text = actividad.organizacion,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TealDark
@@ -256,7 +267,7 @@ fun DetalleActividadScreen(
             )
 
             Text(
-                text = "Únete con tu familia a una jornada de reforestación en El Pardo. Plantaremos árboles nativos y aprenderemos sobre la importancia de cuidar y conservar nuestros espacios naturales.",
+                text = actividad.descripcion,
                 fontSize = 14.sp,
                 lineHeight = 21.sp,
                 color = TextSecondary
@@ -294,7 +305,7 @@ fun DetalleActividadScreen(
                     )
                 },
                 title = "Fecha y hora",
-                value = "Sábado 24 de mayo · 9:00 AM"
+                value = "${actividad.fecha} · ${actividad.hora}"
             )
 
 
@@ -312,7 +323,7 @@ fun DetalleActividadScreen(
                     )
                 },
                 title = "Lugar",
-                value = "Parque El Pardo"
+                value = actividad.lugar
             )
 
 
@@ -330,7 +341,7 @@ fun DetalleActividadScreen(
                     )
                 },
                 title = "Participación",
-                value = "5 familias inscritas"
+                value = "$ocupados/${actividad.capacidadFamilias} familias · $disponibles lugares libres"
             )
 
 
@@ -355,26 +366,70 @@ fun DetalleActividadScreen(
                 )
         ) {
 
-            Button(
-                onClick = onInscribirseClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary
-                )
-            ) {
-
-                Text(
-                    text = "Inscribirme como Familia",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            Column {
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+                if (inscripcionConfirmada) {
+                    OutlinedButton(
+                        onClick = { mostrarDialogoCancelar = true },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = androidx.compose.ui.graphics.Color.Red
+                        )
+                    ) {
+                        Text("Cancelar inscripción a la actividad", fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    Button(
+                        onClick = onInscribirseClick,
+                        enabled = !inscripcionActiva && !inscripcionesCerradas,
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+                    ) {
+                        Text(
+                            text = when {
+                                inscripcionActiva -> "Estás en lista de espera"
+                                inscripcionesCerradas -> "Inscripciones cerradas"
+                                disponibles == 0 -> "Unirme a lista de espera"
+                                else -> "Inscribirme como Familia"
+                            },
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
 
+
+    if (mostrarDialogoCancelar) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoCancelar = false },
+            containerColor = Surface,
+            title = { Text("¿Cancelar inscripción?", color = TealPrimary, fontWeight = FontWeight.Bold) },
+            text = {
+                Text("Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
+                        "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onCancelarInscripcionClick()
+                    mostrarDialogoCancelar = false
+                }) { Text("Sí, cancelar", color = androidx.compose.ui.graphics.Color.Red) }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoCancelar = false }) { Text("Volver") }
+            }
+        )
+    }
 
     // --------------------------------------------------
     // DIÁLOGO DE COMPARTIR
@@ -478,7 +533,7 @@ fun DetalleActividadScreen(
                                 putExtra(
                                     Intent.EXTRA_TEXT,
                                     "¡Mira esta actividad en Familias que Suman!\n\n" +
-                                            "Plantación de Árboles en El Pardo\n\n" +
+                                            "${actividad.nombre}\n\n" +
                                             urlActividad
                                 )
                             }

@@ -117,7 +117,7 @@ fun AppNavigation() {
                         navController.navigate(Routes.Perfil.route)
                     }
                 },
-                        onCampaniaClick = {
+                onCampaniaClick = {
                     // Esto abre la pantalla de detalles de la campaña al presionar "Unirse como Familia" o "Ver detalles"
                     navController.navigate(Routes.DetalleCampania.route)
                 },
@@ -226,14 +226,23 @@ fun AppNavigation() {
 
         composable(Routes.DetalleActividad.route) {
             DetalleActividadScreen(
+                inscripcionConfirmada = estadoActividades.inscripciones.any {
+                    it.eventoId == actividadSeleccionada.id &&
+                            it.familiaId == familyViewModel.familiaId &&
+                            it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+                },
+                error = actividadesViewModel.error,
+                onCancelarInscripcionClick = {
+                    actividadesViewModel.cancelarInscripcion(familyViewModel.familiaId)
+                },
                 actividad = actividadSeleccionada,
                 ocupados = estadoActividades.ocupados(actividadSeleccionada.id),
                 disponibles = estadoActividades.disponibles(actividadSeleccionada.id),
                 inscripcionesCerradas = System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
                 inscripcionActiva = estadoActividades.inscripciones.any {
                     it.eventoId == actividadSeleccionada.id && it.familiaId == familyViewModel.familiaId &&
-                        it.estado in listOf(mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
-                            mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                            it.estado in listOf(mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
+                        mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
                 },
                 onBackClick = { navController.popBackStack() },
                 onInscribirseClick = {
