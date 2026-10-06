@@ -355,9 +355,18 @@ fun AppNavigation() {
                 onExplorarClick = { navController.navigate(Routes.Explorar.route) },
                 onActividadesClick = { navController.navigate(Routes.Actividades.route) },
                 onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
-                // CORRECCIÓN: Se regresó al nombre de parámetro que usó tu compañero.
                 onCambiarRolClick = {
                     navController.navigate(Routes.SelectorRol.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                // NUEVA LÓGICA DE CANCELACIÓN DE INSCRIPCIÓN:
+                onCancelarInscripcionClick = {
+                    // 1. Limpiamos la sesión del usuario
+                    familyViewModel.usuario.value = null
+
+                    // 2. Lo mandamos a la pantalla de registro y borramos el historial para que no pueda dar "Atrás"
+                    navController.navigate(Routes.Registro.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
