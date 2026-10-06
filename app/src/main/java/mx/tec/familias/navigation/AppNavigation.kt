@@ -221,6 +221,7 @@ fun AppNavigation() {
 
         composable(Routes.DetalleActividad.route) {
             DetalleActividadScreen(
+                viewModel = familyViewModel, // <-- Le pasamos el ViewModel aquí
                 onBackClick = { navController.popBackStack() },
                 onInscribirseClick = {
                     if (familyViewModel.usuario.value == null) {
@@ -237,7 +238,10 @@ fun AppNavigation() {
             InscripcionScreen(
                 viewModel = familyViewModel,
                 onBackClick = { navController.popBackStack() },
-                onConfirmarClick = { navController.navigate(Routes.ConfirmacionInscripcion.route) }
+                onConfirmarClick = {
+                    familyViewModel.actividadInscrita = true // <-- Guardamos que ya se inscribió
+                    navController.navigate(Routes.ConfirmacionInscripcion.route)
+                }
             )
         }
 
