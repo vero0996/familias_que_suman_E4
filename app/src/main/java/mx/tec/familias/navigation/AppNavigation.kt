@@ -123,7 +123,11 @@ fun AppNavigation() {
         composable(Routes.Registro.route) {
             RegistroScreen(
                 viewModel = familyViewModel,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = {
+                    navController.navigate(Routes.Inicio.route) {
+                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                    }
+                },
                 onContinuar = { nombre, registrarOtros ->
                     nombreUsuario = nombre
                     if (registrarOtros) {
