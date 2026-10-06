@@ -30,7 +30,10 @@ import mx.tec.familias.ui.theme.TextSecondary
 
 @Composable
 fun ConfirmacionInscripcionScreen(
-    onInicioClick: () -> Unit = {}
+    onInicioClick: () -> Unit = {},
+    actividad: mx.tec.familias.data.model.Activity,
+    estado: mx.tec.familias.data.model.EstadoInscripcion,
+    posicion: Int? = null
 ) {
 
     Column(
@@ -53,7 +56,7 @@ fun ConfirmacionInscripcionScreen(
 
             Icon(
                 imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Inscripción confirmada",
+                contentDescription = "Estado de la solicitud",
                 tint = TealPrimary,
                 modifier = Modifier
                     .height(64.dp)
@@ -64,7 +67,10 @@ fun ConfirmacionInscripcionScreen(
 
         // TÍTULO
         Text(
-            text = "¡Inscripción confirmada!",
+            text = when (estado) {
+                mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA -> "¡Inscripción confirmada!"
+                mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA -> "Estás en lista de espera"
+            },
             fontSize = 28.sp,
             lineHeight = 34.sp,
             color = TealPrimary,
@@ -75,7 +81,10 @@ fun ConfirmacionInscripcionScreen(
 
         // MENSAJE
         Text(
-            text = "Tu inscripción a la actividad se realizó correctamente.",
+            text = when (estado) {
+                mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA -> "Tu familia tiene un lugar confirmado."
+                mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA -> "Tu posición es #$posicion. Puedes consultar tu solicitud en Mis Actividades."
+            },
             modifier = Modifier.fillMaxWidth(),
             fontSize = 15.sp,
             lineHeight = 22.sp,
@@ -99,7 +108,7 @@ fun ConfirmacionInscripcionScreen(
             Column {
 
                 Text(
-                    text = "Plantación de Árboles en El Pardo",
+                    text = actividad.nombre,
                     fontSize = 18.sp,
                     lineHeight = 24.sp,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
@@ -109,13 +118,13 @@ fun ConfirmacionInscripcionScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Sábado 24 de mayo · 9:00 AM",
+                    text = "${actividad.fecha} · ${actividad.hora}",
                     fontSize = 14.sp,
                     color = TextSecondary
                 )
 
                 Text(
-                    text = "Parque El Pardo",
+                    text = actividad.lugar,
                     fontSize = 14.sp,
                     color = TextSecondary
                 )

@@ -55,7 +55,7 @@ import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 
 data class ActividadCalendario(
-    val id: Int,
+    val id: String,
     val nombre: String,
     val fecha: Int,
     val mes: String,
@@ -73,6 +73,8 @@ fun CalendarioScreen(
     onPerfilClick: () -> Unit = {},
     onActividadClick: (ActividadCalendario) -> Unit = {},
     onMisActividadesClick: () -> Unit = {},
+    estadoActividades: mx.tec.familias.data.model.EstadoActividades,
+    familiaId: String,
     mostrarMensajes: Boolean = true
 ) {
 
@@ -80,48 +82,23 @@ fun CalendarioScreen(
         mutableIntStateOf(24)
     }
 
-    val actividades = remember {
-        listOf(
-            ActividadCalendario(
-                id = 1,
-                nombre = "Reforestación en el Parque Central",
-                fecha = 24,
-                mes = "NOV",
-                diaSemana = "Domingo",
-                hora = "09:00 AM – 12:00 PM",
-                lugar = "Parque Central",
-                estado = "INSCRITO"
-            ),
-            ActividadCalendario(
-                id = 2,
-                nombre = "Taller de Reciclaje en Familia",
-                fecha = 24,
-                mes = "NOV",
-                diaSemana = "Domingo",
-                hora = "11:30 AM – 01:00 PM",
-                lugar = "Centro Comunitario",
-                estado = "DISPONIBLE"
-            ),
-            ActividadCalendario(
-                id = 3,
-                nombre = "Limpieza de Áreas Verdes",
-                fecha = 17,
-                mes = "NOV",
-                diaSemana = "Domingo",
-                hora = "08:30 AM – 11:30 AM",
-                lugar = "Parque del Lago",
-                estado = "DISPONIBLE"
-            ),
-            ActividadCalendario(
-                id = 4,
-                nombre = "Donación de Alimentos",
-                fecha = 10,
-                mes = "NOV",
-                diaSemana = "Domingo",
-                hora = "10:00 AM – 01:00 PM",
-                lugar = "Centro Comunitario",
-                estado = "INSCRITO"
-            )
+    val actividades = estadoActividades.eventos.map { evento ->
+        val solicitud = estadoActividades.inscripciones.firstOrNull {
+            it.eventoId == evento.id && it.familiaId == familiaId
+        }
+        ActividadCalendario(
+            id = evento.id,
+            nombre = evento.nombre,
+            fecha = evento.fecha.substringBefore(" ").toInt(),
+            mes = "NOV",
+            diaSemana = if (evento.id == "arboles") "Martes" else "Miércoles",
+            hora = evento.hora,
+            lugar = evento.lugar,
+            estado = when (solicitud?.estado) {
+                mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA -> "INSCRITO"
+                mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA -> "EN ESPERA"
+                null -> if (estadoActividades.disponibles(evento.id) == 0) "CUPO LLENO" else "DISPONIBLE"
+            }
         )
     }
 
@@ -356,7 +333,7 @@ private fun CalendarioMensual(
             ) {
 
                 Text(
-                    text = "Noviembre 2024",
+                    text = "Noviembre 2026",
                     modifier = Modifier.weight(1f),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -393,11 +370,11 @@ private fun CalendarioMensual(
             Spacer(modifier = Modifier.height(10.dp))
 
             /*
-             * Noviembre 2024 comienza en viernes.
-             * Por eso dejamos 4 espacios antes del día 1.
+             * Noviembre 2026 comienza en domingo.
+             * Por eso dejamos 6 espacios antes del día 1.
              */
             val totalDias = 30
-            val primerDia = 4
+            val primerDia = 6
 
             val celdas = (0 until primerDia).map {
                 null

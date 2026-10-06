@@ -71,7 +71,8 @@ fun ExplorarScreen(
     onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCampaniaClick: () -> Unit = {},
-    onActividadClick: () -> Unit = {},
+    onActividadClick: (String) -> Unit = {},
+    estadoActividades: mx.tec.familias.data.model.EstadoActividades? = null,
     mostrarMensajes: Boolean = false
 ) {
 
@@ -203,18 +204,18 @@ fun ExplorarScreen(
                             ActivityCard(
                                 title = "Plantación de Árboles en El Pardo",
                                 organization = "Asociación Bosque Vivo",
-                                participants = "5 familias inscritas",
-                                date = "Sábado 24 de mayo",
-                                onClick = onActividadClick
+                                participants = estadoActividades?.let { "${it.ocupados("arboles")}/${it.evento("arboles").capacidadFamilias} familias · ${it.disponibles("arboles")} lugares disponibles" } ?: "Actividad familiar",
+                                date = "24 noviembre 2026",
+                                onClick = { onActividadClick("arboles") }
                             )
                             Spacer(modifier = Modifier.height(18.dp))
 
                             ActivityCard(
                                 title = "Lectura Compartida",
                                 organization = "Fundación Aprender Juntos",
-                                participants = "2 familias inscritas",
-                                date = "Domingo 25 de mayo",
-                                onClick = onActividadClick
+                                participants = estadoActividades?.let { "${it.ocupados("lectura")}/${it.evento("lectura").capacidadFamilias} familias · ${it.disponibles("lectura")} lugares disponibles" } ?: "Actividad familiar",
+                                date = "25 noviembre 2026",
+                                onClick = { onActividadClick("lectura") }
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                         }

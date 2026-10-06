@@ -46,6 +46,9 @@ import mx.tec.familias.ui.screens.mensajes.Conversacion
 fun AppNavigation() {
     val navController = rememberNavController()
     val familyViewModel: FamilyViewModel = viewModel()
+    val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel = viewModel()
+    val estadoActividades = actividadesViewModel.estado
+    val actividadSeleccionada = estadoActividades.evento(actividadesViewModel.eventoSeleccionadoId)
 
     var nombreUsuario by remember { mutableStateOf("") }
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
@@ -150,6 +153,7 @@ fun AppNavigation() {
 
         composable(Routes.Explorar.route) {
             ExplorarScreen(
+                estadoActividades = estadoActividades,
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -174,7 +178,8 @@ fun AppNavigation() {
                     navController.navigate(Routes.DetalleCampania.route)
                 },
 
-                onActividadClick = {
+                onActividadClick = { eventoId ->
+                    actividadesViewModel.seleccionarEvento(eventoId)
                     navController.navigate(Routes.DetalleActividad.route)
                 },
 
@@ -217,6 +222,15 @@ fun AppNavigation() {
 
         composable(Routes.DetalleActividad.route) {
             DetalleActividadScreen(
+                actividad = actividadSeleccionada,
+                ocupados = estadoActividades.ocupados(actividadSeleccionada.id),
+                disponibles = estadoActividades.disponibles(actividadSeleccionada.id),
+                inscripcionesCerradas = System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
+                inscripcionActiva = estadoActividades.inscripciones.any {
+                    it.eventoId == actividadSeleccionada.id && it.familiaId == familyViewModel.familiaId &&
+                        it.estado in listOf(mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
+                            mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                },
                 onBackClick = { navController.popBackStack() },
                 onInscribirseClick = {
                     if (familyViewModel.usuario.value == null) {
@@ -232,13 +246,27 @@ fun AppNavigation() {
         composable(Routes.Inscripcion.route) {
             InscripcionScreen(
                 viewModel = familyViewModel,
+                actividad = actividadSeleccionada,
                 onBackClick = { navController.popBackStack() },
-                onConfirmarClick = { navController.navigate(Routes.ConfirmacionInscripcion.route) }
+                enEspera = estadoActividades.disponibles(actividadSeleccionada.id) == 0,
+                error = actividadesViewModel.error,
+                onConfirmarClick = { participantes, observaciones ->
+                    if (actividadesViewModel.inscribir(familyViewModel.familiaId, participantes, observaciones)) {
+                        navController.navigate(Routes.ConfirmacionInscripcion.route)
+                    }
+                }
             )
         }
 
         composable(Routes.ConfirmacionInscripcion.route) {
-            ConfirmacionInscripcionScreen(
+            val solicitud = estadoActividades.inscripciones.firstOrNull {
+                it.id == actividadesViewModel.ultimaInscripcionId
+            }
+            if (solicitud != null) ConfirmacionInscripcionScreen(
+                actividad = estadoActividades.evento(solicitud.eventoId),
+                estado = solicitud.estado,
+                posicion = if (solicitud.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                    estadoActividades.posicion(solicitud) else null,
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -254,6 +282,8 @@ fun AppNavigation() {
                 var mostrarMisActividades by remember { mutableStateOf(false) }
                 if (mostrarMisActividades) {
                     MisActividadesScreen(
+                        actividadesViewModel = actividadesViewModel,
+                        familiaId = familyViewModel.familiaId,
                         onInicioClick = {
                             navController.navigate(Routes.Inicio.route) {
                                 popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -275,6 +305,8 @@ fun AppNavigation() {
                     )
                 } else {
                     CalendarioScreen(
+                        estadoActividades = estadoActividades,
+                        familiaId = familyViewModel.familiaId,
                         onInicioClick = {
                             navController.navigate(Routes.Inicio.route) {
                                 popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -289,7 +321,8 @@ fun AppNavigation() {
                         onPerfilClick = {
                             navController.navigate(Routes.Perfil.route)
                         },
-                        onActividadClick = {
+                        onActividadClick = { actividad ->
+                            actividadesViewModel.seleccionarEvento(actividad.id)
                             navController.navigate(Routes.DetalleActividad.route)
                         },
                         onMisActividadesClick = {

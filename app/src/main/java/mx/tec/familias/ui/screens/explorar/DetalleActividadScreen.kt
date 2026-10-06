@@ -49,7 +49,12 @@ import mx.tec.familias.ui.theme.TextSecondary
 @Composable
 fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
-    onInscribirseClick: () -> Unit = {}
+    onInscribirseClick: () -> Unit = {},
+    actividad: mx.tec.familias.data.model.Activity,
+    ocupados: Int,
+    disponibles: Int,
+    inscripcionActiva: Boolean = false,
+    inscripcionesCerradas: Boolean = false
 ) {
     //AdaptiveContainer(modifier = Modifier.background(Background)) {
         Column(
@@ -132,7 +137,7 @@ fun DetalleActividadScreen(
 
                 // TÍTULO
                 Text(
-                    text = "Plantación de Árboles en El Pardo",
+                    text = actividad.nombre,
                     fontSize = 28.sp,
                     lineHeight = 34.sp,
                     fontWeight = FontWeight.Bold,
@@ -143,7 +148,7 @@ fun DetalleActividadScreen(
 
                 // ORGANIZACIÓN
                 Text(
-                    text = "Asociación Bosque Vivo",
+                    text = actividad.organizacion,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TealDark
@@ -163,7 +168,7 @@ fun DetalleActividadScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Únete con tu familia a una jornada de reforestación en El Pardo. Plantaremos árboles nativos y aprenderemos sobre la importancia de cuidar y conservar nuestros espacios naturales.",
+                    text = actividad.descripcion,
                     fontSize = 14.sp,
                     lineHeight = 21.sp,
                     color = TextSecondary
@@ -191,7 +196,7 @@ fun DetalleActividadScreen(
                         )
                     },
                     title = "Fecha y hora",
-                    value = "Sábado 24 de mayo · 9:00 AM"
+                    value = "${actividad.fecha} · ${actividad.hora}"
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -205,7 +210,7 @@ fun DetalleActividadScreen(
                         )
                     },
                     title = "Lugar",
-                    value = "Parque El Pardo"
+                    value = actividad.lugar
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -219,7 +224,7 @@ fun DetalleActividadScreen(
                         )
                     },
                     title = "Participación",
-                    value = "5 familias inscritas"
+                    value = "$ocupados/${actividad.capacidadFamilias} familias · $disponibles lugares libres"
                 )
 
                 Spacer(modifier = Modifier.height(28.dp))
@@ -238,6 +243,7 @@ fun DetalleActividadScreen(
             ) {
                 Button(
                     onClick = onInscribirseClick,
+                    enabled = !inscripcionActiva && !inscripcionesCerradas,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -247,7 +253,12 @@ fun DetalleActividadScreen(
                     )
                 ) {
                     Text(
-                        text = "Inscribirme como Familia",
+                        text = when {
+                            inscripcionesCerradas -> "Inscripciones cerradas"
+                            inscripcionActiva -> "Ya tienes una solicitud"
+                            disponibles == 0 -> "Unirme a lista de espera"
+                            else -> "Inscribirme como Familia"
+                        },
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
