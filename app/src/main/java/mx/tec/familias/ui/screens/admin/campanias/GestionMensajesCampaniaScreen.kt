@@ -64,8 +64,8 @@ fun GestionMensajesCampaniaScreen(
             )
         },
         bottomBar = {
-            // Barra de navegación inferior con "Campañas" seleccionado
             NavigationBar(containerColor = Surface) {
+
                 NavigationBarItem(
                     icon = {
                         Icon(
@@ -128,6 +128,7 @@ fun GestionMensajesCampaniaScreen(
             }
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -135,6 +136,7 @@ fun GestionMensajesCampaniaScreen(
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+
             Spacer(modifier = Modifier.height(12.dp))
 
             // 1. Tarjeta: Resumen de Inscritos
@@ -312,7 +314,9 @@ fun GestionMensajesCampaniaScreen(
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 1.dp
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -359,9 +363,137 @@ fun GestionMensajesCampaniaScreen(
                 }
             }
 
+            // 4. Tarjeta Automatización 3: Recordatorio el mismo día
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 1.dp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(
+                                TealLight.copy(alpha = 0.2f)
+                            )
+                    ) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = null,
+                            tint = TealPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Recordatorio el mismo día",
+                            color = TealPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Text(
+                            text = "3 horas antes",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    Text(
+                        text = "ON",
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            // 5. Tarjeta Automatización 4: Cancelación
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 1.dp
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Error.copy(alpha = 0.15f)
+                            )
+                    ) {
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = Error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Cancelación",
+                            color = TealPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Text(
+                            text = "Aviso inmediato",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    Text(
+                        text = "ON",
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. Tarjeta Inferior Destacada: Enviar actualización urgente
+            // 6. Tarjeta Inferior Destacada: Enviar actualización urgente
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
