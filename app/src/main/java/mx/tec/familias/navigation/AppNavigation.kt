@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import mx.tec.familias.ui.screens.admin.mensajes.ChatAdminScreen
 import mx.tec.familias.R
+import mx.tec.familias.ui.screens.publico.PublicoScreen
 
 import mx.tec.familias.ui.auth.IntegrantesScreen
 import mx.tec.familias.ui.auth.RegistroScreen
@@ -53,8 +54,26 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.SelectorRol.route
+        startDestination = Routes.Publico.route
     ) {
+
+        composable(Routes.Publico.route) {
+            PublicoScreen(
+                onIniciarSesionClick = {
+                    // Este navega a tu pantalla de elegir si es familia o asoc.
+                    navController.navigate(Routes.SelectorRol.route) {
+                        // popUpTo evita que al darle "atrás" regreses a esta pantalla por error
+                        popUpTo(Routes.Publico.route) { inclusive = true }
+                    }
+                },
+                onAdminClick = {
+                    // Este te manda directo al dashboard de administración para tu presentación
+                    navController.navigate(Routes.DashboardAdmin.route) {
+                        popUpTo(Routes.Publico.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         // ==========================================
         // PANTALLA DE PROTOTIPO (SELECCIÓN DE ROL)
