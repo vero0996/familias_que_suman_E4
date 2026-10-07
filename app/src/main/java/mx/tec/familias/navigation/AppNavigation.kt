@@ -402,6 +402,7 @@ fun AppNavigation() {
                 onActividadesClick = { navController.navigate(Routes.Actividades.route) },
                 onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
                 onCambiarRolClick = {
+                    familyViewModel.usuario.value = null
                     navController.navigate(Routes.SelectorRol.route) {
                         popUpTo(0) { inclusive = true }
                     }
