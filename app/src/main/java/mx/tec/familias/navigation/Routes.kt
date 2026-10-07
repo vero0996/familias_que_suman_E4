@@ -50,4 +50,6 @@ sealed class Routes(val route: String) {
 
     data object ChatMessages : Routes("chatMessages")
 
+    data object Publico : Routes("publico")
+
 }
