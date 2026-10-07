@@ -36,11 +36,19 @@ import mx.tec.familias.ui.screens.admin.campanias.VistaPreviaCampaniaScreen
 import mx.tec.familias.ui.screens.admin.mensajes.MensajesAdminScreen
 import mx.tec.familias.ui.screens.admin.configuracion.ConfiguracionAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.GestionMensajesCampaniaScreen
-
-// Se eliminó ChatScreen porque tu compañero lo reemplazó por estos:
 import mx.tec.familias.ui.screens.mensajes.MensajesScreen
 import mx.tec.familias.ui.screens.mensajes.ChatMessages
 import mx.tec.familias.ui.screens.mensajes.Conversacion
+import mx.tec.familias.ui.screens.admin.campanias.DetalleActividadScreen as DetalleActividadAdminScreen
+
+import mx.tec.familias.data.model.ActividadAdmin
+import mx.tec.familias.ui.screens.admin.campanias.FormularioActividadAdminScreen
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import mx.tec.familias.data.model.EstadoParticipante
+import mx.tec.familias.data.model.ParticipanteActividadAdmin
+import mx.tec.familias.ui.screens.admin.campanias.GestionarParticipantesScreen
 
 @Composable
 fun AppNavigation() {
@@ -50,6 +58,109 @@ fun AppNavigation() {
     var nombreUsuario by remember { mutableStateOf("") }
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
     var rutaDespuesDeIntegrantes by remember { mutableStateOf(Routes.Inicio.route) }
+
+    var participantesAdmin by remember {
+        mutableStateOf(
+            listOf(
+                ParticipanteActividadAdmin(
+                    id = 1,
+                    nombreFamilia = "Familia González",
+                    correo = "gonzalez@email.com",
+                    telefono = "81 1234 5678",
+                    integrantes = listOf(
+                        "Alberto",
+                        "Elena",
+                        "Lucía",
+                        "Mateo"
+                    ),
+                    estado = EstadoParticipante.CONFIRMADO,
+                    lugaresAsignados = listOf(1, 2, 3, 4)
+                ),
+
+                ParticipanteActividadAdmin(
+                    id = 2,
+                    nombreFamilia = "Familia Martínez",
+                    correo = "martinez@email.com",
+                    telefono = "81 2345 6789",
+                    integrantes = listOf(
+                        "Carlos",
+                        "Ana"
+                    ),
+                    estado = EstadoParticipante.CONFIRMADO,
+                    lugaresAsignados = listOf(5, 6)
+                ),
+
+                ParticipanteActividadAdmin(
+                    id = 3,
+                    nombreFamilia = "Familia Rodríguez",
+                    correo = "rodriguez@email.com",
+                    telefono = "81 3456 7890",
+                    integrantes = listOf(
+                        "María",
+                        "Sofía",
+                        "Diego"
+                    ),
+                    estado = EstadoParticipante.CONFIRMADO,
+                    lugaresAsignados = listOf(7, 8, 9)
+                ),
+
+                ParticipanteActividadAdmin(
+                    id = 4,
+                    nombreFamilia = "Familia López",
+                    correo = "lopez@email.com",
+                    telefono = "81 4567 8901",
+                    integrantes = listOf(
+                        "Jorge",
+                        "Valeria"
+                    ),
+                    estado = EstadoParticipante.LISTA_ESPERA
+                ),
+
+                ParticipanteActividadAdmin(
+                    id = 5,
+                    nombreFamilia = "Familia Hernández",
+                    correo = "hernandez@email.com",
+                    telefono = "81 5678 9012",
+                    integrantes = listOf(
+                        "Daniel",
+                        "Camila"
+                    ),
+                    estado = EstadoParticipante.LISTA_ESPERA
+                )
+            )
+        )
+    }
+
+    val totalPersonasConfirmadas = participantesAdmin
+        .filter {
+            it.estado == EstadoParticipante.CONFIRMADO
+        }
+        .sumOf {
+            it.integrantes.size
+        }
+
+    var actividadAdmin by remember {
+        mutableStateOf(
+            ActividadAdmin(
+                titulo = "Recogida de Invierno - Centro de Acopio",
+                descripcion = "Actividad de apoyo para la recolección y organización de donaciones de invierno.",
+                fecha = "Sáb, 15 Nov",
+                hora = "10:00 AM",
+                ubicacion = "Centro de Acopio",
+                participantes = totalPersonasConfirmadas,
+                cuposTotales = 20,
+                esUrgente = true,
+                imagenId = R.drawable.recorridainvierno
+            )
+        )
+    }
+
+    var actividadExiste by remember {
+        mutableStateOf(true)
+    }
+    var mostrarDialogoEliminar by remember {
+        mutableStateOf(false)
+    }
 
     NavHost(
         navController = navController,
@@ -386,6 +497,9 @@ fun AppNavigation() {
         // ==========================================
         composable(Routes.DashboardAdmin.route) {
             DashboardAdminScreen(
+                tituloActividad = actividadAdmin.titulo,
+                participantesActividad = actividadAdmin.participantes,
+                cuposTotalesActividad = actividadAdmin.cuposTotales,
                 onCampaniasClick = {
                     navController.navigate(Routes.MisCampanias.route) {
                         popUpTo(Routes.DashboardAdmin.route)
@@ -406,34 +520,202 @@ fun AppNavigation() {
                 },
                 onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) },
                 onCrearCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
-                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) }
+                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) },
+                onActividadClick = {
+                    navController.navigate(Routes.DetalleActividadAdmin.route)
+                }
             )
         }
 
         composable(Routes.MisCampanias.route) {
             MisCampaniasScreen(
+                mostrarActividad = actividadExiste,
+
                 onInicioClick = {
                     navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+                        popUpTo(Routes.DashboardAdmin.route) {
+                            inclusive = true
+                        }
                     }
                 },
+
                 onMensajesClick = {
                     navController.navigate(Routes.MensajesAdmin.route) {
                         popUpTo(Routes.DashboardAdmin.route)
                         launchSingleTop = true
                     }
                 },
+
                 onConfiguracionClick = {
                     navController.navigate(Routes.ConfiguracionAdmin.route) {
                         popUpTo(Routes.DashboardAdmin.route)
                         launchSingleTop = true
                     }
                 },
-                onNuevaCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
-                onGestionCampaniaClick = { navController.navigate(Routes.GestionMensajesCampania.route) }, // <-- Esto hace que el botón del medio abra los mensajes/chat
-                onEditarCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },   // <-- El lápiz abre la edición
-                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) }
-            )// <-- La flecha abre la reutilización
+
+                onNuevaCampaniaClick = {
+                    navController.navigate(
+                        Routes.CrearCampaniaColaborativa.route
+                    )
+                },
+
+                onGestionCampaniaClick = {
+                    navController.navigate(
+                        Routes.GestionMensajesCampania.route
+                    )
+                },
+
+                onEditarCampaniaClick = {
+                    navController.navigate(
+                        Routes.CrearCampaniaColaborativa.route
+                    )
+                },
+
+                onReutilizarCampaniaClick = {
+                    navController.navigate(
+                        Routes.ReutilizarCampania.route
+                    )
+                }
+            )
+        }
+
+        composable(Routes.DetalleActividadAdmin.route) {
+            DetalleActividadAdminScreen(
+                titulo = actividadAdmin.titulo,
+                fecha = actividadAdmin.fecha,
+                hora = actividadAdmin.hora,
+                ubicacion = actividadAdmin.ubicacion,
+                participantes = actividadAdmin.participantes,
+                cuposTotales = actividadAdmin.cuposTotales,
+                esUrgente = actividadAdmin.esUrgente,
+                imagenId = actividadAdmin.imagenId,
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onEditarClick = {
+                    navController.navigate(
+                        Routes.FormularioActividadAdmin.route
+                    )
+                },
+
+                onParticipantesClick = {
+                    navController.navigate(
+                        Routes.GestionarParticipantesAdmin.route
+                    )
+                },
+
+                onCompartirClick = {
+                    // Lo conectaremos después
+                },
+
+                onEliminarClick = {
+                    mostrarDialogoEliminar = true
+                }
+            )
+
+            if (mostrarDialogoEliminar) {
+                AlertDialog(
+                    onDismissRequest = {
+                        mostrarDialogoEliminar = false
+                    },
+
+                    title = {
+                        Text(
+                            text = "¿Eliminar actividad?"
+                        )
+                    },
+
+                    text = {
+                        Text(
+                            text = "Esta acción eliminará la actividad y dejará de estar disponible para los participantes."
+                        )
+                    },
+
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+
+                                actividadExiste = false
+                                mostrarDialogoEliminar = false
+
+                                navController.navigate(
+                                    Routes.MisCampanias.route
+                                ) {
+                                    popUpTo(
+                                        Routes.DetalleActividadAdmin.route
+                                    ) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(
+                                text = "Eliminar"
+                            )
+                        }
+                    },
+
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                mostrarDialogoEliminar = false
+                            }
+                        ) {
+                            Text(
+                                text = "Cancelar"
+                            )
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(Routes.FormularioActividadAdmin.route) {
+            FormularioActividadAdminScreen(
+                actividad = actividadAdmin,
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onGuardarClick = { actividadActualizada ->
+
+                    actividadAdmin = actividadActualizada
+
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Routes.GestionarParticipantesAdmin.route) {
+
+            GestionarParticipantesScreen(
+                participantesIniciales = participantesAdmin,
+                cuposTotales = actividadAdmin.cuposTotales,
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onParticipantesChanged = { nuevosParticipantes ->
+
+                    participantesAdmin = nuevosParticipantes
+
+                    val totalPersonasConfirmadas = nuevosParticipantes
+                        .filter {
+                            it.estado == EstadoParticipante.CONFIRMADO
+                        }
+                        .sumOf {
+                            it.integrantes.size
+                        }
+
+                    actividadAdmin = actividadAdmin.copy(
+                        participantes = totalPersonasConfirmadas
+                    )
+                }
+            )
         }
 
         composable(Routes.CrearCampaniaColaborativa.route) {

@@ -49,5 +49,7 @@ sealed class Routes(val route: String) {
     data object Mensajes : Routes("mensajes")
 
     data object ChatMessages : Routes("chatMessages")
-
+    data object DetalleActividadAdmin : Routes("detalleActividadAdmin")
+    data object FormularioActividadAdmin : Routes("formularioActividadAdmin")
+    data object GestionarParticipantesAdmin : Routes("gestionarParticipantesAdmin")
 }

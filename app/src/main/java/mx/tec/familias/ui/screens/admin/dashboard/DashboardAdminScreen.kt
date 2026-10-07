@@ -38,6 +38,9 @@ import mx.tec.familias.ui.theme.*
 
 @Composable
 fun DashboardAdminScreen(
+    tituloActividad: String,
+    participantesActividad: Int,
+    cuposTotalesActividad: Int,
     onCampaniasClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
@@ -370,7 +373,11 @@ fun DashboardAdminScreen(
                         Box(modifier = Modifier.width(8.dp).fillMaxHeight().background(Error))
                         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text("Recogida de Invierno - Centro...", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(
+                                    tituloActividad,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
                                 Box(modifier = Modifier.background(WarningBackground, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) {
                                     Text("URGENTE", color = Error, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                                 }
@@ -384,9 +391,28 @@ fun DashboardAdminScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                 Text("Lugares disponibles", fontSize = 12.sp, color = TextSecondary)
-                                Text("2/20 cupos", fontSize = 12.sp, color = Error, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "$participantesActividad/$cuposTotalesActividad cupos",
+                                    fontSize = 12.sp,
+                                    color = Error,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
-                            LinearProgressIndicator(progress = { 0.9f }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), color = Error, trackColor = Divider)
+                            LinearProgressIndicator(
+                                progress = {
+                                    if (cuposTotalesActividad > 0) {
+                                        (participantesActividad.toFloat() / cuposTotalesActividad.toFloat())
+                                            .coerceIn(0f, 1f)
+                                    } else {
+                                        0f
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp),
+                                color = Error,
+                                trackColor = Divider
+                            )
                         }
                     }
                 }
