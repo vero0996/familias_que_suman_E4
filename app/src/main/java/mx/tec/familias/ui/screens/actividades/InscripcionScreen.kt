@@ -55,7 +55,10 @@ import mx.tec.familias.viewmodel.FamilyViewModel
 fun InscripcionScreen(
     viewModel: FamilyViewModel,
     onBackClick: () -> Unit = {},
-    onConfirmarClick: () -> Unit = {}
+    actividad: mx.tec.familias.data.model.Activity,
+    enEspera: Boolean = false,
+    error: String? = null,
+    onConfirmarClick: (List<String>, String) -> Unit = { _, _ -> }
 ) {
 
     val seleccionados = remember {
@@ -143,7 +146,7 @@ fun InscripcionScreen(
                     ) {
 
                         Text(
-                            text = "Plantación de Árboles en El Pardo",
+                            text = actividad.nombre,
                             fontSize = 20.sp,
                             lineHeight = 26.sp,
                             fontWeight = FontWeight.Bold,
@@ -160,7 +163,7 @@ fun InscripcionScreen(
                                     tint = TealPrimary
                                 )
                             },
-                            text = "Sábado 24 de mayo · 9:00 AM"
+                            text = "${actividad.fecha} · ${actividad.hora}"
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -173,7 +176,7 @@ fun InscripcionScreen(
                                     tint = TealPrimary
                                 )
                             },
-                            text = "Parque El Pardo"
+                            text = actividad.lugar
                         )
                     }
                 }
@@ -366,8 +369,17 @@ fun InscripcionScreen(
                 )
         ) {
 
+            Column {
+            if (error != null) {
+                Text(error, color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp))
+            }
             Button(
-                onClick = onConfirmarClick,
+                onClick = {
+                    val participantes = seleccionados.toList() +
+                        if (usuarioSeleccionado) listOf("${viewModel.familiaId}:titular") else emptyList()
+                    onConfirmarClick(participantes, observaciones)
+                },
                 enabled = totalSeleccionados > 0,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -379,10 +391,11 @@ fun InscripcionScreen(
             ) {
 
                 Text(
-                    text = "Confirmar inscripción",
+                    text = if (enEspera) "Unirme a lista de espera" else "Confirmar inscripción",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
+            }
             }
         }
     }
