@@ -43,7 +43,8 @@ fun DashboardAdminScreen(
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCrearCampaniaClick: () -> Unit = {},
-    onReutilizarCampaniaClick: () -> Unit = {}
+    onReutilizarCampaniaClick: () -> Unit = {},
+    onActividadClick: () -> Unit = {}
 ) {
     var mostrarAccionesUrgentes by remember {
         mutableStateOf(false)
@@ -296,36 +297,7 @@ fun DashboardAdminScreen(
                         }
                     }
                 }
-
-                // Botón Crear Campaña (con ícono integrado)
-                Button(
-                    onClick = onCrearCampaniaClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).height(80.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.AddCircleOutline, contentDescription = "Crear", tint = TextOnPrimary)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Crear campaña", color = TextOnPrimary, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                // Botón Reutilizar (con ícono integrado)
-                OutlinedButton(
-                    onClick = onReutilizarCampaniaClick,
-                    border = BorderStroke(1.dp, TealPrimary),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Surface),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp).height(80.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.History, contentDescription = "Reutilizar", tint = TealPrimary)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Reutilizar campaña anterior", color = TealPrimary, fontWeight = FontWeight.Bold)
-                    }
-                }
+                //----
 
                 // Resumen de Impacto
                 Text(
@@ -387,7 +359,12 @@ fun DashboardAdminScreen(
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clickable {
+                            onActividadClick()
+                        }
                 ) {
                     Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                         Box(modifier = Modifier.width(8.dp).fillMaxHeight().background(Error))
@@ -418,7 +395,12 @@ fun DashboardAdminScreen(
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clickable {
+                            onActividadClick()
+                        }
                 ) {
                     Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                         Box(modifier = Modifier.width(8.dp).fillMaxHeight().background(TealLight))

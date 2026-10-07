@@ -55,11 +55,6 @@ fun MisCampaniasScreen(
                         fontSize = 20.sp
                     )
                 },
-                actions = {
-                    IconButton(onClick = onNuevaCampaniaClick) {
-                        Icon(Icons.Default.Add, contentDescription = "Nueva Campaña", tint = TealPrimary)
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
         },
