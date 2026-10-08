@@ -15,7 +15,6 @@ import mx.tec.familias.ui.screens.publico.PublicoScreen
 
 import mx.tec.familias.ui.auth.IntegrantesScreen
 import mx.tec.familias.ui.auth.RegistroScreen
-import mx.tec.familias.ui.auth.SelectorRolScreen
 import mx.tec.familias.ui.screens.actividades.InscripcionScreen
 import mx.tec.familias.ui.screens.explorar.DetalleActividadScreen
 import mx.tec.familias.ui.screens.explorar.DetalleCampaniaScreen
@@ -49,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import mx.tec.familias.data.model.EstadoParticipante
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
+import mx.tec.familias.ui.auth.LoginScreen
 import mx.tec.familias.ui.screens.admin.campanias.GestionarParticipantesScreen
 
 @Composable
@@ -174,14 +174,12 @@ fun AppNavigation() {
         composable(Routes.Publico.route) {
             PublicoScreen(
                 onIniciarSesionClick = {
-                    // Este navega a tu pantalla de elegir si es familia o asoc.
-                    navController.navigate(Routes.SelectorRol.route) {
-                        // popUpTo evita que al darle "atrás" regreses a esta pantalla por error
-                        popUpTo(Routes.Publico.route) { inclusive = true }
-                    }
+                    navController.navigate(Routes.Login.route)
+                },
+                onRegistrarseClick = {
+                    navController.navigate(Routes.Registro.route)
                 },
                 onAdminClick = {
-                    // Este te manda directo al dashboard de administración para tu presentación
                     navController.navigate(Routes.DashboardAdmin.route) {
                         popUpTo(Routes.Publico.route) { inclusive = true }
                     }
@@ -189,23 +187,24 @@ fun AppNavigation() {
             )
         }
 
-        // ==========================================
-        // PANTALLA DE PROTOTIPO (SELECCIÓN DE ROL)
-        // ==========================================
-        composable(Routes.SelectorRol.route) {
-            SelectorRolScreen(
-                onFamiliaClick = {
+        composable(Routes.Login.route) {
+            LoginScreen(
+                onBackClick = { navController.popBackStack() },
+                onContinuar = {
+                    // Usamos la función de tu ViewModel para registrar la sesión de Paco
+                    familyViewModel.guardarUsuario(
+                        nombre = "Paco",
+                        correo = "paco@correo.com", // Un correo de prueba
+                        telefono = "8100000000"     // Un teléfono de prueba
+                    )
+
                     navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
-                    }
-                },
-                onAsociacionClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+                        popUpTo(Routes.Publico.route) { inclusive = true }
                     }
                 }
             )
         }
+
 
         // ==========================================
         // RUTAS DE USUARIO FAMILIA
@@ -256,18 +255,14 @@ fun AppNavigation() {
         composable(Routes.Registro.route) {
             RegistroScreen(
                 viewModel = familyViewModel,
-                onBackClick = {
-                    navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) { inclusive = true }
-                    }
-                },
+                onBackClick = { navController.popBackStack() },
                 onContinuar = { nombre, registrarOtros ->
                     nombreUsuario = nombre
                     if (registrarOtros) {
                         navController.navigate(Routes.Integrantes.route)
                     } else {
-                        navController.navigate(rutaDespuesDeRegistro) {
-                            popUpTo(Routes.Registro.route) { inclusive = true }
+                        navController.navigate(Routes.Inicio.route) {
+                            popUpTo(Routes.Publico.route) { inclusive = true }
                         }
                     }
                 }
@@ -638,7 +633,7 @@ fun AppNavigation() {
                 onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
                 onCambiarRolClick = {
                     familyViewModel.usuario.value = null
-                    navController.navigate(Routes.SelectorRol.route) {
+                    navController.navigate(Routes.Publico.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
@@ -973,7 +968,7 @@ fun AppNavigation() {
                     }
                 },
                 onCerrarSesionClick = {
-                    navController.navigate(Routes.SelectorRol.route) {
+                    navController.navigate(Routes.Publico.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
