@@ -52,4 +52,7 @@ sealed class Routes(val route: String) {
     data object DetalleActividadAdmin : Routes("detalleActividadAdmin")
     data object FormularioActividadAdmin : Routes("formularioActividadAdmin")
     data object GestionarParticipantesAdmin : Routes("gestionarParticipantesAdmin")
+
+    data object Publico : Routes("publico")
+
 }

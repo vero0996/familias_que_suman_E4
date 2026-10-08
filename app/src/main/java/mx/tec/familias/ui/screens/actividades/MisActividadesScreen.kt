@@ -25,20 +25,12 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,7 +51,7 @@ import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 
 data class ActividadInscrita(
-    val id: Int,
+    val id: String,
     val nombre: String,
     val fecha: String,
     val hora: String,
@@ -67,7 +59,7 @@ data class ActividadInscrita(
 )
 
 data class ActividadListaEspera(
-    val id: Int,
+    val id: String,
     val nombre: String,
     val fecha: String,
     val hora: String,
@@ -77,6 +69,8 @@ data class ActividadListaEspera(
 
 @Composable
 fun MisActividadesScreen(
+    actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel,
+    familiaId: String,
     onInicioClick: () -> Unit = {},
     onExplorarClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
@@ -84,264 +78,59 @@ fun MisActividadesScreen(
     onCalendarioClick: () -> Unit = {},
     mostrarMensajes: Boolean = true
 ) {
-
-    var actividadesInscritas by remember {
-        mutableStateOf(
-            listOf(
-                ActividadInscrita(
-                    id = 1,
-                    nombre = "Reforestación en el Parque Central",
-                    fecha = "24 NOV",
-                    hora = "09:00 AM – 12:00 PM",
-                    lugar = "Parque Central"
-                )
-            )
-        )
-    }
-
-    var actividadesEspera by remember {
-        mutableStateOf(
-            listOf(
-                ActividadListaEspera(
-                    id = 2,
-                    nombre = "Taller de Reciclaje en Familia",
-                    fecha = "24 NOV",
-                    hora = "11:30 AM – 01:00 PM",
-                    lugar = "Centro Comunitario",
-                    posicion = 3
-                )
-            )
-        )
-    }
-
-    var mostrarNotificacion by remember {
-        mutableStateOf(true)
-    }
-
-    var actividadDisponibleId by remember {
-        mutableStateOf<Int?>(2)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Background)
-    ) {
-
+    val estado = actividadesViewModel.estado
+    val propias = estado.inscripciones.filter { it.familiaId == familiaId }
+    val confirmadas = propias.filter { it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA }
+    val espera = propias.filter { it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA }
+    Column(Modifier.fillMaxSize().background(Background)) {
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                start = 20.dp,
-                top = 16.dp,
-                end = 20.dp,
-                bottom = 24.dp
-            ),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             item {
-
-                TopBar(
-                    title = "Mis Actividades",
-                    showProfile = true,
-                    onProfileClick = onPerfilClick
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-
-                    FilterChip(
-                        selected = false,
-                        onClick = onCalendarioClick,
-                        label = {
-                            Text(
-                                text = "Calendario",
-                                fontSize = 14.sp
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Surface,
-                            labelColor = TextPrimary
-                        ),
-                        shape = RoundedCornerShape(50)
-                    )
-
-                    FilterChip(
-                        selected = true,
-                        onClick = {},
-                        label = {
-                            Text(
-                                text = "Mis Actividades",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.EventAvailable,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = TealPrimary,
-                            selectedLabelColor = Surface,
-                            selectedLeadingIconColor = Surface,
-                            containerColor = Surface,
-                            labelColor = TextPrimary
-                        ),
-                        shape = RoundedCornerShape(50)
-                    )
+                TopBar(title = "Mis Actividades", showProfile = true, onProfileClick = onPerfilClick)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onCalendarioClick) { Text("Calendario") }
                 }
             }
-
-            if (mostrarNotificacion && actividadDisponibleId != null) {
-
-                item {
-
-                    LugarDisponibleCard(
-                        nombreActividad = "Taller de Reciclaje en Familia",
-                        onParticipar = {
-
-                            val actividad = actividadesEspera.find {
-                                it.id == actividadDisponibleId
-                            }
-
-                            if (actividad != null) {
-
-                                actividadesEspera =
-                                    actividadesEspera.filter {
-                                        it.id != actividad.id
-                                    }
-
-                                actividadesInscritas =
-                                    actividadesInscritas + ActividadInscrita(
-                                        id = actividad.id,
-                                        nombre = actividad.nombre,
-                                        fecha = actividad.fecha,
-                                        hora = actividad.hora,
-                                        lugar = actividad.lugar
-                                    )
-                            }
-
-                            actividadDisponibleId = null
-                            mostrarNotificacion = false
-                        },
-                        onRechazar = {
-                            mostrarNotificacion = false
-                        }
-                    )
-                }
+            actividadesViewModel.error?.let { mensaje ->
+                item { Text(mensaje, color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
             }
-
-            item {
-
-                SectionHeader(
-                    title = "Mis actividades",
-                    subtitle = "Actividades en las que ya estás inscrita."
+            item { SectionHeader("Mis actividades", "Inscripciones confirmadas de tu familia.") }
+            if (confirmadas.isEmpty()) item {
+                EmptyActivitiesCard(Icons.Default.EventAvailable, "No tienes actividades inscritas",
+                    "Explora las actividades disponibles para participar.")
+            }
+            items(confirmadas, key = { "confirmada:${it.id}" }) { solicitud ->
+                val evento = estado.evento(solicitud.eventoId)
+                ActividadInscritaCard(
+                    ActividadInscrita(solicitud.id, evento.nombre, evento.fecha, evento.hora, evento.lugar)
                 )
             }
-
-            if (actividadesInscritas.isEmpty()) {
-
-                item {
-                    EmptyActivitiesCard(
-                        icon = Icons.Default.EventAvailable,
-                        title = "No tienes actividades inscritas",
-                        description = "Explora las actividades disponibles y encuentra una en la que quieras participar."
-                    )
-                }
-
-            } else {
-
-                items(
-                    items = actividadesInscritas,
-                    key = { it.id }
-                ) { actividad ->
-
-                    ActividadInscritaCard(
-                        actividad = actividad
-                    )
-                }
+            item { SectionHeader("Lista de espera", "Respetamos el orden de llegada de las familias.") }
+            if (espera.isEmpty()) item {
+                EmptyActivitiesCard(Icons.Default.CheckCircle, "No estás en ninguna lista de espera",
+                    "Cuando una actividad esté llena podrás solicitar un lugar desde su detalle.")
             }
-
-            item {
-
-                SectionHeader(
-                    title = "Lista de espera",
-                    subtitle = "Aquí aparecerán las actividades que están llenas y en las que estás esperando un lugar."
+            items(espera, key = { "espera:${it.id}" }) { solicitud ->
+                val evento = estado.evento(solicitud.eventoId)
+                ActividadListaEsperaCard(
+                    ActividadListaEspera(solicitud.id, evento.nombre, evento.fecha, evento.hora,
+                        evento.lugar, estado.posicion(solicitud))
                 )
-            }
-
-            if (actividadesEspera.isEmpty()) {
-
-                item {
-                    EmptyActivitiesCard(
-                        icon = Icons.Default.CheckCircle,
-                        title = "No estás en ninguna lista de espera",
-                        description = "Cuando una actividad esté llena podrás solicitar un lugar desde su detalle."
-                    )
-                }
-
-            } else {
-
-                items(
-                    items = actividadesEspera,
-                    key = { it.id }
-                ) { actividad ->
-
-                    ActividadListaEsperaCard(
-                        actividad = actividad,
-                        onSalir = {
-
-                            actividadesEspera =
-                                actividadesEspera.filter {
-                                    it.id != actividad.id
-                                }
-
-                            if (actividad.id == actividadDisponibleId) {
-                                actividadDisponibleId = null
-                                mostrarNotificacion = false
-                            }
-                        }
-                    )
-                }
             }
         }
-
         BottomNavigationBar(
             currentDestination = FamilyDestination.ACTIVIDADES,
             mostrarMensajes = mostrarMensajes,
             onDestinationSelected = { destination ->
-
                 when (destination) {
-
-                    FamilyDestination.INICIO ->
-                        onInicioClick()
-
-                    FamilyDestination.EXPLORAR ->
-                        onExplorarClick()
-
-                    FamilyDestination.ACTIVIDADES -> {}
-
-                    FamilyDestination.MENSAJES ->
-                        onMensajesClick()
-
-                    FamilyDestination.PERFIL ->
-                        onPerfilClick()
+                    FamilyDestination.INICIO -> onInicioClick()
+                    FamilyDestination.EXPLORAR -> onExplorarClick()
+                    FamilyDestination.ACTIVIDADES -> Unit
+                    FamilyDestination.MENSAJES -> onMensajesClick()
+                    FamilyDestination.PERFIL -> onPerfilClick()
                 }
             }
         )
@@ -374,126 +163,6 @@ private fun SectionHeader(
             lineHeight = 20.sp,
             color = TextSecondary
         )
-    }
-}
-
-@Composable
-private fun LugarDisponibleCard(
-    nombreActividad: String,
-    onParticipar: () -> Unit,
-    onRechazar: () -> Unit
-) {
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = TealLight
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
-    ) {
-
-        Column(
-            modifier = Modifier.padding(18.dp)
-        ) {
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(Surface),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
-                        tint = TealPrimary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = "¡Se liberó un lugar!",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TealPrimary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Text(
-                text = "Hay un lugar disponible para:",
-                fontSize = 14.sp,
-                color = TextSecondary
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = nombreActividad,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "¿Todavía quieres participar?",
-                fontSize = 14.sp,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-
-                OutlinedButton(
-                    onClick = onRechazar,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-
-                    Text(
-                        text = "No, gracias",
-                        fontSize = 13.sp
-                    )
-                }
-
-                Button(
-                    onClick = onParticipar,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TealPrimary
-                    )
-                ) {
-
-                    Text(
-                        text = "Quiero participar",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -567,8 +236,7 @@ private fun ActividadInscritaCard(
 
 @Composable
 private fun ActividadListaEsperaCard(
-    actividad: ActividadListaEspera,
-    onSalir: () -> Unit
+    actividad: ActividadListaEspera
 ) {
 
     Card(
@@ -672,27 +340,7 @@ private fun ActividadListaEsperaCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            OutlinedButton(
-                onClick = onSalir,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp),
-                shape = RoundedCornerShape(10.dp)
-            ) {
 
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = null,
-                    modifier = Modifier.size(17.dp)
-                )
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Text(
-                    text = "Salir de lista de espera",
-                    fontSize = 13.sp
-                )
-            }
         }
     }
 }

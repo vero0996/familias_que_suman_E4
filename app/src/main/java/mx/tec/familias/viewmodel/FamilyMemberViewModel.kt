@@ -12,6 +12,11 @@ import mx.tec.familias.data.model.Inscripcion
 import android.util.Log
 
 class FamilyViewModel : ViewModel() {
+    // Identidad local del prototipo; un backend deberá usar el ID autenticado.
+    val familiaId: String
+        get() = usuario.value?.correo?.trim()?.lowercase(java.util.Locale.ROOT)
+            ?.let { "familia:$it" } ?: ""
+
 
     // Información de la persona que se registró
     var usuario = mutableStateOf<UserProfile?>(null)
