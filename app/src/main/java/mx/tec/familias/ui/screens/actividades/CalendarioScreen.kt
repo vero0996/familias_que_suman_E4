@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.actividades
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,23 +21,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.components.TopBar
-import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.BrownPrimary
 import mx.tec.familias.ui.theme.OrangePrimary
 import mx.tec.familias.ui.theme.Surface
@@ -53,6 +50,8 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 data class ActividadCalendario(
     val id: String,
@@ -77,15 +76,13 @@ fun CalendarioScreen(
     familiaId: String,
     mostrarMensajes: Boolean = true
 ) {
-
-    var diaSeleccionado by remember {
-        mutableIntStateOf(24)
-    }
+    var diaSeleccionado by remember { mutableIntStateOf(24) }
 
     val actividades = estadoActividades.eventos.map { evento ->
         val solicitud = estadoActividades.inscripciones.firstOrNull {
             it.eventoId == evento.id && it.familiaId == familiaId
         }
+
         ActividadCalendario(
             id = evento.id,
             nombre = evento.nombre,
@@ -109,13 +106,10 @@ fun CalendarioScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(TealLight.copy(alpha = 0.12f))
     ) {
-
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 start = 20.dp,
                 top = 16.dp,
@@ -124,73 +118,76 @@ fun CalendarioScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             item {
-
-                TopBar(
-                    title = "Calendario",
-                    showProfile = true,
-                    onProfileClick = onPerfilClick
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    shape = RoundedCornerShape(30.dp),
+                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                 ) {
+                    Column {
+                        TopBar(
+                            title = "Calendario",
+                            showProfile = true,
+                            onProfileClick = onPerfilClick
+                        )
 
-                    FilterChip(
-                        selected = true,
-                        onClick = {},
-                        label = {
-                            Text(
-                                text = "Calendario",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold
+                        Row(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            FilterChip(
+                                selected = true,
+                                onClick = {},
+                                label = {
+                                    Text(
+                                        text = "Calendario",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = TealPrimary,
+                                    selectedLabelColor = Surface,
+                                    selectedLeadingIconColor = Surface,
+                                    containerColor = Surface.copy(alpha = 0.84f),
+                                    labelColor = TextPrimary
+                                ),
+                                shape = RoundedCornerShape(22.dp)
                             )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = TealPrimary,
-                            selectedLabelColor = Surface,
-                            selectedLeadingIconColor = Surface,
-                            containerColor = Surface,
-                            labelColor = TextPrimary
-                        ),
-                        shape = RoundedCornerShape(50)
-                    )
 
-                    FilterChip(
-                        selected = false,
-                        onClick = onMisActividadesClick,
-                        label = {
-                            Text(
-                                text = "Mis Actividades",
-                                fontSize = 14.sp
+                            FilterChip(
+                                selected = false,
+                                onClick = onMisActividadesClick,
+                                label = {
+                                    Text(
+                                        text = "Mis Actividades",
+                                        fontSize = 14.sp
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Surface.copy(alpha = 0.84f),
+                                    labelColor = TextPrimary
+                                ),
+                                shape = RoundedCornerShape(22.dp)
                             )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Surface,
-                            labelColor = TextPrimary
-                        ),
-                        shape = RoundedCornerShape(50)
-                    )
+                        }
+                    }
                 }
             }
 
             item {
                 CalendarioMensual(
                     diaSeleccionado = diaSeleccionado,
-                    onDiaSeleccionado = {
-                        diaSeleccionado = it
-                    },
+                    onDiaSeleccionado = { diaSeleccionado = it },
                     actividades = actividades
                 )
             }
@@ -200,7 +197,6 @@ fun CalendarioScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-
                     LegendItem(
                         color = TealDark,
                         text = "Disponible"
@@ -216,7 +212,6 @@ fun CalendarioScreen(
             }
 
             item {
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -244,18 +239,14 @@ fun CalendarioScreen(
             }
 
             if (actividadesDelDia.isEmpty()) {
-
                 item {
                     EmptyDayCard()
                 }
-
             } else {
-
                 items(
                     items = actividadesDelDia,
                     key = { it.id }
                 ) { actividad ->
-
                     ActividadCalendarioCard(
                         actividad = actividad,
                         onClick = {
@@ -270,22 +261,12 @@ fun CalendarioScreen(
             currentDestination = FamilyDestination.ACTIVIDADES,
             mostrarMensajes = mostrarMensajes,
             onDestinationSelected = { destination ->
-
                 when (destination) {
-
-                    FamilyDestination.INICIO ->
-                        onInicioClick()
-
-                    FamilyDestination.EXPLORAR ->
-                        onExplorarClick()
-
+                    FamilyDestination.INICIO -> onInicioClick()
+                    FamilyDestination.EXPLORAR -> onExplorarClick()
                     FamilyDestination.ACTIVIDADES -> {}
-
-                    FamilyDestination.MENSAJES ->
-                        onMensajesClick()
-
-                    FamilyDestination.PERFIL ->
-                        onPerfilClick()
+                    FamilyDestination.MENSAJES -> onMensajesClick()
+                    FamilyDestination.PERFIL -> onPerfilClick()
                 }
             }
         )
@@ -298,7 +279,6 @@ private fun CalendarioMensual(
     onDiaSeleccionado: (Int) -> Unit,
     actividades: List<ActividadCalendario>
 ) {
-
     val diasSemana = listOf(
         "LUN",
         "MAR",
@@ -309,29 +289,22 @@ private fun CalendarioMensual(
         "DOM"
     )
 
-    val diasConActividades = actividades
-        .groupBy { it.fecha }
+    val diasConActividades = actividades.groupBy { it.fecha }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(18.dp)
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Text(
                     text = "Noviembre 2026",
                     modifier = Modifier.weight(1f),
@@ -340,12 +313,20 @@ private fun CalendarioMensual(
                     color = TextPrimary
                 )
 
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = "Calendario",
-                    tint = TealPrimary,
-                    modifier = Modifier.size(24.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(TealLight.copy(alpha = 0.55f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Calendario",
+                        tint = TealPrimary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -353,9 +334,7 @@ private fun CalendarioMensual(
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-
                 diasSemana.forEach { dia ->
-
                     Text(
                         text = dia,
                         modifier = Modifier.weight(1f),
@@ -383,15 +362,12 @@ private fun CalendarioMensual(
             }
 
             celdas.chunked(7).forEach { semana ->
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
                 ) {
-
                     semana.forEach { dia ->
-
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -399,14 +375,9 @@ private fun CalendarioMensual(
                                 .padding(2.dp),
                             contentAlignment = Alignment.Center
                         ) {
-
                             if (dia != null) {
-
-                                val seleccionado =
-                                    dia == diaSeleccionado
-
-                                val actividadesDelDia =
-                                    diasConActividades[dia]
+                                val seleccionado = dia == diaSeleccionado
+                                val actividadesDelDia = diasConActividades[dia]
 
                                 Column(
                                     modifier = Modifier
@@ -414,9 +385,9 @@ private fun CalendarioMensual(
                                         .clip(CircleShape)
                                         .background(
                                             if (seleccionado) {
-                                                TealLight
+                                                TealLight.copy(alpha = 0.65f)
                                             } else {
-                                                androidx.compose.ui.graphics.Color.Transparent
+                                                Color.Transparent
                                             }
                                         )
                                         .clickable {
@@ -425,7 +396,6 @@ private fun CalendarioMensual(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-
                                     Text(
                                         text = dia.toString(),
                                         fontSize = 14.sp,
@@ -438,23 +408,18 @@ private fun CalendarioMensual(
                                     )
 
                                     if (!actividadesDelDia.isNullOrEmpty()) {
-
                                         Row(
                                             horizontalArrangement = Arrangement.spacedBy(3.dp)
                                         ) {
-
                                             actividadesDelDia
                                                 .take(2)
                                                 .forEach { actividad ->
-
                                                     Box(
                                                         modifier = Modifier
                                                             .size(5.dp)
                                                             .clip(CircleShape)
                                                             .background(
-                                                                if (
-                                                                    actividad.estado == "INSCRITO"
-                                                                ) {
+                                                                if (actividad.estado == "INSCRITO") {
                                                                     OrangePrimary
                                                                 } else {
                                                                     TealDark
@@ -470,9 +435,7 @@ private fun CalendarioMensual(
                     }
 
                     if (semana.size < 7) {
-
                         repeat(7 - semana.size) {
-
                             Spacer(
                                 modifier = Modifier.weight(1f)
                             )
@@ -486,28 +449,34 @@ private fun CalendarioMensual(
 
 @Composable
 private fun LegendItem(
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     text: String
 ) {
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.80f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(9.dp)
+                    .clip(CircleShape)
+                    .background(color)
+            )
 
-        Box(
-            modifier = Modifier
-                .size(9.dp)
-                .clip(CircleShape)
-                .background(color)
-        )
+            Spacer(modifier = Modifier.width(6.dp))
 
-        Spacer(modifier = Modifier.width(6.dp))
-
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            color = TextSecondary
-        )
+            Text(
+                text = text,
+                fontSize = 12.sp,
+                color = TextSecondary
+            )
+        }
     }
 }
 
@@ -516,45 +485,37 @@ private fun ActividadCalendarioCard(
     actividad: ActividadCalendario,
     onClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             verticalAlignment = Alignment.Top
         ) {
-
             Box(
                 modifier = Modifier
                     .size(58.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(18.dp))
                     .background(
                         if (actividad.estado == "INSCRITO") {
-                            OrangePrimary
+                            OrangePrimary.copy(alpha = 0.65f)
                         } else {
-                            TealLight
+                            TealLight.copy(alpha = 0.65f)
                         }
                     ),
                 contentAlignment = Alignment.Center
             ) {
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Text(
                         text = actividad.fecha.toString(),
                         fontSize = 20.sp,
@@ -576,7 +537,6 @@ private fun ActividadCalendarioCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = actividad.nombre,
                     fontSize = 16.sp,
@@ -591,14 +551,14 @@ private fun ActividadCalendarioCard(
                     estado = actividad.estado
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 InfoRow(
                     icon = Icons.Default.Schedule,
                     text = actividad.hora
                 )
 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 InfoRow(
                     icon = Icons.Default.LocationOn,
@@ -613,12 +573,11 @@ private fun ActividadCalendarioCard(
 private fun StatusBadge(
     estado: String
 ) {
-
     val backgroundColor =
         if (estado == "INSCRITO") {
-            OrangePrimary
+            OrangePrimary.copy(alpha = 0.45f)
         } else {
-            TealLight
+            TealLight.copy(alpha = 0.65f)
         }
 
     val textColor =
@@ -632,12 +591,8 @@ private fun StatusBadge(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(backgroundColor)
-            .padding(
-                horizontal = 10.dp,
-                vertical = 4.dp
-            )
+            .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
-
         Text(
             text = estado,
             fontSize = 10.sp,
@@ -652,19 +607,25 @@ private fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(TealLight.copy(alpha = 0.50f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(15.dp),
+                tint = TealPrimary
+            )
+        }
 
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = TextSecondary
-        )
-
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Text(
             text = text,
@@ -676,30 +637,35 @@ private fun InfoRow(
 
 @Composable
 private fun EmptyDayCard() {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp)
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(TealLight.copy(alpha = 0.65f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = TealPrimary
+                )
+            }
 
-            Icon(
-                imageVector = Icons.Default.CalendarMonth,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = TealPrimary
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "No hay actividades este día",

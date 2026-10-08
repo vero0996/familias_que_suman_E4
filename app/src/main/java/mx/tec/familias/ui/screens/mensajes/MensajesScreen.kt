@@ -1,7 +1,7 @@
 package mx.tec.familias.ui.screens.mensajes
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,12 +35,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.components.TopBar
-import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
@@ -62,7 +63,6 @@ fun MensajesScreen(
     onPerfilClick: () -> Unit = {},
     onConversacionClick: (Conversacion) -> Unit = {}
 ) {
-
     var busqueda by remember {
         mutableStateOf("")
     }
@@ -96,136 +96,123 @@ fun MensajesScreen(
                 it.ultimoMensaje.contains(busqueda, ignoreCase = true)
     }
 
-    //AdaptiveContainer(modifier = Modifier.background(Background)) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Background)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TealLight.copy(alpha = 0.12f))
+    ) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 20.dp,
+                top = 16.dp,
+                end = 20.dp,
+                bottom = 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(30.dp),
+                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                ) {
+                    Column {
+                        TopBar(
+                            title = "Mensajes",
+                            showProfile = true,
+                            onProfileClick = onPerfilClick
+                        )
 
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = 20.dp,
-                    top = 16.dp,
-                    end = 20.dp,
-                    bottom = 24.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-
-                item {
-
-                    TopBar(
-                        title = "Mensajes",
-                        showProfile = true,
-                        onProfileClick = onPerfilClick
-                    )
-
-                    Spacer(modifier = Modifier.padding(top = 4.dp))
-
-                    OutlinedTextField(
-                        value = busqueda,
-                        onValueChange = {
-                            busqueda = it
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = {
-                            Text(
-                                text = "Buscar mensajes",
-                                fontSize = 14.sp
+                        OutlinedTextField(
+                            value = busqueda,
+                            onValueChange = { busqueda = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                            placeholder = {
+                                Text(
+                                    text = "Buscar mensajes",
+                                    fontSize = 14.sp
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar",
+                                    tint = TealPrimary
+                                )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(24.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Surface.copy(alpha = 0.92f),
+                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
                             )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar",
-                                tint = TextSecondary
-                            )
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(14.dp)
-                    )
-                }
-
-                if (conversacionesFiltradas.isEmpty()) {
-
-                    item {
-
-                        EmptyMessagesCard()
-
-                    }
-
-                } else {
-
-                    items(
-                        items = conversacionesFiltradas,
-                        key = { it.id }
-                    ) { conversacion ->
-
-                        ConversacionCard(
-                            conversacion = conversacion,
-                            onClick = {
-                                onConversacionClick(conversacion)
-                            }
                         )
                     }
                 }
             }
 
-            BottomNavigationBar(
-                currentDestination = FamilyDestination.MENSAJES,
-                mostrarMensajes = true,
-                onDestinationSelected = { destination ->
-
-                    when (destination) {
-
-                        FamilyDestination.INICIO ->
-                            onInicioClick()
-
-                        FamilyDestination.EXPLORAR ->
-                            onExplorarClick()
-
-                        FamilyDestination.ACTIVIDADES ->
-                            onActividadesClick()
-
-                        FamilyDestination.MENSAJES -> Unit
-
-                        FamilyDestination.PERFIL ->
-                            onPerfilClick()
-                    }
+            if (conversacionesFiltradas.isEmpty()) {
+                item {
+                    EmptyMessagesCard()
                 }
-            )
+            } else {
+                items(
+                    items = conversacionesFiltradas,
+                    key = { it.id }
+                ) { conversacion ->
+                    ConversacionCard(
+                        conversacion = conversacion,
+                        onClick = {
+                            onConversacionClick(conversacion)
+                        }
+                    )
+                }
+            }
         }
+
+        BottomNavigationBar(
+            currentDestination = FamilyDestination.MENSAJES,
+            mostrarMensajes = true,
+            onDestinationSelected = { destination ->
+                when (destination) {
+                    FamilyDestination.INICIO -> onInicioClick()
+                    FamilyDestination.EXPLORAR -> onExplorarClick()
+                    FamilyDestination.ACTIVIDADES -> onActividadesClick()
+                    FamilyDestination.MENSAJES -> Unit
+                    FamilyDestination.PERFIL -> onPerfilClick()
+                }
+            }
+        )
     }
-//}
+}
 
 @Composable
 private fun ConversacionCard(
     conversacion: Conversacion,
     onClick: () -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             BoxAvatar(
                 nombre = conversacion.nombre
             )
@@ -235,12 +222,10 @@ private fun ConversacionCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Text(
                         text = conversacion.nombre,
                         modifier = Modifier.weight(1f),
@@ -262,7 +247,6 @@ private fun ConversacionCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     Text(
                         text = conversacion.ultimoMensaje,
                         modifier = Modifier.weight(1f),
@@ -273,17 +257,15 @@ private fun ConversacionCard(
                     )
 
                     if (conversacion.mensajesSinLeer > 0) {
-
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Box(
                             modifier = Modifier
-                                .size(22.dp)
+                                .size(24.dp)
                                 .clip(CircleShape)
                                 .background(TealPrimary),
                             contentAlignment = Alignment.Center
                         ) {
-
                             Text(
                                 text = conversacion.mensajesSinLeer.toString(),
                                 fontSize = 11.sp,
@@ -302,15 +284,13 @@ private fun ConversacionCard(
 private fun BoxAvatar(
     nombre: String
 ) {
-
     Box(
         modifier = Modifier
             .size(52.dp)
-            .clip(CircleShape)
-            .background(TealLight),
+            .clip(RoundedCornerShape(18.dp))
+            .background(TealLight.copy(alpha = 0.65f)),
         contentAlignment = Alignment.Center
     ) {
-
         Icon(
             imageVector = Icons.Default.Person,
             contentDescription = null,
@@ -322,30 +302,26 @@ private fun BoxAvatar(
 
 @Composable
 private fun EmptyMessagesCard() {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp)
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(CircleShape)
-                    .background(TealLight),
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(TealLight.copy(alpha = 0.65f)),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Campaign,
                     contentDescription = null,

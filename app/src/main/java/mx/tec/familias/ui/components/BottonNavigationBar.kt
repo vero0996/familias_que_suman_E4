@@ -1,5 +1,7 @@
 package mx.tec.familias.ui.components
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Explore
@@ -9,8 +11,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import mx.tec.familias.ui.theme.Surface
+import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 
 enum class FamilyDestination {
@@ -27,7 +34,16 @@ fun BottomNavigationBar(
     onDestinationSelected: (FamilyDestination) -> Unit,
     mostrarMensajes: Boolean = false
 ) {
-    NavigationBar {
+
+    NavigationBar(
+        containerColor = Surface,
+        modifier = Modifier.padding(
+            start = 12.dp,
+            end = 12.dp,
+            bottom = 8.dp
+        ),
+        tonalElevation = 2.dp
+    ) {
 
         NavigationBarItem(
             selected = currentDestination == FamilyDestination.INICIO,
@@ -42,7 +58,8 @@ fun BottomNavigationBar(
             },
             label = {
                 Text("Inicio")
-            }
+            },
+            colors = navigationColors()
         )
 
         NavigationBarItem(
@@ -58,7 +75,8 @@ fun BottomNavigationBar(
             },
             label = {
                 Text("Explorar")
-            }
+            },
+            colors = navigationColors()
         )
 
         NavigationBarItem(
@@ -74,7 +92,8 @@ fun BottomNavigationBar(
             },
             label = {
                 Text("Actividades")
-            }
+            },
+            colors = navigationColors()
         )
 
         if (mostrarMensajes) {
@@ -92,7 +111,8 @@ fun BottomNavigationBar(
                 },
                 label = {
                     Text("Mensajes")
-                }
+                },
+                colors = navigationColors()
             )
         }
 
@@ -109,7 +129,18 @@ fun BottomNavigationBar(
             },
             label = {
                 Text("Perfil")
-            }
+            },
+            colors = navigationColors()
         )
     }
 }
+
+@Composable
+private fun navigationColors() =
+    NavigationBarItemDefaults.colors(
+        selectedIconColor = TealPrimary,
+        selectedTextColor = TealPrimary,
+        indicatorColor = TealLight,
+        unselectedIconColor = androidx.compose.ui.graphics.Color.Gray,
+        unselectedTextColor = androidx.compose.ui.graphics.Color.Gray
+    )

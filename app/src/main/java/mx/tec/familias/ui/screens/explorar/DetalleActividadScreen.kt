@@ -1,7 +1,8 @@
 package mx.tec.familias.ui.screens.explorar
 
 import android.content.Intent
-
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,10 +29,12 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -49,20 +54,15 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.widget.Toast
-
 import mx.tec.familias.R
 import mx.tec.familias.data.model.Activity
-import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.BrownPrimary
-import mx.tec.familias.ui.theme.Divider
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealDark
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
-
 
 @Composable
 fun DetalleActividadScreen(
@@ -77,11 +77,8 @@ fun DetalleActividadScreen(
     error: String? = null,
     onCancelarInscripcionClick: () -> Boolean
 ) {
-
     var mostrarDialogoCancelar by remember(actividad.id) { mutableStateOf(false) }
-    var mostrarDialogoCompartir by remember(actividad.id) {
-        mutableStateOf(false)
-    }
+    var mostrarDialogoCompartir by remember(actividad.id) { mutableStateOf(false) }
 
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -93,64 +90,76 @@ fun DetalleActividadScreen(
                 (100..999).random().toString()
     }
 
-    val urlActividad =
-        "https://familiasquesuman.app/actividad/$codigoActividad"
-
+    val urlActividad = "https://familiasquesuman.app/actividad/$codigoActividad"
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(TealLight.copy(alpha = 0.12f))
     ) {
 
         // --------------------------------------------------
         // HEADER
         // --------------------------------------------------
 
-        Row(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 25.dp,
-                    bottom = 16.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start = 18.dp, end = 18.dp, top = 48.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-
-            IconButton(
-                onClick = onBackClick
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = TealPrimary
-                )
-            }
-
-            Text(
-                text = "Detalle de actividad",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = TealPrimary,
-                modifier = Modifier.weight(1f)
-            )
-
-            // Botón para compartir
-            IconButton(
-                onClick = {
-                    mostrarDialogoCompartir = true
+                IconButton(onClick = onBackClick) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(TealLight.copy(alpha = 0.45f))
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Regresar",
+                            tint = TealPrimary
+                        )
+                    }
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = "Compartir actividad",
-                    tint = TealPrimary
+
+                Text(
+                    text = "Detalle de actividad",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary,
+                    modifier = Modifier.weight(1f)
                 )
+
+                IconButton(
+                    onClick = { mostrarDialogoCompartir = true }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(TealLight.copy(alpha = 0.45f))
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Compartir actividad",
+                            tint = TealPrimary
+                        )
+                    }
+                }
             }
         }
-
 
         // --------------------------------------------------
         // CONTENIDO
@@ -161,44 +170,35 @@ fun DetalleActividadScreen(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 18.dp)
         ) {
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
-
+            Spacer(modifier = Modifier.height(22.dp))
 
             // --------------------------------------------------
             // IMAGEN
             // --------------------------------------------------
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(210.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Divider),
-                contentAlignment = Alignment.Center
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-
                 Image(
-                    painter = painterResource(
-                        id = R.drawable.recorridainvierno
-                    ),
+                    painter = painterResource(id = R.drawable.recorridainvierno),
                     contentDescription = "Imagen de la actividad",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(175.dp)
+                        .height(210.dp)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(22.dp))
                 )
             }
 
-
-            Spacer(
-                modifier = Modifier.height(20.dp)
-            )
-
+            Spacer(modifier = Modifier.height(20.dp))
 
             // --------------------------------------------------
             // CATEGORÍA
@@ -211,10 +211,7 @@ fun DetalleActividadScreen(
                 color = BrownPrimary
             )
 
-            Spacer(
-                modifier = Modifier.height(6.dp)
-            )
-
+            Spacer(modifier = Modifier.height(6.dp))
 
             // --------------------------------------------------
             // TÍTULO
@@ -228,10 +225,7 @@ fun DetalleActividadScreen(
                 color = TextPrimary
             )
 
-            Spacer(
-                modifier = Modifier.height(6.dp)
-            )
-
+            Spacer(modifier = Modifier.height(6.dp))
 
             // --------------------------------------------------
             // ORGANIZACIÓN
@@ -244,40 +238,40 @@ fun DetalleActividadScreen(
                 color = TealDark
             )
 
-
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
-
+            Spacer(modifier = Modifier.height(24.dp))
 
             // --------------------------------------------------
             // DESCRIPCIÓN
             // --------------------------------------------------
 
-            Text(
-                text = "Sobre esta actividad",
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.82f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        text = "Sobre esta actividad",
+                        fontSize = 22.sp,
+                        lineHeight = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = actividad.descripcion,
-                fontSize = 14.sp,
-                lineHeight = 21.sp,
-                color = TextSecondary
-            )
+                    Text(
+                        text = actividad.descripcion,
+                        fontSize = 14.sp,
+                        lineHeight = 21.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
 
-
-            Spacer(
-                modifier = Modifier.height(28.dp)
-            )
-
+            Spacer(modifier = Modifier.height(24.dp))
 
             // --------------------------------------------------
             // INFORMACIÓN
@@ -291,10 +285,7 @@ fun DetalleActividadScreen(
                 color = TextPrimary
             )
 
-            Spacer(
-                modifier = Modifier.height(14.dp)
-            )
-
+            Spacer(modifier = Modifier.height(14.dp))
 
             ActivityInfoCard(
                 icon = {
@@ -308,11 +299,7 @@ fun DetalleActividadScreen(
                 value = "${actividad.fecha} · ${actividad.hora}"
             )
 
-
-            Spacer(
-                modifier = Modifier.height(10.dp)
-            )
-
+            Spacer(modifier = Modifier.height(10.dp))
 
             ActivityInfoCard(
                 icon = {
@@ -326,11 +313,7 @@ fun DetalleActividadScreen(
                 value = actividad.lugar
             )
 
-
-            Spacer(
-                modifier = Modifier.height(10.dp)
-            )
-
+            Spacer(modifier = Modifier.height(10.dp))
 
             ActivityInfoCard(
                 icon = {
@@ -344,29 +327,26 @@ fun DetalleActividadScreen(
                 value = "$ocupados/${actividad.capacidadFamilias} familias · $disponibles lugares libres"
             )
 
-
-            Spacer(
-                modifier = Modifier.height(28.dp)
-            )
+            Spacer(modifier = Modifier.height(28.dp))
         }
-
 
         // --------------------------------------------------
         // BOTÓN INFERIOR
         // --------------------------------------------------
 
-        Box(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Surface)
                 .navigationBarsPadding()
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 16.dp
-                )
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.92f)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-
-            Column {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
                 if (error != null) {
                     Text(
                         text = error,
@@ -374,23 +354,27 @@ fun DetalleActividadScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
+
                 if (inscripcionConfirmada) {
                     OutlinedButton(
                         onClick = { mostrarDialogoCancelar = true },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(22.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = androidx.compose.ui.graphics.Color.Red
+                            contentColor = Color.Red
                         )
                     ) {
-                        Text("Cancelar inscripción a la actividad", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Cancelar inscripción a la actividad",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 } else {
                     Button(
                         onClick = onInscribirseClick,
                         enabled = !inscripcionActiva && !inscripcionesCerradas,
                         modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(22.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
                     ) {
                         Text(
@@ -409,24 +393,42 @@ fun DetalleActividadScreen(
         }
     }
 
-
     if (mostrarDialogoCancelar) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoCancelar = false },
             containerColor = Surface,
-            title = { Text("¿Cancelar inscripción?", color = TealPrimary, fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    text = "¿Cancelar inscripción?",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
-                Text("Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
-                        "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera.")
+                Text(
+                    "Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
+                            "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera."
+                )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    onCancelarInscripcionClick()
-                    mostrarDialogoCancelar = false
-                }) { Text("Sí, cancelar", color = androidx.compose.ui.graphics.Color.Red) }
+                TextButton(
+                    onClick = {
+                        onCancelarInscripcionClick()
+                        mostrarDialogoCancelar = false
+                    }
+                ) {
+                    Text(
+                        text = "Sí, cancelar",
+                        color = Color.Red
+                    )
+                }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarDialogoCancelar = false }) { Text("Volver") }
+                TextButton(
+                    onClick = { mostrarDialogoCancelar = false }
+                ) {
+                    Text("Volver")
+                }
             }
         )
     }
@@ -436,14 +438,9 @@ fun DetalleActividadScreen(
     // --------------------------------------------------
 
     if (mostrarDialogoCompartir) {
-
         AlertDialog(
-            onDismissRequest = {
-                mostrarDialogoCompartir = false
-            },
-
+            onDismissRequest = { mostrarDialogoCompartir = false },
             containerColor = Surface,
-
             title = {
                 Text(
                     text = "Compartir actividad",
@@ -451,29 +448,23 @@ fun DetalleActividadScreen(
                     color = TextPrimary
                 )
             },
-
             text = {
-
                 Column {
-
                     Text(
                         text = "Comparte esta actividad con otras familias:",
                         fontSize = 14.sp,
                         color = TextSecondary
                     )
 
-                    Spacer(
-                        modifier = Modifier.height(14.dp)
-                    )
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Background)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(TealLight.copy(alpha = 0.25f))
                             .padding(12.dp)
                     ) {
-
                         Text(
                             text = urlActividad,
                             fontSize = 13.sp,
@@ -482,15 +473,10 @@ fun DetalleActividadScreen(
                     }
                 }
             },
-
             confirmButton = {
-
                 TextButton(
                     onClick = {
-
-                        clipboardManager.setText(
-                            AnnotatedString(urlActividad)
-                        )
+                        clipboardManager.setText(AnnotatedString(urlActividad))
 
                         Toast.makeText(
                             context,
@@ -499,16 +485,13 @@ fun DetalleActividadScreen(
                         ).show()
                     }
                 ) {
-
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = null,
                         tint = TealPrimary
                     )
 
-                    Spacer(
-                        modifier = Modifier.width(6.dp)
-                    )
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
                         text = "Copiar",
@@ -516,18 +499,11 @@ fun DetalleActividadScreen(
                     )
                 }
             },
-
             dismissButton = {
-
                 Row {
-
                     TextButton(
                         onClick = {
-
-                            val shareIntent = Intent(
-                                Intent.ACTION_SEND
-                            ).apply {
-
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
 
                                 putExtra(
@@ -546,16 +522,13 @@ fun DetalleActividadScreen(
                             )
                         }
                     ) {
-
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = null,
                             tint = TealPrimary
                         )
 
-                        Spacer(
-                            modifier = Modifier.width(6.dp)
-                        )
+                        Spacer(modifier = Modifier.width(6.dp))
 
                         Text(
                             text = "Compartir",
@@ -564,11 +537,8 @@ fun DetalleActividadScreen(
                     }
 
                     TextButton(
-                        onClick = {
-                            mostrarDialogoCompartir = false
-                        }
+                        onClick = { mostrarDialogoCompartir = false }
                     ) {
-
                         Text(
                             text = "Cerrar",
                             color = TextSecondary
@@ -580,7 +550,6 @@ fun DetalleActividadScreen(
     }
 }
 
-
 // --------------------------------------------------
 // TARJETA DE INFORMACIÓN
 // --------------------------------------------------
@@ -591,52 +560,50 @@ private fun ActivityInfoCard(
     title: String,
     value: String
 ) {
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Surface)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.84f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-
-        Box(
+        Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(TealLight)
-                .padding(10.dp),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(TealLight.copy(alpha = 0.60f))
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                icon()
+            }
 
-            icon()
-        }
+            Spacer(modifier = Modifier.width(14.dp))
 
-        Spacer(
-            modifier = Modifier.width(14.dp)
-        )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextSecondary
+                )
 
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+                Spacer(modifier = Modifier.height(3.dp))
 
-            Text(
-                text = title,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextSecondary
-            )
-
-            Spacer(
-                modifier = Modifier.height(3.dp)
-            )
-
-            Text(
-                text = value,
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                color = TextPrimary
-            )
+                Text(
+                    text = value,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
+                    color = TextPrimary
+                )
+            }
         }
     }
 }

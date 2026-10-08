@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.actividades
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,12 +20,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -34,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.components.TopBar
-import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.BrownPrimary
 import mx.tec.familias.ui.theme.OrangePrimary
 import mx.tec.familias.ui.theme.Surface
@@ -82,45 +81,131 @@ fun MisActividadesScreen(
     val propias = estado.inscripciones.filter { it.familiaId == familiaId }
     val confirmadas = propias.filter { it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA }
     val espera = propias.filter { it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA }
-    Column(Modifier.fillMaxSize().background(Background)) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TealLight.copy(alpha = 0.12f))
+    ) {
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                TopBar(title = "Mis Actividades", showProfile = true, onProfileClick = onPerfilClick)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onCalendarioClick) { Text("Calendario") }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(30.dp),
+                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                ) {
+                    Column {
+                        TopBar(
+                            title = "Mis Actividades",
+                            showProfile = true,
+                            onProfileClick = onPerfilClick
+                        )
+
+                        Row(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = onCalendarioClick,
+                                shape = RoundedCornerShape(20.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = null,
+                                    tint = TealPrimary
+                                )
+
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                Text(
+                                    text = "Calendario",
+                                    color = TealPrimary
+                                )
+                            }
+                        }
+                    }
                 }
             }
+
             actividadesViewModel.error?.let { mensaje ->
-                item { Text(mensaje, color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
+                item {
+                    Text(
+                        text = mensaje,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                    )
+                }
             }
-            item { SectionHeader("Mis actividades", "Inscripciones confirmadas de tu familia.") }
-            if (confirmadas.isEmpty()) item {
-                EmptyActivitiesCard(Icons.Default.EventAvailable, "No tienes actividades inscritas",
-                    "Explora las actividades disponibles para participar.")
-            }
-            items(confirmadas, key = { "confirmada:${it.id}" }) { solicitud ->
-                val evento = estado.evento(solicitud.eventoId)
-                ActividadInscritaCard(
-                    ActividadInscrita(solicitud.id, evento.nombre, evento.fecha, evento.hora, evento.lugar)
+
+            item {
+                SectionHeader(
+                    "Mis actividades",
+                    "Inscripciones confirmadas de tu familia."
                 )
             }
-            item { SectionHeader("Lista de espera", "Respetamos el orden de llegada de las familias.") }
-            if (espera.isEmpty()) item {
-                EmptyActivitiesCard(Icons.Default.CheckCircle, "No estás en ninguna lista de espera",
-                    "Cuando una actividad esté llena podrás solicitar un lugar desde su detalle.")
+
+            if (confirmadas.isEmpty()) {
+                item {
+                    EmptyActivitiesCard(
+                        Icons.Default.EventAvailable,
+                        "No tienes actividades inscritas",
+                        "Explora las actividades disponibles para participar."
+                    )
+                }
             }
+
+            items(confirmadas, key = { "confirmada:${it.id}" }) { solicitud ->
+                val evento = estado.evento(solicitud.eventoId)
+
+                ActividadInscritaCard(
+                    ActividadInscrita(
+                        solicitud.id,
+                        evento.nombre,
+                        evento.fecha,
+                        evento.hora,
+                        evento.lugar
+                    )
+                )
+            }
+
+            item {
+                SectionHeader(
+                    "Lista de espera",
+                    "Respetamos el orden de llegada de las familias."
+                )
+            }
+
+            if (espera.isEmpty()) {
+                item {
+                    EmptyActivitiesCard(
+                        Icons.Default.CheckCircle,
+                        "No estás en ninguna lista de espera",
+                        "Cuando una actividad esté llena podrás solicitar un lugar desde su detalle."
+                    )
+                }
+            }
+
             items(espera, key = { "espera:${it.id}" }) { solicitud ->
                 val evento = estado.evento(solicitud.eventoId)
+
                 ActividadListaEsperaCard(
-                    ActividadListaEspera(solicitud.id, evento.nombre, evento.fecha, evento.hora,
-                        evento.lugar, estado.posicion(solicitud))
+                    ActividadListaEspera(
+                        solicitud.id,
+                        evento.nombre,
+                        evento.fecha,
+                        evento.hora,
+                        evento.lugar,
+                        estado.posicion(solicitud)
+                    )
                 )
             }
         }
+
         BottomNavigationBar(
             currentDestination = FamilyDestination.ACTIVIDADES,
             mostrarMensajes = mostrarMensajes,
@@ -142,11 +227,9 @@ private fun SectionHeader(
     title: String,
     subtitle: String
 ) {
-
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-
         Text(
             text = title,
             fontSize = 22.sp,
@@ -170,25 +253,19 @@ private fun SectionHeader(
 private fun ActividadInscritaCard(
     actividad: ActividadInscrita
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             verticalAlignment = Alignment.Top
         ) {
-
             DateBox(
                 fecha = actividad.fecha,
                 backgroundColor = OrangePrimary
@@ -199,7 +276,6 @@ private fun ActividadInscritaCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = actividad.nombre,
                     fontSize = 16.sp,
@@ -212,18 +288,18 @@ private fun ActividadInscritaCard(
 
                 StatusBadge(
                     text = "INSCRITO",
-                    backgroundColor = OrangePrimary,
+                    backgroundColor = OrangePrimary.copy(alpha = 0.45f),
                     textColor = BrownPrimary
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 InfoRow(
                     icon = Icons.Default.Schedule,
                     text = actividad.hora
                 )
 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 InfoRow(
                     icon = Icons.Default.LocationOn,
@@ -238,26 +314,19 @@ private fun ActividadInscritaCard(
 private fun ActividadListaEsperaCard(
     actividad: ActividadListaEspera
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(18.dp)
         ) {
-
             Row(
                 verticalAlignment = Alignment.Top
             ) {
-
                 DateBox(
                     fecha = actividad.fecha,
                     backgroundColor = TealLight
@@ -268,7 +337,6 @@ private fun ActividadListaEsperaCard(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-
                     Text(
                         text = actividad.nombre,
                         fontSize = 16.sp,
@@ -281,7 +349,7 @@ private fun ActividadListaEsperaCard(
 
                     StatusBadge(
                         text = "EN LISTA DE ESPERA",
-                        backgroundColor = TealLight,
+                        backgroundColor = TealLight.copy(alpha = 0.65f),
                         textColor = TealPrimary
                     )
                 }
@@ -289,49 +357,58 @@ private fun ActividadListaEsperaCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Background)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = TealLight.copy(alpha = 0.25f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f))
             ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(TealLight.copy(alpha = 0.65f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = TealPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = TealPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
+                    Spacer(modifier = Modifier.width(10.dp))
 
-                Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = "Tu posición",
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
 
-                Column {
-
-                    Text(
-                        text = "Tu posición",
-                        fontSize = 12.sp,
-                        color = TextSecondary
-                    )
-
-                    Text(
-                        text = "#${actividad.posicion}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TealPrimary
-                    )
+                        Text(
+                            text = "#${actividad.posicion}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TealPrimary
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             InfoRow(
                 icon = Icons.Default.Schedule,
                 text = "${actividad.fecha} · ${actividad.hora}"
             )
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             InfoRow(
                 icon = Icons.Default.LocationOn,
@@ -339,8 +416,6 @@ private fun ActividadListaEsperaCard(
             )
 
             Spacer(modifier = Modifier.height(14.dp))
-
-
         }
     }
 }
@@ -348,21 +423,18 @@ private fun ActividadListaEsperaCard(
 @Composable
 private fun DateBox(
     fecha: String,
-    backgroundColor: androidx.compose.ui.graphics.Color
+    backgroundColor: Color
 ) {
-
     Box(
         modifier = Modifier
             .size(58.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(backgroundColor),
+            .clip(RoundedCornerShape(18.dp))
+            .background(backgroundColor.copy(alpha = 0.65f)),
         contentAlignment = Alignment.Center
     ) {
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
                 text = fecha.substringBefore(" "),
                 fontSize = 20.sp,
@@ -383,20 +455,15 @@ private fun DateBox(
 @Composable
 private fun StatusBadge(
     text: String,
-    backgroundColor: androidx.compose.ui.graphics.Color,
-    textColor: androidx.compose.ui.graphics.Color
+    backgroundColor: Color,
+    textColor: Color
 ) {
-
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(backgroundColor)
-            .padding(
-                horizontal = 10.dp,
-                vertical = 4.dp
-            )
+            .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
-
         Text(
             text = text,
             fontSize = 10.sp,
@@ -411,19 +478,25 @@ private fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(TealLight.copy(alpha = 0.50f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(15.dp),
+                tint = TealPrimary
+            )
+        }
 
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = TextSecondary
-        )
-
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Text(
             text = text,
@@ -439,30 +512,26 @@ private fun EmptyActivitiesCard(
     title: String,
     description: String
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(18.dp)
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Box(
                 modifier = Modifier
                     .size(50.dp)
-                    .clip(CircleShape)
-                    .background(TealLight),
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(TealLight.copy(alpha = 0.65f)),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
