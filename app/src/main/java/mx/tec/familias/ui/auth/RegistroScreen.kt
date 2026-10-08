@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.auth
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,9 +20,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,24 +35,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.tec.familias.ui.theme.Background
+import mx.tec.familias.ui.components.AdaptiveContainer
+import mx.tec.familias.ui.theme.Surface
+import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
-import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.viewmodel.FamilyViewModel
-import mx.tec.familias.ui.components.AdaptiveContainer
 
 @Composable
 fun RegistroScreen(
     viewModel: FamilyViewModel,
-    onBackClick: () -> Unit = {}, // <-- Asegúrate de tener esto
+    onBackClick: () -> Unit = {},
     onContinuar: (String, Boolean) -> Unit = { _, _ -> }
 ) {
-
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
@@ -67,37 +71,59 @@ fun RegistroScreen(
                 correoValido &&
                 telefonoValido
 
-    AdaptiveContainer(modifier = Modifier.background(Background)) {
+    AdaptiveContainer(
+        modifier = Modifier.background(
+            TealLight.copy(alpha = 0.12f)
+        )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Background)
+                .background(TealLight.copy(alpha = 0.12f))
         ) {
+
             // BOTÓN PARA RETROCEDER A INICIO
-            Row(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(start = 8.dp, top = 50.dp, end = 16.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(start = 18.dp, end = 18.dp, top = 18.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface.copy(alpha = 0.88f)
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.90f)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 3.dp
+                )
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Regresar a inicio",
-                        tint = TealPrimary
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar a inicio",
+                            tint = TealPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "Regresar",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TealPrimary,
+                        modifier = Modifier.clickable { onBackClick() }
                     )
                 }
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = "Regresar",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TealPrimary,
-                    modifier = Modifier.clickable { onBackClick() }
-                )
             }
 
             Column(
@@ -110,7 +136,7 @@ fun RegistroScreen(
                 verticalArrangement = Arrangement.Center
             ) {
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // TÍTULO
                 Text(
@@ -122,156 +148,193 @@ fun RegistroScreen(
                     color = TealPrimary
                 )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Únete a Familias que Suman + y encuentra oportunidades para participar en tu comunidad.",
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 14.sp,
-                lineHeight = 21.sp,
-                color = TextSecondary
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // NOMBRE
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text("Nombre")
-                },
-                placeholder = {
-                    Text("Ingresa tu nombre")
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(14.dp)
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // CORREO
-            OutlinedTextField(
-                value = correo,
-                onValueChange = { correo = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text("Correo electrónico")
-                },
-                placeholder = {
-                    Text("ejemplo@correo.com")
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(14.dp)
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // TELÉFONO
-            OutlinedTextField(
-                value = telefono,
-                onValueChange = { nuevoTelefono ->
-                    if (
-                        nuevoTelefono.all { it.isDigit() } &&
-                        nuevoTelefono.length <= 10
-                    ) {
-                        telefono = nuevoTelefono
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text("Teléfono")
-                },
-                placeholder = {
-                    Text("10 dígitos")
-                },
-                prefix = {
-                    Text("+52 ")
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(14.dp)
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // REGISTRAR FAMILIARES
-            Text(
-                text = "¿Registrarás a otras personas de tu familia?",
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            RowOption(
-                text = "No, solo yo",
-                selected = !registrarOtros,
-                onClick = {
-                    registrarOtros = false
-                }
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            RowOption(
-                text = "Sí, registraré a otras personas",
-                selected = registrarOtros,
-                onClick = {
-                    registrarOtros = true
-                }
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // BOTÓN
-            Button(
-                onClick = {
-
-                    viewModel.guardarUsuario(
-                        nombre = nombre,
-                        correo = correo,
-                        telefono = telefono
-                    )
-
-                    onContinuar(
-                        nombre.trim(),
-                        registrarOtros
-                    )
-                },
-                enabled = puedeContinuar,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary
-                )
-            ) {
                 Text(
-                    text = "Continuar",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "Únete a Familias que Suman + y encuentra oportunidades para participar en tu comunidad.",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                    color = TextSecondary
                 )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface.copy(alpha = 0.88f)
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        Color.White.copy(alpha = 0.95f)
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 4.dp
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+
+                        // NOMBRE
+                        OutlinedTextField(
+                            value = nombre,
+                            onValueChange = { nombre = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text("Nombre")
+                            },
+                            placeholder = {
+                                Text("Ingresa tu nombre")
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(22.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Surface.copy(alpha = 0.92f),
+                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // CORREO
+                        OutlinedTextField(
+                            value = correo,
+                            onValueChange = { correo = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text("Correo electrónico")
+                            },
+                            placeholder = {
+                                Text("ejemplo@correo.com")
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(22.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Surface.copy(alpha = 0.92f),
+                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // TELÉFONO
+                        OutlinedTextField(
+                            value = telefono,
+                            onValueChange = { nuevoTelefono ->
+                                if (
+                                    nuevoTelefono.all { it.isDigit() } &&
+                                    nuevoTelefono.length <= 10
+                                ) {
+                                    telefono = nuevoTelefono
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text("Teléfono")
+                            },
+                            placeholder = {
+                                Text("10 dígitos")
+                            },
+                            prefix = {
+                                Text("+52 ")
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(22.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Surface.copy(alpha = 0.92f),
+                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // REGISTRAR FAMILIARES
+                Text(
+                    text = "¿Registrarás a otras personas de tu familia?",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                RowOption(
+                    text = "No, solo yo",
+                    selected = !registrarOtros,
+                    onClick = {
+                        registrarOtros = false
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                RowOption(
+                    text = "Sí, registraré a otras personas",
+                    selected = registrarOtros,
+                    onClick = {
+                        registrarOtros = true
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // BOTÓN
+                Button(
+                    onClick = {
+                        viewModel.guardarUsuario(
+                            nombre = nombre,
+                            correo = correo,
+                            telefono = telefono
+                        )
+
+                        onContinuar(
+                            nombre.trim(),
+                            registrarOtros
+                        )
+                    },
+                    enabled = puedeContinuar,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TealPrimary
+                    )
+                ) {
+                    Text(
+                        text = "Continuar",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Podrás explorar campañas y actividades sin registrarte.",
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    color = TextSecondary
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Podrás explorar campañas y actividades sin registrarte.",
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
-                color = TextSecondary
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
-}
 }
 
 @Composable
@@ -280,33 +343,43 @@ private fun RowOption(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = Surface,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(
-                horizontal = 8.dp,
-                vertical = 4.dp
-            ),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
+        shape = RoundedCornerShape(22.dp),
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = 8.dp,
+                    vertical = 4.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = onClick
+            )
 
-        RadioButton(
-            selected = selected,
-            onClick = onClick
-        )
+            Spacer(modifier = Modifier.width(4.dp))
 
-        Spacer(modifier = Modifier.width(4.dp))
-
-        Text(
-            text = text,
-            color = TextPrimary,
-            fontSize = 14.sp
-        )
+            Text(
+                text = text,
+                color = TextPrimary,
+                fontSize = 14.sp
+            )
+        }
     }
 }

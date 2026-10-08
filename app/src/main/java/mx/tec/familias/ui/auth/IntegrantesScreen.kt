@@ -1,11 +1,10 @@
 package mx.tec.familias.ui.auth
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -27,8 +24,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,13 +36,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.tec.familias.data.model.FamilyMember
-import mx.tec.familias.ui.theme.Background
+import mx.tec.familias.ui.components.AdaptiveContainer
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
@@ -56,7 +55,6 @@ fun IntegrantesScreen(
     viewModel: FamilyViewModel = viewModel(),
     onContinuar: () -> Unit = {}
 ) {
-
     val integrantes = viewModel.integrantes
 
     var mostrarFormulario by remember { mutableStateOf(false) }
@@ -70,11 +68,15 @@ fun IntegrantesScreen(
                 edad.toInt() >= 0 &&
                 parentesco.isNotBlank()
 
-    AdaptiveContainer(modifier = Modifier.background(Background)) {
+    AdaptiveContainer(
+        modifier = Modifier.background(
+            TealLight.copy(alpha = 0.12f)
+        )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Background)
+                .background(TealLight.copy(alpha = 0.12f))
         ) {
 
             LazyColumn(
@@ -92,7 +94,6 @@ fun IntegrantesScreen(
 
                 // HEADER
                 item {
-
                     Text(
                         text = "Integrantes de la familia",
                         modifier = Modifier.fillMaxWidth(),
@@ -115,9 +116,7 @@ fun IntegrantesScreen(
 
                 // INTEGRANTES REGISTRADOS
                 if (integrantes.isNotEmpty()) {
-
                     item {
-
                         Text(
                             text = "Personas registradas",
                             fontSize = 22.sp,
@@ -131,7 +130,6 @@ fun IntegrantesScreen(
                         items = integrantes,
                         key = { it.id }
                     ) { integrante ->
-
                         IntegranteCard(
                             integrante = integrante,
                             onDelete = {
@@ -143,9 +141,7 @@ fun IntegrantesScreen(
 
                 // BOTÓN AGREGAR
                 item {
-
                     if (!mostrarFormulario) {
-
                         OutlinedButton(
                             onClick = {
                                 mostrarFormulario = true
@@ -153,9 +149,12 @@ fun IntegrantesScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(22.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                TealPrimary.copy(alpha = 0.35f)
+                            )
                         ) {
-
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Agregar integrante",
@@ -170,9 +169,7 @@ fun IntegrantesScreen(
                                 color = TealPrimary
                             )
                         }
-
                     } else {
-
                         NuevoIntegranteCard(
                             nombre = nombre,
                             edad = edad,
@@ -196,9 +193,7 @@ fun IntegrantesScreen(
                                 parentesco = ""
                             },
                             onAgregar = {
-
                                 if (datosValidos) {
-
                                     viewModel.agregarIntegrante(
                                         nombre = nombre,
                                         edad = edad.toInt(),
@@ -208,7 +203,6 @@ fun IntegrantesScreen(
                                     nombre = ""
                                     edad = ""
                                     parentesco = ""
-
                                     mostrarFormulario = false
                                 }
                             }
@@ -218,34 +212,36 @@ fun IntegrantesScreen(
 
                 // MENSAJE CUANDO NO HAY INTEGRANTES
                 if (integrantes.isEmpty() && !mostrarFormulario) {
-
                     item {
-
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Surface
+                                containerColor = Surface.copy(alpha = 0.88f)
                             ),
-                            shape = RoundedCornerShape(18.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                Color.White.copy(alpha = 0.95f)
+                            ),
                             elevation = CardDefaults.cardElevation(
-                                defaultElevation = 1.dp
+                                defaultElevation = 3.dp
                             )
                         ) {
-
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(24.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(TealLight)
-                                        .padding(16.dp)
+                                        .background(
+                                            TealLight.copy(alpha = 0.60f),
+                                            RoundedCornerShape(18.dp)
+                                        )
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-
                                     Icon(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = null,
@@ -279,28 +275,34 @@ fun IntegrantesScreen(
             }
 
             // BOTÓN CONTINUAR
-            Box(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Surface)
-                    .padding(
-                        horizontal = 20.dp,
-                        vertical = 16.dp
-                    )
+                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface.copy(alpha = 0.92f)
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                )
             ) {
-
                 Button(
                     onClick = onContinuar,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(50.dp)
+                        .padding(horizontal = 12.dp),
                     enabled = integrantes.isNotEmpty(),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = TealPrimary
                     )
                 ) {
-
                     Text(
                         text = "Continuar",
                         fontSize = 16.sp,
@@ -317,33 +319,35 @@ private fun IntegranteCard(
     integrante: FamilyMember,
     onDelete: () -> Unit
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface
+            containerColor = Surface.copy(alpha = 0.88f)
         ),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
+            defaultElevation = 3.dp
         )
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(TealLight)
+                    .background(
+                        TealLight.copy(alpha = 0.60f),
+                        RoundedCornerShape(14.dp)
+                    )
                     .padding(11.dp),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
@@ -356,7 +360,6 @@ private fun IntegranteCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = integrante.nombre,
                     fontSize = 16.sp,
@@ -373,10 +376,9 @@ private fun IntegranteCard(
                 )
             }
 
-            androidx.compose.material3.IconButton(
+            IconButton(
                 onClick = onDelete
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Eliminar integrante",
@@ -399,22 +401,23 @@ private fun NuevoIntegranteCard(
     onCancelar: () -> Unit,
     onAgregar: () -> Unit
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface
+            containerColor = Surface.copy(alpha = 0.88f)
         ),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
+            defaultElevation = 4.dp
         )
     ) {
-
         Column(
             modifier = Modifier.padding(18.dp)
         ) {
-
             Text(
                 text = "Nuevo integrante",
                 fontSize = 20.sp,
@@ -435,7 +438,13 @@ private fun NuevoIntegranteCard(
                     Text("Nombre completo")
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(22.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Surface.copy(alpha = 0.92f),
+                    unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                    focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -451,7 +460,13 @@ private fun NuevoIntegranteCard(
                     Text("Ej. 12")
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(22.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Surface.copy(alpha = 0.92f),
+                    unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                    focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -467,7 +482,13 @@ private fun NuevoIntegranteCard(
                     Text("Ej. Mamá, Papá, Hija...")
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(22.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Surface.copy(alpha = 0.92f),
+                    unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                    focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                )
             )
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -476,15 +497,13 @@ private fun NuevoIntegranteCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-
                 OutlinedButton(
                     onClick = onCancelar,
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(22.dp)
                 ) {
-
                     Text(
                         text = "Cancelar",
                         fontSize = 14.sp
@@ -497,12 +516,11 @@ private fun NuevoIntegranteCard(
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = TealPrimary
                     )
                 ) {
-
                     Text(
                         text = "Agregar",
                         fontSize = 14.sp

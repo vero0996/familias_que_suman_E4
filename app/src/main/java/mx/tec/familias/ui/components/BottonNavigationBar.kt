@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,10 +16,12 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
+import mx.tec.familias.ui.theme.TextSecondary
 
 enum class FamilyDestination {
     INICIO,
@@ -34,15 +37,14 @@ fun BottomNavigationBar(
     onDestinationSelected: (FamilyDestination) -> Unit,
     mostrarMensajes: Boolean = false
 ) {
-
     NavigationBar(
-        containerColor = Surface,
+        containerColor = Surface.copy(alpha = 0.92f),
+        tonalElevation = 3.dp,
         modifier = Modifier.padding(
             start = 12.dp,
             end = 12.dp,
             bottom = 8.dp
-        ),
-        tonalElevation = 2.dp
+        )
     ) {
 
         NavigationBarItem(
@@ -97,7 +99,6 @@ fun BottomNavigationBar(
         )
 
         if (mostrarMensajes) {
-
             NavigationBarItem(
                 selected = currentDestination == FamilyDestination.MENSAJES,
                 onClick = {
@@ -140,7 +141,7 @@ private fun navigationColors() =
     NavigationBarItemDefaults.colors(
         selectedIconColor = TealPrimary,
         selectedTextColor = TealPrimary,
-        indicatorColor = TealLight,
-        unselectedIconColor = androidx.compose.ui.graphics.Color.Gray,
-        unselectedTextColor = androidx.compose.ui.graphics.Color.Gray
+        indicatorColor = TealLight.copy(alpha = 0.65f),
+        unselectedIconColor = TextSecondary,
+        unselectedTextColor = TextSecondary
     )

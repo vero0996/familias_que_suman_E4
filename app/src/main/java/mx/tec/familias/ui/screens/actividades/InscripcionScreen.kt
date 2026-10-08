@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.actividades
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +31,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,11 +42,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.data.model.FamilyMember
-import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
@@ -60,58 +63,56 @@ fun InscripcionScreen(
     error: String? = null,
     onConfirmarClick: (List<String>, String) -> Unit = { _, _ -> }
 ) {
-
-    val seleccionados = remember {
-        mutableStateListOf<String>()
-    }
-
-    var usuarioSeleccionado by remember {
-        mutableStateOf(true)
-    }
-
-    var observaciones by remember {
-        mutableStateOf("")
-    }
+    val seleccionados = remember { mutableStateListOf<String>() }
+    var usuarioSeleccionado by remember { mutableStateOf(true) }
+    var observaciones by remember { mutableStateOf("") }
 
     val totalSeleccionados =
-        seleccionados.size +
-                if (usuarioSeleccionado) 1 else 0
+        seleccionados.size + if (usuarioSeleccionado) 1 else 0
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(TealLight.copy(alpha = 0.12f))
     ) {
 
         // HEADER
-        Row(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 24.dp,
-                    bottom = 16.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(start = 18.dp, end = 18.dp, top = 24.dp, bottom = 16.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-
-            IconButton(
-                onClick = onBackClick
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = TealPrimary
+                IconButton(onClick = onBackClick) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(TealLight.copy(alpha = 0.55f))
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar",
+                            tint = TealPrimary
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Inscripción",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
                 )
             }
-
-            Text(
-                text = "Inscripción",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = TealPrimary
-            )
         }
 
         // CONTENIDO
@@ -129,22 +130,14 @@ fun InscripcionScreen(
 
             // ACTIVIDAD
             item {
-
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Surface
-                    ),
-                    shape = RoundedCornerShape(18.dp),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 1.dp
-                    )
+                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-
-                    Column(
-                        modifier = Modifier.padding(18.dp)
-                    ) {
-
+                    Column(modifier = Modifier.padding(18.dp)) {
                         Text(
                             text = actividad.nombre,
                             fontSize = 20.sp,
@@ -203,7 +196,6 @@ fun InscripcionScreen(
 
             // MI INFORMACIÓN
             item {
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
@@ -216,7 +208,6 @@ fun InscripcionScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 viewModel.usuario.value?.let { usuario ->
-
                     UsuarioSeleccionCard(
                         nombre = usuario.nombre,
                         correo = usuario.correo,
@@ -230,7 +221,6 @@ fun InscripcionScreen(
 
             // MIS ACOMPAÑANTES
             item {
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
@@ -252,17 +242,14 @@ fun InscripcionScreen(
 
             // LISTA DE ACOMPAÑANTES
             if (viewModel.integrantes.isEmpty()) {
-
                 item {
-
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Surface
-                        ),
-                        shape = RoundedCornerShape(14.dp)
+                        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                        shape = RoundedCornerShape(22.dp),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-
                         Text(
                             text = "Todavía no tienes acompañantes registrados.",
                             modifier = Modifier.padding(16.dp),
@@ -271,16 +258,12 @@ fun InscripcionScreen(
                         )
                     }
                 }
-
             } else {
-
                 items(viewModel.integrantes) { integrante ->
-
                     IntegranteSeleccionCard(
                         integrante = integrante,
                         seleccionado = seleccionados.contains(integrante.id),
                         onSeleccionar = {
-
                             if (seleccionados.contains(integrante.id)) {
                                 seleccionados.remove(integrante.id)
                             } else {
@@ -293,7 +276,6 @@ fun InscripcionScreen(
 
             // OBSERVACIONES
             item {
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
@@ -307,50 +289,54 @@ fun InscripcionScreen(
 
                 OutlinedTextField(
                     value = observaciones,
-                    onValueChange = {
-                        observaciones = it
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
+                    onValueChange = { observaciones = it },
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
                     placeholder = {
-                        Text(
-                            "¿Hay algo que debamos saber?"
-                        )
+                        Text("¿Hay algo que debamos saber?")
                     },
-                    shape = RoundedCornerShape(14.dp)
+                    shape = RoundedCornerShape(22.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Surface.copy(alpha = 0.92f),
+                        unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                        focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // RESUMEN
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(TealLight)
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = TealLight.copy(alpha = 0.55f)
+                    ),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f))
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = TealPrimary
+                        )
 
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = TealPrimary
-                    )
+                        Spacer(modifier = Modifier.width(10.dp))
 
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Text(
-                        text = "$totalSeleccionados " +
-                                if (totalSeleccionados == 1)
-                                    "participante seleccionado"
-                                else
-                                    "participantes seleccionados",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TealPrimary
-                    )
+                        Text(
+                            text = "$totalSeleccionados " +
+                                    if (totalSeleccionados == 1)
+                                        "participante seleccionado"
+                                    else
+                                        "participantes seleccionados",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TealPrimary
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -358,44 +344,49 @@ fun InscripcionScreen(
         }
 
         // BOTÓN CONFIRMAR
-        Box(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Surface)
                 .navigationBarsPadding()
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 16.dp
-                )
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.92f)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
 
-            Column {
-            if (error != null) {
-                Text(error, color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 8.dp))
-            }
-            Button(
-                onClick = {
-                    val participantes = seleccionados.toList() +
-                        if (usuarioSeleccionado) listOf("${viewModel.familiaId}:titular") else emptyList()
-                    onConfirmarClick(participantes, observaciones)
-                },
-                enabled = totalSeleccionados > 0,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TealPrimary
-                ),
-                shape = RoundedCornerShape(10.dp)
-            ) {
+                Button(
+                    onClick = {
+                        val participantes = seleccionados.toList() +
+                                if (usuarioSeleccionado)
+                                    listOf("${viewModel.familiaId}:titular")
+                                else
+                                    emptyList()
 
-                Text(
-                    text = if (enEspera) "Unirme a lista de espera" else "Confirmar inscripción",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                        onConfirmarClick(participantes, observaciones)
+                    },
+                    enabled = totalSeleccionados > 0,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                    shape = RoundedCornerShape(22.dp)
+                ) {
+                    Text(
+                        text = if (enEspera)
+                            "Unirme a lista de espera"
+                        else
+                            "Confirmar inscripción",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
@@ -406,16 +397,14 @@ private fun ActivityDetailRow(
     icon: @Composable () -> Unit,
     text: String
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(TealLight)
-                .padding(7.dp),
+                .clip(RoundedCornerShape(14.dp))
+                .background(TealLight.copy(alpha = 0.60f))
+                .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
             icon()
@@ -438,33 +427,24 @@ private fun UsuarioSeleccionCard(
     seleccionado: Boolean,
     onSeleccionar: () -> Unit
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(TealLight)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(TealLight.copy(alpha = 0.60f))
                     .padding(9.dp),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
@@ -477,7 +457,6 @@ private fun UsuarioSeleccionCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = nombre,
                     fontSize = 16.sp,
@@ -510,33 +489,24 @@ private fun IntegranteSeleccionCard(
     seleccionado: Boolean,
     onSeleccionar: () -> Unit
 ) {
-
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(TealLight)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(TealLight.copy(alpha = 0.60f))
                     .padding(9.dp),
                 contentAlignment = Alignment.Center
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
@@ -549,7 +519,6 @@ private fun IntegranteSeleccionCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = integrante.nombre,
                     fontSize = 16.sp,

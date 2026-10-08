@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
+import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,31 +34,40 @@ fun TopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Opción: Dejar un icono de menú genérico si en el futuro se quiere añadir un Navigation Drawer
-        Icon(
-            imageVector = Icons.Default.Menu,
-            contentDescription = "Menú",
-            tint = TealPrimary,
-            modifier = Modifier.size(24.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(TealLight.copy(alpha = 0.55f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = "Menú",
+                tint = TealPrimary,
+                modifier = Modifier.size(22.dp)
+            )
+        }
 
         Text(
             text = title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = TealPrimary,
-            modifier = Modifier.weight(1f).padding(horizontal = 16.dp)
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 14.dp)
         )
 
         if (showProfile && onProfileClick != null) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(14.dp))
                     .background(TealPrimary)
                     .clickable { onProfileClick() },
                 contentAlignment = Alignment.Center
@@ -69,7 +80,7 @@ fun TopBar(
                 )
             }
         } else {
-            Spacer(modifier = Modifier.size(40.dp)) // Para mantener el balance
+            Spacer(modifier = Modifier.size(40.dp))
         }
     }
 }
@@ -83,12 +94,17 @@ fun AdminTopBar(
 ) {
     CenterAlignedTopAppBar(
         title = {
-            Text(title, color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(
+                text = title,
+                color = TealPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
         },
         navigationIcon = {
             if (onProfileClick != null) {
                 Image(
-                    painter = painterResource(id = R.drawable.icon), // Puede ser el logo de la Asoc.
+                    painter = painterResource(id = R.drawable.icon),
                     contentDescription = "Perfil",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -99,6 +115,8 @@ fun AdminTopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color.Transparent
+        )
     )
 }

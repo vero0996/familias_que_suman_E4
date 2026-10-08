@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.confirmacion
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,21 +15,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.data.model.EstadoInscripcion
 import mx.tec.familias.ui.screens.NotificacionLugarAsignado
-import mx.tec.familias.ui.theme.Background
+import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
@@ -41,7 +44,6 @@ fun ConfirmacionInscripcionScreen(
     estado: mx.tec.familias.data.model.EstadoInscripcion,
     posicion: Int? = null
 ) {
-
     var mostrarNotificacion by remember {
         mutableStateOf(
             estado == EstadoInscripcion.CONFIRMADA
@@ -51,27 +53,42 @@ fun ConfirmacionInscripcionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(TealLight.copy(alpha = 0.12f))
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
         // ÍCONO DE ÉXITO
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .background(TealLight)
-                .padding(20.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Estado de la solicitud",
-                tint = TealPrimary,
-                modifier = Modifier
-                    .height(64.dp)
+        Card(
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Surface.copy(alpha = 0.88f)
+            ),
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
             )
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        TealLight.copy(alpha = 0.60f),
+                        RoundedCornerShape(24.dp)
+                    )
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Estado de la solicitud",
+                    tint = TealPrimary,
+                    modifier = Modifier.height(64.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -106,16 +123,23 @@ fun ConfirmacionInscripcionScreen(
         Spacer(modifier = Modifier.height(28.dp))
 
         // RESUMEN
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(
-                    androidx.compose.ui.graphics.Color.White
-                )
-                .padding(18.dp)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Surface.copy(alpha = 0.88f)
+            ),
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            )
         ) {
-            Column {
+            Column(
+                modifier = Modifier.padding(18.dp)
+            ) {
                 Text(
                     text = actividad.nombre,
                     fontSize = 18.sp,
@@ -148,7 +172,7 @@ fun ConfirmacionInscripcionScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(22.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = TealPrimary
             )
@@ -167,4 +191,4 @@ fun ConfirmacionInscripcionScreen(
             mostrarNotificacion = false
         }
     )
-}   
+}
