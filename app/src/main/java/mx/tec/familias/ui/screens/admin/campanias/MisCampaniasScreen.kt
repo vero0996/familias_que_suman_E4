@@ -35,6 +35,7 @@ import mx.tec.familias.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisCampaniasScreen(
+    mostrarActividad: Boolean = true,
     onInicioClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
@@ -54,11 +55,6 @@ fun MisCampaniasScreen(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
-                },
-                actions = {
-                    IconButton(onClick = onNuevaCampaniaClick) {
-                        Icon(Icons.Default.Add, contentDescription = "Nueva Campaña", tint = TealPrimary)
-                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
             )
@@ -116,18 +112,20 @@ fun MisCampaniasScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ================= PRIMERA TARJETA =================
-                CampaignManagementCard(
-                    titulo = "Colecta de Invierno 2026",
-                    fecha = "15 de Octubre, 2026",
-                    hora = "10:00 AM - 4:00 PM",
-                    cuposOcupados = 35,
-                    cuposTotales = 50,
-                    estado = "Activa",
-                    imagenId = R.drawable.recorridainvierno, // <-- CAMBIA 'campania1' por el nombre de tu foto en drawable
-                    onEditarClick = onEditarCampaniaClick,
-                    onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
-                    onReutilizarClick = onReutilizarCampaniaClick
-                )
+                if (mostrarActividad) {
+                    CampaignManagementCard(
+                        titulo = "Colecta de Invierno 2026",
+                        fecha = "15 de Octubre, 2026",
+                        hora = "10:00 AM - 4:00 PM",
+                        cuposOcupados = 35,
+                        cuposTotales = 50,
+                        estado = "Activa",
+                        imagenId = R.drawable.recorridainvierno, // <-- CAMBIA 'campania1' por el nombre de tu foto en drawable
+                        onEditarClick = onEditarCampaniaClick,
+                        onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
+                        onReutilizarClick = onReutilizarCampaniaClick
+                    )
+                }
 
                 // ================= SEGUNDA TARJETA =================
                 CampaignManagementCard(
