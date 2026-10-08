@@ -55,7 +55,10 @@ import mx.tec.familias.viewmodel.FamilyViewModel
 fun InscripcionScreen(
     viewModel: FamilyViewModel,
     onBackClick: () -> Unit = {},
-    onConfirmarClick: () -> Unit = {}
+    onConfirmarClick: (
+        integrantesSeleccionados: List<String>,
+        observaciones: String
+    ) -> Unit = { _, _ -> }
 ) {
 
     val seleccionados = remember {
@@ -367,7 +370,12 @@ fun InscripcionScreen(
         ) {
 
             Button(
-                onClick = onConfirmarClick,
+                onClick = {
+                    onConfirmarClick(
+                        seleccionados.toList(),
+                        observaciones
+                    )
+                },
                 enabled = totalSeleccionados > 0,
                 modifier = Modifier
                     .fillMaxWidth()

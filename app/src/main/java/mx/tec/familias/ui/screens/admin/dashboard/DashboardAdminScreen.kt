@@ -71,6 +71,23 @@ fun DashboardAdminScreen(
     val urlCampania =
         "https://familiasquesuman.app/campana/$codigoCampania"
 
+    val cuposDisponibles =
+        (cuposTotalesActividad - participantesActividad)
+            .coerceAtLeast(0)
+
+    val campaniasActivas = 3
+
+    val porcentajeCupos =
+        if (cuposTotalesActividad > 0) {
+            (participantesActividad.toFloat() / cuposTotalesActividad.toFloat())
+                .coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+
+    val porcentajeCuposTexto =
+        "${(porcentajeCupos * 100).toInt()}%"
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Background,
@@ -302,41 +319,452 @@ fun DashboardAdminScreen(
                 }
                 //----
 
-                // Resumen de Impacto
+                // ==========================================
+// RESUMEN DE IMPACTO
+// ==========================================
+
                 Text(
                     text = "Resumen de Impacto",
                     color = TealPrimary,
                     style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                    // Tarjeta 1
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp)
-                            .border(1.dp, Divider, RoundedCornerShape(12.dp))
-                            .background(Surface, RoundedCornerShape(12.dp))
-                            .padding(16.dp)
+// KPIs principales
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+                    // Participantes
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Surface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            Divider
+                        )
                     ) {
-                        Icon(Icons.Default.Campaign, contentDescription = "Campañas", tint = TealPrimary)
-                        Text("3", color = TealPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold)
-                        Text("CAMPAÑAS ACTIVAS", color = TextSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Group,
+                                contentDescription = "Participantes",
+                                tint = BrownPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+
+                            Text(
+                                text = participantesActividad.toString(),
+                                color = BrownPrimary,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text = "PARTICIPANTES",
+                                color = TextSecondary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
 
-                    // Tarjeta 2
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp)
-                            .border(1.dp, Divider, RoundedCornerShape(12.dp))
-                            .background(Surface, RoundedCornerShape(12.dp))
-                            .padding(16.dp)
+                    // Cupos disponibles
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Surface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            Divider
+                        )
                     ) {
-                        Icon(Icons.Default.Group, contentDescription = "Participantes", tint = BrownPrimary)
-                        Text("142", color = BrownPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold)
-                        Text("PARTICIPANTES TOTALES", color = TextSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.EventAvailable,
+                                contentDescription = "Cupos disponibles",
+                                tint = TealPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+
+                            Text(
+                                text = cuposDisponibles.toString(),
+                                color = TealPrimary,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text = "CUPOS DISPONIBLES",
+                                color = TextSecondary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+// Segunda fila de KPIs
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+                    // Campañas activas
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Surface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            Divider
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Campaign,
+                                contentDescription = "Campañas activas",
+                                tint = TealPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+
+                            Text(
+                                text = campaniasActivas.toString(),
+                                color = TealPrimary,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text = "CAMPAÑAS ACTIVAS",
+                                color = TextSecondary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    // Porcentaje de ocupación
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Surface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            Divider
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PieChart,
+                                contentDescription = "Cupos utilizados",
+                                tint = BrownPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+
+                            Text(
+                                text = porcentajeCuposTexto,
+                                color = BrownPrimary,
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text = "CUPOS UTILIZADOS",
+                                color = TextSecondary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+// ==========================================
+// PARTICIPANTES VS CUPOS
+// ==========================================
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        Divider
+                    )
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(18.dp)
+                    ) {
+
+                        Text(
+                            text = "Participación en actividades",
+                            color = TextPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+
+                        Text(
+                            text = "$participantesActividad de $cuposTotalesActividad cupos ocupados",
+                            color = TextSecondary,
+                            fontSize = 13.sp
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(16.dp)
+                        )
+
+                        // Barra principal
+                        LinearProgressIndicator(
+                            progress = {
+                                porcentajeCupos
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            color = TealPrimary,
+                            trackColor = Divider
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(12.dp)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(TealPrimary)
+                                )
+
+                                Spacer(
+                                    modifier = Modifier.width(6.dp)
+                                )
+
+                                Text(
+                                    text = "$participantesActividad participantes",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(Divider)
+                                )
+
+                                Spacer(
+                                    modifier = Modifier.width(6.dp)
+                                )
+
+                                Text(
+                                    text = "$cuposDisponibles disponibles",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ==========================================
+// PARTICIPACIÓN POR ACTIVIDAD
+// ==========================================
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        Divider
+                    )
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(18.dp)
+                    ) {
+
+                        Text(
+                            text = "Participación por actividad",
+                            color = TextPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(4.dp)
+                        )
+
+                        Text(
+                            text = "Ocupación de los próximos eventos",
+                            color = TextSecondary,
+                            fontSize = 13.sp
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(20.dp)
+                        )
+
+                        // Actividad actual
+                        Text(
+                            text = tituloActividad,
+                            color = TextPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
+
+                        LinearProgressIndicator(
+                            progress = {
+                                porcentajeCupos
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(12.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            color = TealPrimary,
+                            trackColor = Divider
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(6.dp)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+
+                            Text(
+                                text = "$participantesActividad participantes",
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+
+                            Text(
+                                text = "$cuposTotalesActividad cupos",
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier.height(18.dp)
+                        )
+
+                        // Segunda actividad
+                        Text(
+                            text = "Taller de Sensibilización Escolar",
+                            color = TextPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
+
+                        LinearProgressIndicator(
+                            progress = {
+                                0.8f
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(12.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            color = BrownPrimary,
+                            trackColor = Divider
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(6.dp)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+
+                            Text(
+                                text = "12 participantes",
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+
+                            Text(
+                                text = "15 cupos",
+                                color = TextSecondary,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
 

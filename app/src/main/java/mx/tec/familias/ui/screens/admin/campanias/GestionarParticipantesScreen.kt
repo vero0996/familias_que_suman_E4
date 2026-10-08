@@ -98,8 +98,12 @@ fun GestionarParticipantesScreen(
         it.integrantes.size
     }
 
-    val lugaresDisponibles =
-        (cuposTotales - personasConfirmadas).coerceAtLeast(0)
+    val lugaresOcupados = confirmados
+        .flatMap { it.lugaresAsignados }
+        .toSet()
+
+    val lugaresDisponibles = (1..cuposTotales)
+        .filterNot { it in lugaresOcupados }
 
     val progreso =
         if (cuposTotales > 0) {
@@ -229,8 +233,8 @@ fun GestionarParticipantesScreen(
                     )
 
                     Text(
-                        text = if (lugaresDisponibles > 0) {
-                            "$lugaresDisponibles lugares disponibles"
+                        text = if (lugaresDisponibles.isNotEmpty()) {
+                            "${lugaresDisponibles.size} lugares disponibles"
                         } else {
                             "Todos los lugares están ocupados"
                         },
@@ -351,7 +355,7 @@ fun GestionarParticipantesScreen(
 
                     ParticipanteEsperaCard(
                         participante = participante,
-                        puedeAsignar = lugaresDisponibles > 0,
+                        puedeAsignar = lugaresDisponibles.size >= participante.integrantes.size,
 
                         onAsignarClick = {
 
@@ -409,8 +413,54 @@ fun GestionarParticipantesScreen(
                 TextButton(
                     onClick = {
 
-                        val nuevosParticipantes = participantes.filter {
+                        // Primero eliminamos al participante
+                        var nuevosParticipantes = participantes.filter {
                             it.id != participante.id
+                        }
+
+                        // Calculamos los participantes que siguen confirmados
+                        val confirmadosActuales = nuevosParticipantes.filter {
+                            it.estado == EstadoParticipante.CONFIRMADO
+                        }
+
+                        // Lugares que siguen ocupados
+                        val lugaresOcupadosActuales = confirmadosActuales
+                            .flatMap { it.lugaresAsignados }
+                            .toSet()
+
+                        // Lugares que quedaron libres
+                        val lugaresLibresActuales = (1..cuposTotales)
+                            .filterNot { it in lugaresOcupadosActuales }
+
+                        // Buscamos la primera familia en lista de espera
+                        val siguienteEnEspera = nuevosParticipantes
+                            .firstOrNull {
+                                it.estado == EstadoParticipante.LISTA_ESPERA
+                            }
+
+                        // Si hay alguien en espera y caben todos sus integrantes,
+                        // lo pasamos automáticamente a confirmado
+                        if (
+                            siguienteEnEspera != null &&
+                            lugaresLibresActuales.size >= siguienteEnEspera.integrantes.size
+                        ) {
+
+                            val lugaresAsignados = lugaresLibresActuales
+                                .take(siguienteEnEspera.integrantes.size)
+
+                            nuevosParticipantes = nuevosParticipantes.map {
+
+                                if (it.id == siguienteEnEspera.id) {
+
+                                    it.copy(
+                                        estado = EstadoParticipante.CONFIRMADO,
+                                        lugaresAsignados = lugaresAsignados
+                                    )
+
+                                } else {
+                                    it
+                                }
+                            }
                         }
 
                         participantes = nuevosParticipantes
@@ -477,7 +527,7 @@ fun GestionarParticipantesScreen(
                 TextButton(
                     onClick = {
 
-                        if (lugaresDisponibles >= participante.integrantes.size) {
+                        if (lugaresDisponibles.size >= participante.integrantes.size) {
 
                             val nuevosParticipantes = participantes.map {
 
@@ -485,10 +535,8 @@ fun GestionarParticipantesScreen(
 
                                     it.copy(
                                         estado = EstadoParticipante.CONFIRMADO,
-                                        lugaresAsignados = (
-                                                it.lugaresAsignados +
-                                                        (personasConfirmadas + 1..personasConfirmadas + it.integrantes.size)
-                                                ).toList()
+                                        lugaresAsignados = lugaresDisponibles
+                                            .take(it.integrantes.size)
                                     )
 
                                 } else {

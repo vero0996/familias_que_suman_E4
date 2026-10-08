@@ -348,10 +348,86 @@ fun AppNavigation() {
         composable(Routes.Inscripcion.route) {
             InscripcionScreen(
                 viewModel = familyViewModel,
-                onBackClick = { navController.popBackStack() },
-                onConfirmarClick = {
-                    familyViewModel.actividadInscrita = true // <-- Guardamos que ya se inscribió
-                    navController.navigate(Routes.ConfirmacionInscripcion.route)
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
+                onConfirmarClick = { integrantesSeleccionados, observaciones ->
+
+                    // 1. Guardar la inscripción real
+                    familyViewModel.agregarInscripcion(
+                        actividad = "Plantación de Árboles en El Pardo",
+                        integrantesSeleccionados = integrantesSeleccionados,
+                        observaciones = observaciones
+                    )
+
+                    // 2. Recuperar la inscripción que acabamos de guardar
+                    val inscripcion = familyViewModel.inscripciones.lastOrNull()
+
+                    if (inscripcion != null) {
+
+                        // 3. Personas que ya tienen lugar en la actividad
+                        val personasConfirmadas = participantesAdmin
+                            .filter {
+                                it.estado == EstadoParticipante.CONFIRMADO
+                            }
+                            .sumOf {
+                                it.integrantes.size
+                            }
+
+                        // 4. Personas que intenta registrar esta inscripción
+                        val personasInscritas = inscripcion.integrantes.size
+
+                        // 5. Determinar si caben todas las personas
+                        val puedeConfirmarse =
+                            personasConfirmadas + personasInscritas <= actividadAdmin.cuposTotales
+
+                        // 6. Asignar lugares si hay espacio
+                        val lugaresAsignados =
+                            if (puedeConfirmarse) {
+                                (
+                                        personasConfirmadas + 1 ..
+                                                personasConfirmadas + personasInscritas
+                                        ).toList()
+                            } else {
+                                emptyList()
+                            }
+
+                        // 7. Crear el participante para Admin
+                        val nuevoParticipante = ParticipanteActividadAdmin(
+                            id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
+                            nombreFamilia = "Familia ${inscripcion.nombreUsuario}",
+                            correo = inscripcion.correo,
+                            telefono = inscripcion.telefono,
+                            integrantes = inscripcion.integrantes,
+                            estado = if (puedeConfirmarse) {
+                                EstadoParticipante.CONFIRMADO
+                            } else {
+                                EstadoParticipante.LISTA_ESPERA
+                            },
+                            lugaresAsignados = lugaresAsignados
+                        )
+
+                        // 8. Agregarlo a la lista que usa Admin
+                        participantesAdmin = participantesAdmin + nuevoParticipante
+
+                        // 9. Actualizar el contador de la actividad
+                        actividadAdmin = actividadAdmin.copy(
+                            participantes = participantesAdmin
+                                .filter {
+                                    it.estado == EstadoParticipante.CONFIRMADO
+                                }
+                                .sumOf {
+                                    it.integrantes.size
+                                }
+                        )
+                    }
+
+                    // 10. Mostrar confirmación al usuario
+                    navController.navigate(
+                        Routes.ConfirmacionInscripcion.route
+                    )
                 }
             )
         }
