@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,9 +47,11 @@ fun ConfirmacionInscripcionScreen(
     posicion: Int? = null
 ) {
     var mostrarNotificacion by remember {
-        mutableStateOf(
-            estado == EstadoInscripcion.CONFIRMADA
-        )
+        mutableStateOf(estado == EstadoInscripcion.CONFIRMADA)
+    }
+
+    var mostrarListaEspera by remember {
+        mutableStateOf(estado == EstadoInscripcion.EN_ESPERA)
     }
 
     Column(
@@ -65,13 +69,8 @@ fun ConfirmacionInscripcionScreen(
             colors = CardDefaults.cardColors(
                 containerColor = Surface.copy(alpha = 0.88f)
             ),
-            border = BorderStroke(
-                1.dp,
-                Color.White.copy(alpha = 0.95f)
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -110,8 +109,11 @@ fun ConfirmacionInscripcionScreen(
         // MENSAJE
         Text(
             text = when (estado) {
-                EstadoInscripcion.CONFIRMADA -> "Tu familia tiene un lugar confirmado."
-                EstadoInscripcion.EN_ESPERA -> "Tu posición es #$posicion. Puedes consultar tu solicitud en Mis Actividades."
+                EstadoInscripcion.CONFIRMADA ->
+                    "Tu familia tiene un lugar confirmado."
+
+                EstadoInscripcion.EN_ESPERA ->
+                    "Tu posición es #$posicion. Puedes consultar tu solicitud en Mis Actividades."
             },
             modifier = Modifier.fillMaxWidth(),
             fontSize = 15.sp,
@@ -129,17 +131,10 @@ fun ConfirmacionInscripcionScreen(
             colors = CardDefaults.cardColors(
                 containerColor = Surface.copy(alpha = 0.88f)
             ),
-            border = BorderStroke(
-                1.dp,
-                Color.White.copy(alpha = 0.95f)
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(18.dp)
-            ) {
+            Column(modifier = Modifier.padding(18.dp)) {
                 Text(
                     text = actividad.nombre,
                     fontSize = 18.sp,
@@ -185,10 +180,44 @@ fun ConfirmacionInscripcionScreen(
         }
     }
 
+    // NOTIFICACIÓN CUANDO HAY LUGAR
     NotificacionLugarAsignado(
         mostrarNotificacion = mostrarNotificacion,
         onCerrarClick = {
             mostrarNotificacion = false
         }
     )
+
+    // NOTIFICACIÓN LISTA DE ESPERA
+    if (mostrarListaEspera) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarListaEspera = false
+            },
+            title = {
+                Text(
+                    text = "Lista de espera",
+                    color = TealPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "Tu familia fue agregada a la lista de espera."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarListaEspera = false
+                    }
+                ) {
+                    Text(
+                        text = "Entendido",
+                        color = TealPrimary
+                    )
+                }
+            },
+            containerColor = Surface
+        )
+    }
 }

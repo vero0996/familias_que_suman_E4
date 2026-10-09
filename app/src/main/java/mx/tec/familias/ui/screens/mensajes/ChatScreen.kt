@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -104,6 +105,7 @@ fun ChatMessages(
         modifier = Modifier
             .fillMaxSize()
             .background(TealLight.copy(alpha = 0.12f))
+            .statusBarsPadding()
     ) {
 
         // Header
@@ -112,9 +114,16 @@ fun ChatMessages(
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
             shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = Surface.copy(alpha = 0.88f)
+            ),
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.90f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 3.dp
+            )
         ) {
             Row(
                 modifier = Modifier
@@ -129,7 +138,9 @@ fun ChatMessages(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(TealLight.copy(alpha = 0.55f)),
+                            .background(
+                                TealLight.copy(alpha = 0.55f)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -149,7 +160,9 @@ fun ChatMessages(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(RoundedCornerShape(15.dp))
-                            .background(TealLight.copy(alpha = 0.65f)),
+                            .background(
+                                TealLight.copy(alpha = 0.65f)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -213,9 +226,16 @@ fun ChatMessages(
                 .navigationBarsPadding()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.90f)),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = Surface.copy(alpha = 0.90f)
+            ),
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            )
         ) {
             Row(
                 modifier = Modifier
@@ -321,12 +341,20 @@ private fun MessageBubble(
             border = if (mensaje.enviadoPorUsuario) {
                 null
             } else {
-                BorderStroke(1.dp, Color.White.copy(alpha = 0.95f))
+                BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.95f)
+                )
             },
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 2.dp
+            )
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                modifier = Modifier.padding(
+                    horizontal = 14.dp,
+                    vertical = 10.dp
+                )
             ) {
                 Text(
                     text = mensaje.texto,

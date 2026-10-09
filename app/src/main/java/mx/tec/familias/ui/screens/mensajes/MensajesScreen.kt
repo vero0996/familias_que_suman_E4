@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -102,7 +103,9 @@ fun MensajesScreen(
             .background(TealLight.copy(alpha = 0.12f))
     ) {
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .statusBarsPadding(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 start = 20.dp,
                 top = 16.dp,
@@ -115,9 +118,16 @@ fun MensajesScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(30.dp),
-                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface.copy(alpha = 0.88f)
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        Color.White.copy(alpha = 0.90f)
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 3.dp
+                    )
                 ) {
                     Column {
                         TopBar(
@@ -128,10 +138,16 @@ fun MensajesScreen(
 
                         OutlinedTextField(
                             value = busqueda,
-                            onValueChange = { busqueda = it },
+                            onValueChange = {
+                                busqueda = it
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                                .padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    bottom = 14.dp
+                                ),
                             placeholder = {
                                 Text(
                                     text = "Buscar mensajes",
@@ -182,11 +198,20 @@ fun MensajesScreen(
             mostrarMensajes = true,
             onDestinationSelected = { destination ->
                 when (destination) {
-                    FamilyDestination.INICIO -> onInicioClick()
-                    FamilyDestination.EXPLORAR -> onExplorarClick()
-                    FamilyDestination.ACTIVIDADES -> onActividadesClick()
-                    FamilyDestination.MENSAJES -> Unit
-                    FamilyDestination.PERFIL -> onPerfilClick()
+                    FamilyDestination.INICIO ->
+                        onInicioClick()
+
+                    FamilyDestination.EXPLORAR ->
+                        onExplorarClick()
+
+                    FamilyDestination.ACTIVIDADES ->
+                        onActividadesClick()
+
+                    FamilyDestination.MENSAJES ->
+                        Unit
+
+                    FamilyDestination.PERFIL ->
+                        onPerfilClick()
                 }
             }
         )
@@ -202,10 +227,17 @@ private fun ConversacionCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
     ) {
         Row(
             modifier = Modifier
@@ -304,10 +336,17 @@ private fun BoxAvatar(
 private fun EmptyMessagesCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        )
     ) {
         Column(
             modifier = Modifier

@@ -44,11 +44,21 @@ fun PerfilScreen(
         containerColor = TealLight.copy(alpha = 0.12f),
         topBar = {
             Card(
-                modifier = Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, top = 18.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(start = 18.dp, end = 18.dp, top = 10.dp),
                 shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface.copy(alpha = 0.88f)
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.90f)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 3.dp
+                )
             ) {
                 TopAppBar(
                     title = {
@@ -59,7 +69,9 @@ fun PerfilScreen(
                             fontSize = 22.sp
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
                 )
             }
         },
@@ -172,28 +184,64 @@ fun PerfilScreen(
 
                 OutlinedButton(
                     onClick = onCambiarRolClick,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
-                    border = BorderStroke(1.dp, Error.copy(alpha = 0.5f))
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Error
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        Error.copy(alpha = 0.5f)
+                    )
                 ) {
-                    Icon(Icons.Default.ExitToApp, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(
+                        Icons.Default.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Cerrar sesión", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+
+                    Text(
+                        "Cerrar sesión",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
                 OutlinedButton(
-                    onClick = { mostrarDialogoCancelacion = true },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    onClick = {
+                        mostrarDialogoCancelacion = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
-                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.65f))
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.Red
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        Color.Red.copy(alpha = 0.65f)
+                    )
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = Color.Red
+                    )
+
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Eliminar cuenta", color = Color.Red, fontWeight = FontWeight.Bold)
+
+                    Text(
+                        "Eliminar cuenta",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -202,7 +250,9 @@ fun PerfilScreen(
 
         if (mostrarAcercaDe) {
             AlertDialog(
-                onDismissRequest = { mostrarAcercaDe = false },
+                onDismissRequest = {
+                    mostrarAcercaDe = false
+                },
                 title = {
                     Text(
                         "Familias que Suman +",
@@ -216,8 +266,15 @@ fun PerfilScreen(
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = { mostrarAcercaDe = false }) {
-                        Text("Cerrar", color = TealPrimary)
+                    TextButton(
+                        onClick = {
+                            mostrarAcercaDe = false
+                        }
+                    ) {
+                        Text(
+                            "Cerrar",
+                            color = TealPrimary
+                        )
                     }
                 },
                 containerColor = Surface,
@@ -227,7 +284,9 @@ fun PerfilScreen(
 
         if (mostrarProximamente) {
             AlertDialog(
-                onDismissRequest = { mostrarProximamente = false },
+                onDismissRequest = {
+                    mostrarProximamente = false
+                },
                 title = {
                     Text(
                         "Próximamente",
@@ -236,11 +295,20 @@ fun PerfilScreen(
                     )
                 },
                 text = {
-                    Text("Esta función estará disponible en la siguiente versión de la aplicación.")
+                    Text(
+                        "Esta función estará disponible en la siguiente versión de la aplicación."
+                    )
                 },
                 confirmButton = {
-                    TextButton(onClick = { mostrarProximamente = false }) {
-                        Text("Entendido", color = TealPrimary)
+                    TextButton(
+                        onClick = {
+                            mostrarProximamente = false
+                        }
+                    ) {
+                        Text(
+                            "Entendido",
+                            color = TealPrimary
+                        )
                     }
                 },
                 containerColor = Surface,
@@ -250,7 +318,9 @@ fun PerfilScreen(
 
         if (mostrarDialogoCancelacion) {
             AlertDialog(
-                onDismissRequest = { mostrarDialogoCancelacion = false },
+                onDismissRequest = {
+                    mostrarDialogoCancelacion = false
+                },
                 title = {
                     Text(
                         "¿Estás seguro?",
@@ -270,14 +340,26 @@ fun PerfilScreen(
                             estaCancelando = true
                         },
                         shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red
+                        )
                     ) {
-                        Text("Eliminar", color = Color.White)
+                        Text(
+                            "Eliminar",
+                            color = Color.White
+                        )
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { mostrarDialogoCancelacion = false }) {
-                        Text("Cancelar", color = TealPrimary)
+                    TextButton(
+                        onClick = {
+                            mostrarDialogoCancelacion = false
+                        }
+                    ) {
+                        Text(
+                            "Cancelar",
+                            color = TealPrimary
+                        )
                     }
                 },
                 containerColor = Surface,
@@ -295,20 +377,32 @@ fun PerfilScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.7f))
+                .background(
+                    Color.Black.copy(alpha = 0.7f)
+                )
                 .clickable(enabled = false) {},
             contentAlignment = Alignment.Center
         ) {
             Card(
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.92f)),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f))
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface.copy(alpha = 0.92f)
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.90f)
+                )
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 26.dp),
+                    modifier = Modifier.padding(
+                        horizontal = 32.dp,
+                        vertical = 26.dp
+                    ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = TealPrimary)
+                    CircularProgressIndicator(
+                        color = TealPrimary
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -331,9 +425,16 @@ private fun ConfigCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        )
     ) {
         content()
     }
@@ -348,8 +449,13 @@ private fun ConfigListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 18.dp, vertical = 16.dp),
+            .clickable {
+                onClick()
+            }
+            .padding(
+                horizontal = 18.dp,
+                vertical = 16.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -362,7 +468,7 @@ private fun ConfigListItem(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                icon,
+                imageVector = icon,
                 contentDescription = null,
                 tint = TealPrimary,
                 modifier = Modifier.size(22.dp)
@@ -379,7 +485,7 @@ private fun ConfigListItem(
         )
 
         Icon(
-            Icons.Default.KeyboardArrowRight,
+            imageVector = Icons.Default.KeyboardArrowRight,
             contentDescription = null,
             tint = TextSecondary,
             modifier = Modifier.size(20.dp)

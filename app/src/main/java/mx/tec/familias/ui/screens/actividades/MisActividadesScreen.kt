@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,12 +25,18 @@ import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,8 +86,20 @@ fun MisActividadesScreen(
 ) {
     val estado = actividadesViewModel.estado
     val propias = estado.inscripciones.filter { it.familiaId == familiaId }
-    val confirmadas = propias.filter { it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA }
-    val espera = propias.filter { it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA }
+
+    val confirmadas = propias.filter {
+        it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+    }
+
+    val espera = propias.filter {
+        it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+    }
+
+    // PARA PROBAR LAS NOTIFICACIONES
+    // Deja solo una en true cada vez
+    var mostrarRecordatorio by remember { mutableStateOf(true) }
+    var mostrarActualizacion by remember { mutableStateOf(false) }
+    var mostrarCancelacion by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -88,15 +107,26 @@ fun MisActividadesScreen(
             .background(TealLight.copy(alpha = 0.12f))
     ) {
         LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .statusBarsPadding(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 20.dp,
+                top = 16.dp,
+                end = 20.dp,
+                bottom = 24.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(30.dp),
-                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface.copy(alpha = 0.88f)
+                    ),
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                 ) {
@@ -108,7 +138,11 @@ fun MisActividadesScreen(
                         )
 
                         Row(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 14.dp
+                            ),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             OutlinedButton(
@@ -220,6 +254,167 @@ fun MisActividadesScreen(
             }
         )
     }
+
+    // RECORDATORIO DE ACTIVIDAD
+    if (mostrarRecordatorio && confirmadas.isNotEmpty()) {
+        val solicitud = confirmadas.first()
+        val actividad = estado.evento(solicitud.eventoId)
+
+        AlertDialog(
+            onDismissRequest = {
+                mostrarRecordatorio = false
+            },
+            title = {
+                Text(
+                    text = "Recordatorio de actividad",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = actividad.nombre,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "${actividad.fecha} · ${actividad.hora}",
+                        color = TextSecondary
+                    )
+
+                    Text(
+                        text = actividad.lugar,
+                        color = TextSecondary
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarRecordatorio = false
+                    }
+                ) {
+                    Text(
+                        text = "Entendido",
+                        color = TealPrimary
+                    )
+                }
+            },
+            containerColor = Surface
+        )
+    }
+
+    // ACTIVIDAD ACTUALIZADA
+    if (mostrarActualizacion && confirmadas.isNotEmpty()) {
+        val solicitud = confirmadas.first()
+        val actividad = estado.evento(solicitud.eventoId)
+
+        AlertDialog(
+            onDismissRequest = {
+                mostrarActualizacion = false
+            },
+            title = {
+                Text(
+                    text = "Actividad actualizada",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = actividad.nombre,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "La información de esta actividad fue actualizada.",
+                        color = TextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "${actividad.fecha} · ${actividad.hora}",
+                        color = TextSecondary
+                    )
+
+                    Text(
+                        text = actividad.lugar,
+                        color = TextSecondary
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarActualizacion = false
+                    }
+                ) {
+                    Text(
+                        text = "Entendido",
+                        color = TealPrimary
+                    )
+                }
+            },
+            containerColor = Surface
+        )
+    }
+
+    // ACTIVIDAD CANCELADA
+    if (mostrarCancelacion && confirmadas.isNotEmpty()) {
+        val solicitud = confirmadas.first()
+        val actividad = estado.evento(solicitud.eventoId)
+
+        AlertDialog(
+            onDismissRequest = {
+                mostrarCancelacion = false
+            },
+            title = {
+                Text(
+                    text = "Actividad cancelada",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = actividad.nombre,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "La actividad fue cancelada. Ya no es necesario asistir.",
+                        color = TextSecondary
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCancelacion = false
+                    }
+                ) {
+                    Text(
+                        text = "Entendido",
+                        color = TealPrimary
+                    )
+                }
+            },
+            containerColor = Surface
+        )
+    }
 }
 
 @Composable
@@ -227,9 +422,7 @@ private fun SectionHeader(
     title: String,
     subtitle: String
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
             fontSize = 22.sp,
@@ -255,15 +448,15 @@ private fun ActividadInscritaCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
+            modifier = Modifier.fillMaxWidth().padding(18.dp),
             verticalAlignment = Alignment.Top
         ) {
             DateBox(
@@ -273,9 +466,7 @@ private fun ActividadInscritaCard(
 
             Spacer(modifier = Modifier.width(14.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = actividad.nombre,
                     fontSize = 16.sp,
@@ -316,17 +507,15 @@ private fun ActividadListaEsperaCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.Top
-            ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
                 DateBox(
                     fecha = actividad.fecha,
                     backgroundColor = TealLight
@@ -334,9 +523,7 @@ private fun ActividadListaEsperaCard(
 
                 Spacer(modifier = Modifier.width(14.dp))
 
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = actividad.nombre,
                         fontSize = 16.sp,
@@ -360,7 +547,9 @@ private fun ActividadListaEsperaCard(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = TealLight.copy(alpha = 0.25f)),
+                colors = CardDefaults.cardColors(
+                    containerColor = TealLight.copy(alpha = 0.25f)
+                ),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f))
             ) {
                 Row(
@@ -432,9 +621,7 @@ private fun DateBox(
             .background(backgroundColor.copy(alpha = 0.65f)),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = fecha.substringBefore(" "),
                 fontSize = 20.sp,
@@ -478,9 +665,7 @@ private fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
                 .size(28.dp)
@@ -514,15 +699,15 @@ private fun EmptyActivitiesCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(
+            containerColor = Surface.copy(alpha = 0.88f)
+        ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
+            modifier = Modifier.fillMaxWidth().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
