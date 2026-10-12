@@ -4,9 +4,10 @@ import os
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
-
+from admin import router as admin_router
 from auth import router as auth_router
-
+from campaigns import router as campaigns_router
+from activities import router as activities_router
 
 app = FastAPI(
     title="Familias que Suman API",
@@ -22,7 +23,9 @@ engine = (
 )
 
 app.include_router(auth_router)
-
+app.include_router(campaigns_router)
+app.include_router(admin_router)
+app.include_router(activities_router)
 
 @app.get("/")
 def root():
