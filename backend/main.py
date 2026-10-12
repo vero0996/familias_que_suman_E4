@@ -5,9 +5,12 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
+from auth import router as auth_router
+
+
 app = FastAPI(
     title="Familias que Suman API",
-    version="0.1.0",
+    version="0.2.0",
     description="Backend de Familias que Suman+",
 )
 
@@ -17,6 +20,8 @@ engine = (
     if database_url
     else None
 )
+
+app.include_router(auth_router)
 
 
 @app.get("/")
