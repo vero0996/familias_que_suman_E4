@@ -1,6 +1,5 @@
 package mx.tec.familias.data.model
 
-/** En esta versión cada solicitud ocupa UN cupo de familia. */
 data class Activity(
     val id: String,
     val nombre: String,
@@ -9,12 +8,19 @@ data class Activity(
     val fecha: String,
     val hora: String,
     val lugar: String,
-    val capacidadFamilias: Int,
-    val cierreInscripciones: Long
+    val capacidadPersonas: Int,
+    val cierreInscripciones: Long,
+    val ocupacionInicial: Int = 0,
+    val url: String = "",
+    val puntoEncuentro: String = "",
+    val tipoAportacion: String = "",
+    val requisitos: String = "",
+    val contacto: String = ""
 )
 
 enum class EstadoInscripcion {
-    CONFIRMADA, EN_ESPERA
+    CONFIRMADA,
+    EN_ESPERA
 }
 
 data class Inscripcion(
@@ -31,15 +37,50 @@ data class EstadoActividades(
     val eventos: List<Activity>,
     val inscripciones: List<Inscripcion>
 ) {
-    fun evento(id: String): Activity = eventos.first { it.id == id }
-    fun ocupados(id: String): Int = inscripciones.count {
-        it.eventoId == id && it.estado == EstadoInscripcion.CONFIRMADA
-    }
-    fun disponibles(id: String): Int = evento(id).capacidadFamilias - ocupados(id)
+    fun eventoOrNull(id: String): Activity? =
+        eventos.firstOrNull { it.id == id }
 
-    fun posicion(inscripcion: Inscripcion): Int = inscripciones.count {
-        it.eventoId == inscripcion.eventoId &&
-            it.estado == EstadoInscripcion.EN_ESPERA &&
-            (it.ordenEspera ?: Long.MAX_VALUE) < (inscripcion.ordenEspera ?: Long.MAX_VALUE)
-    } + 1
+    fun evento(id: String): Activity =
+        eventoOrNull(id) ?: eventos.firstOrNull() ?: Activity(
+            id = id,
+            nombre = "Actividad",
+            organizacion = "Organización",
+            descripcion = "",
+            fecha = "",
+            hora = "",
+            lugar = "",
+            capacidadPersonas = 20,
+            cierreInscripciones = 0L,
+            ocupacionInicial = 0,
+            url = "",
+            puntoEncuentro = "",
+            tipoAportacion = "",
+            requisitos = "",
+            contacto = ""
+        )
+
+    /** Total de personas ocupando lugares, incluida la ocupación publicada. */
+    fun ocupados(id: String): Int {
+        val ev = eventoOrNull(id) ?: return 0
+        return ev.ocupacionInicial +
+                inscripciones
+                    .filter {
+                        it.eventoId == id &&
+                                it.estado == EstadoInscripcion.CONFIRMADA
+                    }
+                    .sumOf { it.participantesIds.distinct().size }
+    }
+
+    fun disponibles(id: String): Int {
+        val ev = eventoOrNull(id) ?: return 0
+        return (ev.capacidadPersonas - ocupados(id)).coerceAtLeast(0)
+    }
+
+    fun posicion(inscripcion: Inscripcion): Int =
+        inscripciones.count {
+            it.eventoId == inscripcion.eventoId &&
+                    it.estado == EstadoInscripcion.EN_ESPERA &&
+                    (it.ordenEspera ?: Long.MAX_VALUE) <
+                    (inscripcion.ordenEspera ?: Long.MAX_VALUE)
+        } + 1
 }

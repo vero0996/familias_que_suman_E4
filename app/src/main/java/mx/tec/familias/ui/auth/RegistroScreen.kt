@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.tec.familias.ui.components.AdaptiveContainer
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
@@ -71,268 +70,262 @@ fun RegistroScreen(
                 correoValido &&
                 telefonoValido
 
-    AdaptiveContainer(
-        modifier = Modifier.background(
-            TealLight.copy(alpha = 0.12f)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TealLight.copy(alpha = 0.12f))
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(TealLight.copy(alpha = 0.12f))
-        ) {
 
-            // BOTÓN PARA RETROCEDER A INICIO
-            Card(
+        // BOTÓN PARA RETROCEDER A INICIO
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(start = 18.dp, end = 18.dp, top = 18.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Surface.copy(alpha = 0.88f)
+            ),
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.90f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 3.dp
+            )
+        ) {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(start = 18.dp, end = 18.dp, top = 18.dp),
-                shape = RoundedCornerShape(30.dp),
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Regresar a inicio",
+                        tint = TealPrimary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = "Regresar",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TealPrimary,
+                    modifier = Modifier.clickable { onBackClick() }
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // TÍTULO
+            Text(
+                text = "Crea tu perfil",
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 28.sp,
+                lineHeight = 34.sp,
+                fontWeight = FontWeight.Bold,
+                color = TealPrimary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Únete a Familias que Suman + y encuentra oportunidades para participar en tu comunidad.",
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 14.sp,
+                lineHeight = 21.sp,
+                color = TextSecondary
+            )
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface.copy(alpha = 0.88f)
                 ),
                 border = BorderStroke(
                     1.dp,
-                    Color.White.copy(alpha = 0.90f)
+                    Color.White.copy(alpha = 0.95f)
                 ),
                 elevation = CardDefaults.cardElevation(
-                    defaultElevation = 3.dp
+                    defaultElevation = 4.dp
                 )
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar a inicio",
-                            tint = TealPrimary
+
+                    // NOMBRE
+                    OutlinedTextField(
+                        value = nombre,
+                        onValueChange = { nombre = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Nombre")
+                        },
+                        placeholder = {
+                            Text("Ingresa tu nombre")
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(22.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Surface.copy(alpha = 0.92f),
+                            unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                            focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
                         )
-                    }
+                    )
 
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    Text(
-                        text = "Regresar",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TealPrimary,
-                        modifier = Modifier.clickable { onBackClick() }
+                    // CORREO
+                    OutlinedTextField(
+                        value = correo,
+                        onValueChange = { correo = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Correo electrónico")
+                        },
+                        placeholder = {
+                            Text("ejemplo@correo.com")
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(22.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Surface.copy(alpha = 0.92f),
+                            unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                            focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // TELÉFONO
+                    OutlinedTextField(
+                        value = telefono,
+                        onValueChange = { nuevoTelefono ->
+                            if (
+                                nuevoTelefono.all { it.isDigit() } &&
+                                nuevoTelefono.length <= 10
+                            ) {
+                                telefono = nuevoTelefono
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Teléfono")
+                        },
+                        placeholder = {
+                            Text("10 dígitos")
+                        },
+                        prefix = {
+                            Text("+52 ")
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(22.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Surface.copy(alpha = 0.92f),
+                            unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                            focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                        )
                     )
                 }
             }
 
-            Column(
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // REGISTRAR FAMILIARES
+            Text(
+                text = "¿Registrarás a otras personas de tu familia?",
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            RowOption(
+                text = "No, solo yo",
+                selected = !registrarOtros,
+                onClick = {
+                    registrarOtros = false
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            RowOption(
+                text = "Sí, registraré a otras personas",
+                selected = registrarOtros,
+                onClick = {
+                    registrarOtros = true
+                }
+            )
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // BOTÓN
+            Button(
+                onClick = {
+                    viewModel.guardarUsuario(
+                        nombre = nombre,
+                        correo = correo,
+                        telefono = telefono
+                    )
+
+                    onContinuar(
+                        nombre.trim(),
+                        registrarOtros
+                    )
+                },
+                enabled = puedeContinuar,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .height(50.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TealPrimary
+                )
             ) {
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // TÍTULO
                 Text(
-                    text = "Crea tu perfil",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 28.sp,
-                    lineHeight = 34.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TealPrimary
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Únete a Familias que Suman + y encuentra oportunidades para participar en tu comunidad.",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                    color = TextSecondary
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Surface.copy(alpha = 0.88f)
-                    ),
-                    border = BorderStroke(
-                        1.dp,
-                        Color.White.copy(alpha = 0.95f)
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 4.dp
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-
-                        // NOMBRE
-                        OutlinedTextField(
-                            value = nombre,
-                            onValueChange = { nombre = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = {
-                                Text("Nombre")
-                            },
-                            placeholder = {
-                                Text("Ingresa tu nombre")
-                            },
-                            singleLine = true,
-                            shape = RoundedCornerShape(22.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Surface.copy(alpha = 0.92f),
-                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
-                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // CORREO
-                        OutlinedTextField(
-                            value = correo,
-                            onValueChange = { correo = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = {
-                                Text("Correo electrónico")
-                            },
-                            placeholder = {
-                                Text("ejemplo@correo.com")
-                            },
-                            singleLine = true,
-                            shape = RoundedCornerShape(22.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Surface.copy(alpha = 0.92f),
-                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
-                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // TELÉFONO
-                        OutlinedTextField(
-                            value = telefono,
-                            onValueChange = { nuevoTelefono ->
-                                if (
-                                    nuevoTelefono.all { it.isDigit() } &&
-                                    nuevoTelefono.length <= 10
-                                ) {
-                                    telefono = nuevoTelefono
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = {
-                                Text("Teléfono")
-                            },
-                            placeholder = {
-                                Text("10 dígitos")
-                            },
-                            prefix = {
-                                Text("+52 ")
-                            },
-                            singleLine = true,
-                            shape = RoundedCornerShape(22.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Surface.copy(alpha = 0.92f),
-                                unfocusedContainerColor = Surface.copy(alpha = 0.84f),
-                                focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
-                            )
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                // REGISTRAR FAMILIARES
-                Text(
-                    text = "¿Registrarás a otras personas de tu familia?",
-                    modifier = Modifier.fillMaxWidth(),
+                    text = "Continuar",
                     fontSize = 16.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
+                    fontWeight = FontWeight.Bold
                 )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                RowOption(
-                    text = "No, solo yo",
-                    selected = !registrarOtros,
-                    onClick = {
-                        registrarOtros = false
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                RowOption(
-                    text = "Sí, registraré a otras personas",
-                    selected = registrarOtros,
-                    onClick = {
-                        registrarOtros = true
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                // BOTÓN
-                Button(
-                    onClick = {
-                        viewModel.guardarUsuario(
-                            nombre = nombre,
-                            correo = correo,
-                            telefono = telefono
-                        )
-
-                        onContinuar(
-                            nombre.trim(),
-                            registrarOtros
-                        )
-                    },
-                    enabled = puedeContinuar,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TealPrimary
-                    )
-                ) {
-                    Text(
-                        text = "Continuar",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Podrás explorar campañas y actividades sin registrarte.",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 12.sp,
-                    lineHeight = 17.sp,
-                    color = TextSecondary
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Podrás explorar campañas y actividades sin registrarte.",
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                color = TextSecondary
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

@@ -35,14 +35,14 @@ class FamilyViewModel : ViewModel() {
 
     fun agregarIntegrante(
         nombre: String,
-        edad: Int,
+        fechaNacimiento: String,
         parentesco: String
     ) {
         integrantes.add(
             FamilyMember(
                 id = UUID.randomUUID().toString(),
                 nombre = nombre.trim(),
-                edad = edad,
+                fechaNacimiento = fechaNacimiento.trim(),
                 parentesco = parentesco.trim()
             )
         )

@@ -93,7 +93,7 @@ fun PerfilScreen(
         }
     ) { paddingValues ->
 
-        AdaptiveContainer {
+        //AdaptiveContainer {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -367,7 +367,7 @@ fun PerfilScreen(
                 shape = RoundedCornerShape(28.dp)
             )
         }
-    }
+   // }
 
     if (estaCancelando) {
         LaunchedEffect(Unit) {

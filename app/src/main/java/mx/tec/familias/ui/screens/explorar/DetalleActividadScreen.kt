@@ -324,7 +324,7 @@ fun DetalleActividadScreen(
                     )
                 },
                 title = "Participación",
-                value = "$ocupados/${actividad.capacidadFamilias} familias · $disponibles lugares libres"
+                value = "$ocupados/${actividad.capacidadPersonas} familias · $disponibles lugares libres"
             )
 
             Spacer(modifier = Modifier.height(28.dp))
