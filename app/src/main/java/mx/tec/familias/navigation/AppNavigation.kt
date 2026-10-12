@@ -308,7 +308,11 @@ fun AppNavigation() {
                     }
                 },
 
-                onCampaniaClick = {
+                onCampaniaClick = { campaniaId ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("campaniaId", campaniaId)
+
                     navController.navigate(Routes.DetalleCampania.route)
                 },
 
@@ -331,7 +335,13 @@ fun AppNavigation() {
         }
 
         composable(Routes.DetalleCampania.route) {
+            val campaniaId = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<String>("campaniaId")
+                ?: "utiles_escolares"
+
             DetalleCampaniaScreen(
+                campaniaId = campaniaId,
                 onBackClick = { navController.popBackStack() },
                 onParticiparClick = {
                     if (familyViewModel.usuario.value == null) {

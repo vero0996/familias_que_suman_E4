@@ -531,7 +531,7 @@ private fun IntegranteSeleccionCard(
                 Spacer(modifier = Modifier.height(3.dp))
 
                 Text(
-                    text = "${integrante.parentesco} · ${integrante.edad} años",
+                    text = "${integrante.parentesco} · ${integrante.fechaNacimiento}",
                     fontSize = 13.sp,
                     color = TextSecondary
                 )

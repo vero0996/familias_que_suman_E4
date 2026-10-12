@@ -10,7 +10,7 @@ class ActividadesViewModel : ViewModel() {
     private val repositorio = ActividadesRepository.prototipo()
     var estado by mutableStateOf(repositorio.consultar())
         private set
-    var eventoSeleccionadoId by mutableStateOf("arboles")
+    var eventoSeleccionadoId by mutableStateOf("familia_misionera_octubre")
         private set
     var ultimaInscripcionId by mutableStateOf<String?>(null)
         private set

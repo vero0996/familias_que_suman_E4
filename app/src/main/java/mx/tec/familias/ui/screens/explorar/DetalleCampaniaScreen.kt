@@ -65,10 +65,62 @@ import mx.tec.familias.ui.theme.TextSecondary
 
 @Composable
 fun DetalleCampaniaScreen(
+    campaniaId: String = "utiles_escolares",
     onBackClick: () -> Unit = {},
     onParticiparClick: () -> Unit = {}
 ) {
-    var mostrarDialogoCompartir by remember { mutableStateOf(false) }
+    val esCanasta = campaniaId == "canasta_solidaria"
+
+    val tituloCampania = if (esCanasta)
+        "Canasta Solidaria de Invierno"
+    else
+        "Útiles Escolares para Todos"
+
+    val categoriaCampania = if (esCanasta)
+        "ALIMENTACIÓN"
+    else
+        "EDUCACIÓN"
+
+    val organizacionCampania = if (esCanasta)
+        "Asociación Manos Unidas"
+    else
+        "Fundación Aprender Juntos"
+
+    val progresoCampania = if (esCanasta) 0.45f else 0.80f
+
+    val progresoTexto = if (esCanasta) "45%" else "80%"
+
+    val metaTexto = if (esCanasta)
+        "Meta por definir"
+    else
+        "Meta: 100 kits"
+
+    val avanceTexto = if (esCanasta)
+        "45% de avance de la campaña"
+    else
+        "80 de 100 kits escolares reunidos"
+
+    val descripcionCampania = if (esCanasta) {
+        "Esta campaña busca apoyar a familias de la comunidad durante el invierno mediante la recolección y entrega de canastas con alimentos y productos básicos. Puedes contribuir con donaciones para ayudar a quienes más lo necesitan."
+    } else {
+        "Esta campaña busca reunir útiles escolares para niñas y niños que los necesitan. Las familias pueden contribuir reuniendo materiales y sumándose a esta iniciativa comunitaria."
+    }
+
+    val fechaLimite = if (esCanasta) "Por definir" else "30 de mayo"
+
+    val puntoEntrega = if (esCanasta)
+        "Centro Comunitario (por confirmar)"
+    else
+        "Centro Comunitario"
+
+    val participacion = if (esCanasta)
+        "Familias de la comunidad"
+    else
+        "32 familias apoyando"
+
+    var mostrarDialogoCompartir by remember {
+        mutableStateOf(false)
+    }
 
     // URL simulada para esta campaña
     val codigoCampania = remember {
@@ -180,7 +232,7 @@ fun DetalleCampaniaScreen(
 
             // CATEGORÍA
             Text(
-                text = "EDUCACIÓN",
+                text = categoriaCampania,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = BrownPrimary
@@ -190,7 +242,7 @@ fun DetalleCampaniaScreen(
 
             // TÍTULO
             Text(
-                text = "Útiles Escolares para Todos",
+                text = tituloCampania,
                 fontSize = 28.sp,
                 lineHeight = 34.sp,
                 fontWeight = FontWeight.Bold,
@@ -201,7 +253,7 @@ fun DetalleCampaniaScreen(
 
             // ORGANIZACIÓN
             Text(
-                text = "Fundación Aprender Juntos",
+                text = organizacionCampania,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TealDark
@@ -234,14 +286,14 @@ fun DetalleCampaniaScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "80% alcanzado",
+                            text = "$progresoTexto alcanzado",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = TealPrimary
                         )
 
                         Text(
-                            text = "Meta: 100 kits",
+                            text = metaTexto,
                             fontSize = 14.sp,
                             color = TextSecondary
                         )
@@ -250,7 +302,7 @@ fun DetalleCampaniaScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LinearProgressIndicator(
-                        progress = { 0.8f },
+                        progress = { progresoCampania },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)
@@ -262,7 +314,7 @@ fun DetalleCampaniaScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "80 de 100 kits escolares reunidos",
+                        text = avanceTexto,
                         fontSize = 14.sp,
                         color = TextSecondary
                     )
@@ -291,7 +343,7 @@ fun DetalleCampaniaScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Esta campaña busca reunir útiles escolares para niñas y niños que los necesitan. Las familias pueden contribuir reuniendo materiales y sumándose a esta iniciativa comunitaria.",
+                        text = descripcionCampania,
                         fontSize = 14.sp,
                         lineHeight = 21.sp,
                         color = TextSecondary
@@ -321,7 +373,7 @@ fun DetalleCampaniaScreen(
                     )
                 },
                 title = "Fecha límite",
-                value = "30 de mayo"
+                value = fechaLimite
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -387,125 +439,69 @@ fun DetalleCampaniaScreen(
     // DIÁLOGO DE COMPARTIR
     if (mostrarDialogoCompartir) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogoCompartir = false },
+            onDismissRequest = {
+                mostrarDialogoCompartir = false
+            },
             title = {
                 Text(
-                    text = "Compartir campaña",
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    text = "Compartir campaña"
                 )
             },
             text = {
                 Column {
                     Text(
-                        text = "Útiles Escolares para Todos",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TealDark
+                        text = "¡Invita a más personas a participar!"
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Comparte esta campaña con otras familias y personas interesadas.",
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        color = TextSecondary
+                        text = tituloCampania,
+                        fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(TealLight.copy(alpha = 0.25f))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = urlCampania,
-                            fontSize = 13.sp,
-                            color = TealDark
-                        )
-                    }
+                    Text(
+                        text = "Comparte esta campaña para que más personas conozcan la iniciativa."
+                    )
                 }
             },
             confirmButton = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = {
-                            clipboardManager.setText(AnnotatedString(urlCampania))
+                TextButton(
+                    onClick = {
+                        mostrarDialogoCompartir = false
 
-                            Toast.makeText(
-                                context,
-                                "Enlace copiado",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = null,
-                            tint = TealPrimary
-                        )
+                        val urlCampania = "https://familiasquesuman.example/campania"
 
-                        Spacer(modifier = Modifier.width(5.dp))
-
-                        Text(
-                            text = "Copiar",
-                            color = TealPrimary
-                        )
-                    }
-
-                    TextButton(
-                        onClick = {
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-
-                                putExtra(
-                                    Intent.EXTRA_TEXT,
-                                    "Únete a la campaña \"Útiles Escolares para Todos\" en Familias que Suman +.\n\n$urlCampania"
-                                )
-                            }
-
-                            context.startActivity(
-                                Intent.createChooser(
-                                    shareIntent,
-                                    "Compartir campaña"
-                                )
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "¡Únete a la campaña \"$tituloCampania\" en Familias que Suman +!\n\n$urlCampania"
                             )
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = null,
-                            tint = TealPrimary
-                        )
 
-                        Spacer(modifier = Modifier.width(5.dp))
-
-                        Text(
-                            text = "Compartir",
-                            color = TealPrimary
+                        context.startActivity(
+                            Intent.createChooser(
+                                intent,
+                                "Compartir campaña"
+                            )
                         )
                     }
+                ) {
+                    Text("Compartir")
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { mostrarDialogoCompartir = false }
+                    onClick = {
+                        mostrarDialogoCompartir = false
+                    }
                 ) {
-                    Text(
-                        text = "Cerrar",
-                        color = TextSecondary
-                    )
+                    Text("Cancelar")
                 }
-            },
-            containerColor = Surface,
-            shape = RoundedCornerShape(20.dp)
+            }
         )
     }
 }

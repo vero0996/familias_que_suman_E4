@@ -69,7 +69,7 @@ fun ExplorarScreen(
     onActividadesClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
-    onCampaniaClick: () -> Unit = {},
+    onCampaniaClick: (String) -> Unit = {},
     onActividadClick: (String) -> Unit = {},
     estadoActividades: mx.tec.familias.data.model.EstadoActividades? = null,
     mostrarMensajes: Boolean = false
@@ -78,6 +78,70 @@ fun ExplorarScreen(
 
     // Estado para saber qué filtro está seleccionado
     var filtroActual by remember { mutableStateOf("Todos") }
+
+
+    val busqueda = searchText.trim().lowercase()
+
+    val mostrarFamiliaMisionera =
+        filtroActual == "Todos" || filtroActual == "Voluntariado"
+
+    val mostrarPosada =
+        filtroActual == "Todos" || filtroActual == "Eventos"
+
+    val mostrarCampanias =
+        filtroActual == "Todos" || filtroActual == "Donaciones"
+
+    val coincideCampania1 = listOf(
+        "útiles escolares para todos",
+        "fundación aprender juntos",
+        "ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario"
+    ).any { it.contains(busqueda) }
+
+    val coincideCampania2 = listOf(
+        "canasta solidaria de invierno",
+        "asociación manos unidas",
+        "apoya a familias de la comunidad con alimentos y productos básicos"
+    ).any { it.contains(busqueda) }
+
+    val coincideFamiliaMisionera = listOf(
+        "familia misionera noviembre",
+        "familias que suman",
+        "visita y acompaña a familias de la comunidad durante la misión familiar de noviembre",
+        "28 nov",
+        "bahía de la paz",
+        "santa catarina"
+    ).any { it.contains(busqueda) }
+
+    val coincidePosada = listOf(
+        "posada sendero",
+        "familias que suman",
+        "celebración navideña con familias de arroyo",
+        "san ildefonso",
+        "santa catarina",
+        "28 nov"
+    ).any { it.contains(busqueda) }
+
+    val coincideLectura = listOf(
+        "lectura compartida",
+        "fundación aprender juntos"
+    ).any { it.contains(busqueda) }
+
+    val hayCampanias =
+        mostrarCampanias &&
+                (coincideCampania1 || coincideCampania2)
+
+    val hayFamiliaMisionera =
+        mostrarFamiliaMisionera && coincideFamiliaMisionera
+
+    val hayPosada =
+        mostrarPosada && coincidePosada
+
+    val hayActividades =
+        hayFamiliaMisionera || hayPosada
+
+    val hayResultados =
+        hayCampanias || hayActividades
+
 
     Column(
         modifier = Modifier
@@ -142,86 +206,139 @@ fun ExplorarScreen(
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    Text(
-                        text = "Campañas",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mostrar campañas dinámicamente según el filtro
-                    if (filtroActual == "Todos" || filtroActual == "Donaciones") {
-                        CampaignCard(
-                            tag = "URGENTE",
-                            tagColor = BrownPrimary,
-                            title = "Útiles Escolares para Todos",
-                            organization = "Fundación Aprender Juntos",
-                            description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.",
-                            progress = 0.80f,
-                            progressText = "80%",
-                            buttonText = "Ver campaña",
-                            onClick = onCampaniaClick
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        CampaignCard(
-                            tag = "DONACIÓN",
-                            tagColor = TealDark,
-                            title = "Canasta Solidaria de Invierno",
-                            organization = "Asociación Manos Unidas",
-                            description = "Apoya a familias de la comunidad con alimentos y productos básicos.",
-                            progress = 0.45f,
-                            progressText = "45%",
-                            buttonText = "Ver campaña",
-                            onClick = onCampaniaClick
-                        )
-
-                        Spacer(modifier = Modifier.height(30.dp))
-                    }
-
-                    Text(
-                        text = "Actividades",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (
-                        filtroActual == "Todos" ||
-                        filtroActual == "Voluntariado" ||
-                        filtroActual == "Eventos"
-                    ) {
-                        ActivityCard(
-                            title = "Plantación de Árboles en El Pardo",
-                            organization = "Asociación Bosque Vivo",
-                            participants = estadoActividades?.let {
-                                "${it.ocupados("arboles")}/${it.evento("arboles").capacidadFamilias} familias · ${it.disponibles("arboles")} lugares disponibles"
-                            } ?: "Actividad familiar",
-                            date = "24 noviembre 2026",
-                            onClick = { onActividadClick("arboles") }
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        ActivityCard(
-                            title = "Lectura Compartida",
-                            organization = "Fundación Aprender Juntos",
-                            participants = estadoActividades?.let {
-                                "${it.ocupados("lectura")}/${it.evento("lectura").capacidadFamilias} familias · ${it.disponibles("lectura")} lugares disponibles"
-                            } ?: "Actividad familiar",
-                            date = "25 noviembre 2026",
-                            onClick = { onActividadClick("lectura") }
+                    if (hayCampanias) {
+                        Text(
+                            text = "Campañas",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
                     }
+
+
+                    // CAMPAÑAS
+                    if (hayCampanias) {
+                        if (coincideCampania1) {
+                            CampaignCard(
+                                tag = "URGENTE",
+                                tagColor = BrownPrimary,
+                                title = "Útiles Escolares para Todos",
+                                organization = "Fundación Aprender Juntos",
+                                description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.",
+                                progress = 0.80f,
+                                progressText = "80%",
+                                buttonText = "Ver campaña",
+                                onClick = {
+                                    onCampaniaClick("utiles_escolares")
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+
+                        if (coincideCampania2) {
+                            CampaignCard(
+                                tag = "DONACIÓN",
+                                tagColor = TealDark,
+                                title = "Canasta Solidaria de Invierno",
+                                organization = "Asociación Manos Unidas",
+                                description = "Apoya a familias de la comunidad con alimentos y productos básicos.",
+                                progress = 0.45f,
+                                progressText = "45%",
+                                buttonText = "Ver campaña",
+                                onClick = {
+                                    onCampaniaClick("canasta_solidaria")
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
+
+                    // ACTIVIDADES
+                    if (hayActividades) {
+                        Text(
+                            text = "Actividades",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // VOLUNTARIADO: Familia Misionera Noviembre
+                        if (hayFamiliaMisionera) {
+                            val eventoId = "familia_misionera_noviembre"
+                            val evento = estadoActividades
+                                ?.eventoOrNull(eventoId)
+
+                            val cupos = evento?.capacidadPersonas ?: 25
+                            val ocupados =
+                                estadoActividades?.ocupados(eventoId) ?: 0
+                            val disponibles =
+                                estadoActividades?.disponibles(eventoId) ?: 25
+
+                            ActivityCard(
+                                title = evento?.nombre
+                                    ?: "Familia Misionera Noviembre",
+                                organization = evento?.organizacion
+                                    ?: "Familias que Suman",
+                                participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
+                                date = evento?.fecha ?: "28 Nov",
+                                onClick = {
+                                    onActividadClick(eventoId)
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+
+                        // EVENTOS: Posada Sendero
+                        if (hayPosada) {
+                            val eventoId = "posada_sendero"
+                            val evento = estadoActividades
+                                ?.eventoOrNull(eventoId)
+
+                            val cupos = evento?.capacidadPersonas ?: 15
+                            val ocupados =
+                                estadoActividades?.ocupados(eventoId) ?: 0
+                            val disponibles =
+                                estadoActividades?.disponibles(eventoId) ?: 15
+
+                            ActivityCard(
+                                title = evento?.nombre ?: "Posada Sendero",
+                                organization = evento?.organizacion
+                                    ?: "Familias que Suman",
+                                participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
+                                date = evento?.fecha ?: "28 Nov",
+                                onClick = {
+                                    onActividadClick(eventoId)
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+
+
+
+                    if (!hayResultados) {
+                        Text(
+                            text = "No encontramos resultados",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextSecondary
+                        )
+                    }
+
                 }
             }
         }
@@ -242,7 +359,8 @@ fun ExplorarScreen(
     }
 }
 
-@Composable
+
+    @Composable
 private fun ExplorarHeader(
     onProfileClick: () -> Unit
 ) {

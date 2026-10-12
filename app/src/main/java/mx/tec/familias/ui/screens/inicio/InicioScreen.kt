@@ -3,16 +3,14 @@ package mx.tec.familias.ui.screens.inicio
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,12 +26,11 @@ import mx.tec.familias.R
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.theme.BrownPrimary
-import mx.tec.familias.ui.theme.Divider
 import mx.tec.familias.ui.theme.OrangePrimary
 import mx.tec.familias.ui.theme.Surface
-import mx.tec.familias.ui.theme.TealDark
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
+import mx.tec.familias.ui.theme.TextOnPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 
@@ -47,10 +44,8 @@ fun InicioScreen(
     onPerfilClick: () -> Unit = {},
     onCampaniaClick: () -> Unit = {}
 ) {
-    var searchText by remember { mutableStateOf("") }
-
-    // Estado para los filtros de categorías interactivos
-    var filtroSeleccionado by remember { mutableStateOf("Todos") }
+    var mostrarDialogoDonacion by remember { mutableStateOf(false) }
+    var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -94,92 +89,81 @@ fun InicioScreen(
 
                     ImpactCard()
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    OutlinedTextField(
-                        value = searchText,
-                        onValueChange = { searchText = it },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        placeholder = { Text(text = "Buscar causas, asociaciones...") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar",
-                                tint = TealPrimary
+                    // ¿Quiénes Somos? Card
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Surface),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier.size(40.dp).clip(CircleShape).background(TealLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Info, contentDescription = null, tint = TealPrimary)
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("¿Quiénes Somos?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Familias que Suman es una iniciativa dedicada a transformar nuestra comunidad fomentando el voluntariado, la empatía y la solidaridad desde el núcleo familiar. Conectamos el esfuerzo de las familias con causas reales.",
+                                fontSize = 14.sp, lineHeight = 20.sp, color = TextSecondary
                             )
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(28.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Surface.copy(alpha = 0.92f),
-                            unfocusedContainerColor = Surface.copy(alpha = 0.86f),
-                            focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
-                        )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text("Campañas de Donación Activas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    DonationItemCard(
+                        titulo = "Sillas de Ruedas para Todos",
+                        descripcion = "Apoya a adultos mayores en situación vulnerable.",
+                        meta = "Meta: 15 unidades",
+                        imagenRes = R.drawable.comedorcomunitario,
+                        onDonarClick = {
+                            tituloCampaniaSeleccionada = "Sillas de Ruedas"
+                            mostrarDialogoDonacion = true
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // FILTROS INTERACTIVOS CONECTADOS
-                    CategoryFilters(
-                        filtroActual = filtroSeleccionado,
-                        onFiltroChange = { nuevoFiltro -> filtroSeleccionado = nuevoFiltro }
+                    DonationItemCard(
+                        titulo = "Juguetón Familiar Navideño",
+                        descripcion = "Dona juguetes en excelente estado para casas hogar.",
+                        meta = "Meta: 300 juguetes",
+                        imagenRes = R.drawable.utilesescolares,
+                        onDonarClick = {
+                            tituloCampaniaSeleccionada = "Juguetes Navideños"
+                            mostrarDialogoDonacion = true
+                        }
                     )
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "Causas destacadas",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
+                    Text("Nuestros Proyectos Fijos", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Mostrar tarjetas dinámicamente según el filtro seleccionado
-                    if (
-                        filtroSeleccionado == "Todos" ||
-                        filtroSeleccionado == "Voluntariado" ||
-                        filtroSeleccionado == "Eventos"
-                    ) {
-                        CauseCard(
-                            imageRes = R.drawable.reforestacionurbana,
-                            category = "MEDIO AMBIENTE",
-                            title = "Reforestación Familiar",
-                            organization = "Asociación Bosque Vivo",
-                            description = "Únete a nuestra jornada de plantación de árboles nativos. Una excelente oportunidad para contribuir en familia.",
-                            progressLabel = "Progreso de voluntarios",
-                            progress = 0.80f,
-                            progressText = "80%",
-                            buttonText = "Unirse como Familia",
-                            onButtonClick = onCampaniaClick
-                        )
+                    ProjectFixedCard(
+                        nombre = "Red de Comedores Comunitarios",
+                        detalle = "Operación continua de comedores que brindan más de 500 raciones diarias."
+                    )
 
-                        Spacer(modifier = Modifier.height(20.dp))
-                    }
+                    ProjectFixedCard(
+                        nombre = "Centro de Apoyo Escolar",
+                        detalle = "Espacio permanente de asesorías y material didáctico para infantes."
+                    )
 
-                    if (
-                        filtroSeleccionado == "Todos" ||
-                        filtroSeleccionado == "Donaciones" ||
-                        filtroSeleccionado == "Talleres"
-                    ) {
-                        CauseCard(
-                            imageRes = R.drawable.utilesescolares,
-                            category = "EDUCACIÓN",
-                            title = "Apoyo Escolar en el Barrio",
-                            organization = "Fundación Aprender Juntos",
-                            description = "Buscamos familias que quieran donar útiles escolares o dedicar 2 horas a apoyar a estudiantes.",
-                            progressLabel = "Meta de donaciones",
-                            progress = 0.45f,
-                            progressText = "45%",
-                            buttonText = "Ver detalles",
-                            onButtonClick = onCampaniaClick
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
@@ -196,6 +180,24 @@ fun InicioScreen(
                     FamilyDestination.PERFIL -> onPerfilClick()
                 }
             }
+        )
+    }
+
+    // DIÁLOGO MOCK DE DONACIÓN
+    if (mostrarDialogoDonacion) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoDonacion = false },
+            title = { Text("Donar a: $tituloCampaniaSeleccionada", color = TealPrimary, fontWeight = FontWeight.Bold) },
+            text = { Text("Puedes realizar tu entrega física directamente en nuestro centro de acopio principal. ¡Gracias por sumar!", color = TextSecondary) },
+            confirmButton = {
+                Button(
+                    onClick = { mostrarDialogoDonacion = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+                ) {
+                    Text("Entendido", color = TextOnPrimary)
+                }
+            },
+            containerColor = Surface
         )
     }
 }
@@ -315,185 +317,43 @@ private fun ImpactCard() {
 }
 
 @Composable
-private fun CategoryFilters(
-    filtroActual: String,
-    onFiltroChange: (String) -> Unit
-) {
-    val scrollState = rememberScrollState()
-    val categorias = listOf("Todos", "Voluntariado", "Donaciones", "Eventos", "Talleres")
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        categorias.forEach { categoria ->
-            CategoryChip(
-                text = categoria,
-                selected = filtroActual == categoria,
-                onClick = { onFiltroChange(categoria) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun CategoryChip(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
+private fun DonationItemCard(titulo: String, descripcion: String, meta: String, imagenRes: Int, onDonarClick: () -> Unit) {
     Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) TealPrimary else Surface.copy(alpha = 0.84f)
-        ),
-        border = if (selected) null else BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (selected) 2.dp else 1.dp)
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        TextButton(
-            onClick = onClick,
-            modifier = Modifier.height(38.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            colors = ButtonDefaults.textButtonColors(
-                contentColor = if (selected) Color.White else TextSecondary
-            )
-        ) {
-            Text(
-                text = text,
-                fontSize = 12.sp,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-            )
-        }
-    }
-}
-
-@Composable
-private fun CauseCard(
-    imageRes: Int,
-    category: String,
-    title: String,
-    organization: String,
-    description: String,
-    progressLabel: String,
-    progress: Float,
-    progressText: String,
-    buttonText: String,
-    onButtonClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        ) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(22.dp))
-            )
-
-            Column(
-                modifier = Modifier.padding(
-                    start = 12.dp,
-                    end = 12.dp,
-                    top = 14.dp,
-                    bottom = 12.dp
-                )
-            ) {
-                Text(
-                    text = category,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BrownPrimary
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = title,
-                    fontSize = 20.sp,
-                    lineHeight = 26.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = organization,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TealDark
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = description,
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                    color = TextSecondary
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = progressLabel,
-                        fontSize = 12.sp,
-                        color = TextSecondary
-                    )
-
-                    Text(
-                        text = progressText,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TealPrimary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(7.dp))
-
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(7.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    color = TealPrimary,
-                    trackColor = TealLight.copy(alpha = 0.35f)
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Button(
-                    onClick = onButtonClick,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
-                ) {
-                    Text(
-                        text = buttonText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+        Column {
+            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(130.dp))
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = titulo, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = descripcion, fontSize = 13.sp, color = TextSecondary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BrownPrimary)
+                    Button(onClick = onDonarClick, colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary), shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), modifier = Modifier.height(36.dp)) {
+                        Text("Donar", fontSize = 13.sp, color = TextOnPrimary)
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ProjectFixedCard(nombre: String, detalle: String) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = detalle, fontSize = 13.sp, color = TextSecondary, lineHeight = 18.sp)
         }
     }
 }
