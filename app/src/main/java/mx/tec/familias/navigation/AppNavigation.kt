@@ -174,9 +174,9 @@ fun AppNavigation() {
         composable(Routes.Publico.route) {
             PublicoScreen(
                 onIniciarSesionClick = {
-                    // Este navega a tu pantalla de elegir si es familia o asoc.
-                    navController.navigate(Routes.SelectorRol.route) {
-                        // popUpTo evita que al darle "atrás" regreses a esta pantalla por error
+                    rutaDespuesDeRegistro = Routes.Inicio.route
+                    rutaDespuesDeIntegrantes = Routes.Inicio.route
+                    navController.navigate(Routes.Registro.route) {
                         popUpTo(Routes.Publico.route) { inclusive = true }
                     }
                 },
@@ -635,10 +635,11 @@ fun AppNavigation() {
                 },
                 onExplorarClick = { navController.navigate(Routes.Explorar.route) },
                 onActividadesClick = { navController.navigate(Routes.Actividades.route) },
+                onMensajesClick = { navController.navigate(Routes.Mensajes.route) },
                 onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
                 onCambiarRolClick = {
                     familyViewModel.usuario.value = null
-                    navController.navigate(Routes.SelectorRol.route) {
+                    navController.navigate(Routes.Publico.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
@@ -973,7 +974,7 @@ fun AppNavigation() {
                     }
                 },
                 onCerrarSesionClick = {
-                    navController.navigate(Routes.SelectorRol.route) {
+                    navController.navigate(Routes.Publico.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }

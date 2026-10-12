@@ -31,6 +31,7 @@ fun PerfilScreen(
     onInicioClick: () -> Unit,
     onExplorarClick: () -> Unit,
     onActividadesClick: () -> Unit,
+    onMensajesClick: () -> Unit = {},
     onAgregarIntegrante: () -> Unit,
     onCambiarRolClick: () -> Unit,
     onCancelarInscripcionClick: () -> Unit = {}
@@ -84,7 +85,7 @@ fun PerfilScreen(
                         FamilyDestination.INICIO -> onInicioClick()
                         FamilyDestination.EXPLORAR -> onExplorarClick()
                         FamilyDestination.ACTIVIDADES -> onActividadesClick()
-                        FamilyDestination.MENSAJES -> { /* Lógica de mensajes */ }
+                        FamilyDestination.MENSAJES -> onMensajesClick()
                         FamilyDestination.PERFIL -> {}
                     }
                 }

@@ -32,7 +32,7 @@ fun PublicoScreen(
     var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
 
     // ADAPTIVECONTAINER: Centra y adapta la vista en celulares anchos o tablets
-    AdaptiveContainer {
+    // AdaptiveContainer {
         Scaffold(
             containerColor = Background,
             topBar = {
@@ -177,7 +177,7 @@ fun PublicoScreen(
             )
         }
     }
-}
+//}
 
 @Composable
 private fun DonationItemCard(titulo: String, descripcion: String, meta: String, imagenRes: Int, onDonarClick: () -> Unit) {
