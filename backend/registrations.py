@@ -280,6 +280,7 @@ def get_my_registration(
     "/{registration_id}/cancel",
     response_model=RegistrationResponse,
 )
+
 def cancel_registration(
     registration_id: int,
     data: RegistrationCancelRequest | None = None,
@@ -288,8 +289,30 @@ def cancel_registration(
 ):
     family = get_family_or_409(db, current_user.id)
 
-    # Lock the registration and activity to coordinate cancellations
-    # with registrations competing for the same capacity.
+    # Read the registration without locking it yet, only to discover
+    # which activity must be locked first.
+    registration_ref = db.scalar(
+        select(Registration).where(
+            Registration.id == registration_id
+        )
+    )
+
+    if registration_ref is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inscripción no encontrada",
+        )
+
+    activity_id = registration_ref.activity_id
+
+    # Use the same lock order as registration creation:
+    # activity first, registration second.
+    activity = db.scalar(
+        select(Activity)
+        .where(Activity.id == activity_id)
+        .with_for_update()
+    )
+
     registration = db.scalar(
         select(Registration)
         .where(Registration.id == registration_id)
@@ -302,10 +325,17 @@ def cancel_registration(
             detail="Inscripción no encontrada",
         )
 
+    # Recheck ownership and status after acquiring the locks.
     if registration.family_id != family.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para cancelar esta inscripción",
+        )
+
+    if registration.activity_id != activity_id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="La inscripción cambió; vuelve a intentarlo",
         )
 
     if registration.status == "cancelada":
@@ -314,19 +344,12 @@ def cancel_registration(
             detail="La inscripción ya está cancelada",
         )
 
-    activity_id = registration.activity_id
     old_status = registration.status
-
-    # Lock the activity row before changing seat availability.
-    activity = db.scalar(
-        select(Activity)
-        .where(Activity.id == activity_id)
-        .with_for_update()
-    )
+    now = utc_now()
 
     registration.status = "cancelada"
-    registration.canceled_at = utc_now()
-    registration.updated_at = utc_now()
+    registration.canceled_at = now
+    registration.updated_at = now
 
     reason = data.reason if data else None
     add_event(
@@ -338,8 +361,8 @@ def cancel_registration(
         details=reason,
     )
 
-    # A confirmed cancellation frees one seat. Promote the oldest
-    # waiting family, provided the activity has not started.
+    # Promote the oldest waiting family if a confirmed seat is freed
+    # and the activity has not started.
     if (
         old_status == "confirmada"
         and activity is not None
@@ -351,7 +374,10 @@ def cancel_registration(
                 Registration.activity_id == activity_id,
                 Registration.status == "lista_espera",
             )
-            .order_by(Registration.created_at, Registration.id)
+            .order_by(
+                Registration.created_at,
+                Registration.id,
+            )
             .limit(1)
             .with_for_update()
         )

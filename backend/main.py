@@ -10,11 +10,20 @@ from campaigns import router as campaigns_router
 from activities import router as activities_router
 from registrations import router as registrations_router
 from family_members import router as family_members_router
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from rate_limiter import limiter
 
 app = FastAPI(
     title="Familias que Suman API",
     version="0.2.0",
     description="Backend de Familias que Suman+",
+)
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
 )
 
 database_url = os.getenv("DATABASE_URL")

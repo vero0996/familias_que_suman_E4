@@ -1,12 +1,11 @@
+
 import os
+from collections.abc import Callable
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-from collections.abc import Callable
-
-from fastapi import Depends, HTTPException, status
 
 from database import get_db
 from models import User

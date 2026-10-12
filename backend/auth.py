@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Family, FamilyMember, User
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from dependencies import get_current_user
 from schemas import (
     CurrentUserResponse,
@@ -18,6 +18,7 @@ from schemas import (
     RegisterResponse,
     TokenResponse,
 )
+from rate_limiter import limiter
 
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
@@ -25,7 +26,6 @@ logger = logging.getLogger(__name__)
 password_hash = PasswordHash.recommended()
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_MINUTES = 60
-
 
 def get_jwt_secret() -> str:
     secret = os.getenv("JWT_SECRET_KEY")
@@ -59,7 +59,9 @@ def create_access_token(user: User) -> str:
     response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("3/hour")
 def register(
+    request: Request,
     payload: RegisterRequest,
     db: Session = Depends(get_db),
 ):
@@ -147,7 +149,9 @@ def register(
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("5/minute")
 def login(
+    request: Request,
     payload: LoginRequest,
     db: Session = Depends(get_db),
 ):

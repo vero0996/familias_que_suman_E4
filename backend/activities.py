@@ -143,8 +143,31 @@ def update_activity(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para modificar esta actividad",
         )
-
     changes = data.model_dump(exclude_unset=True, exclude_none=True)
+
+    # Validar las fechas resultantes, incluyendo los valores
+    # existentes que no se hayan modificado en el PATCH.
+    final_starts_at = changes.get("starts_at", activity.starts_at)
+    final_ends_at = changes.get("ends_at", activity.ends_at)
+    final_deadline = changes.get(
+        "registration_deadline",
+        activity.registration_deadline,
+    )
+
+    if final_ends_at <= final_starts_at:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="La fecha de finalización debe ser posterior al inicio",
+        )
+
+    if (
+        final_deadline is not None
+        and final_deadline > final_starts_at
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="La fecha límite de inscripción no puede ser posterior al inicio",
+        )
 
     if "status" in changes:
         if not is_admin:
