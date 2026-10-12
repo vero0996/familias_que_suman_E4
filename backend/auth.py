@@ -1,14 +1,14 @@
 
 import os
 from datetime import datetime, timedelta, timezone
-
+import logging
 import jwt
 from pwdlib import PasswordHash
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Family, User
+from models import Family, FamilyMember, User
 from fastapi import APIRouter, Depends, HTTPException, status
 from dependencies import get_current_user
 from schemas import (
@@ -21,6 +21,7 @@ from schemas import (
 
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
+logger = logging.getLogger(__name__)
 password_hash = PasswordHash.recommended()
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_MINUTES = 60
@@ -52,6 +53,7 @@ def create_access_token(user: User) -> str:
     )
 
 
+
 @router.post(
     "/register",
     response_model=RegisterResponse,
@@ -81,9 +83,11 @@ def register(
     )
 
     try:
+        # 1. Guardar primero al usuario y obtener su ID
         db.add(user)
         db.flush()
 
+        # 2. Crear la familia vinculada al usuario
         family = Family(
             name=payload.family_name,
             owner_user_id=user.id,
@@ -91,6 +95,17 @@ def register(
         db.add(family)
         db.flush()
 
+        # 3. Registrar al responsable como integrante de su familia
+        member = FamilyMember(
+            family_id=family.id,
+            full_name=user.full_name,
+            age=None,
+            relationship_type="responsable",
+            is_active=True,
+        )
+        db.add(member)
+
+        # 4. Preparar la respuesta
         result = RegisterResponse(
             id=user.id,
             full_name=user.full_name,
@@ -101,11 +116,25 @@ def register(
             family_name=family.name,
         )
 
+        # 5. Confirmar todos los cambios juntos
         db.commit()
         return result
 
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
+
+        original_error = exc.orig
+        diagnostic = getattr(original_error, "diag", None)
+
+        logger.error(
+            "Error de integridad al registrar. "
+            "Tipo=%s; tabla=%s; columna=%s; restricción=%s",
+            type(original_error).__name__,
+            getattr(diagnostic, "table_name", None),
+            getattr(diagnostic, "column_name", None),
+            getattr(diagnostic, "constraint_name", None),
+        )
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="No se pudo registrar la cuenta con esos datos",
@@ -114,6 +143,7 @@ def register(
     except Exception:
         db.rollback()
         raise
+
 
 
 @router.post("/login", response_model=TokenResponse)

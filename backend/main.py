@@ -8,6 +8,8 @@ from admin import router as admin_router
 from auth import router as auth_router
 from campaigns import router as campaigns_router
 from activities import router as activities_router
+from registrations import router as registrations_router
+from family_members import router as family_members_router
 
 app = FastAPI(
     title="Familias que Suman API",
@@ -26,6 +28,8 @@ app.include_router(auth_router)
 app.include_router(campaigns_router)
 app.include_router(admin_router)
 app.include_router(activities_router)
+app.include_router(registrations_router)
+app.include_router(family_members_router)
 
 @app.get("/")
 def root():

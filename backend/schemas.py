@@ -223,3 +223,55 @@ class ActivityResponse(BaseModel):
     status: str
     created_by_user_id: int | None
     created_at: datetime
+
+
+class RegistrationCreate(BaseModel):
+    activity_id: int = Field(gt=0)
+    participant_ids: list[int] = Field(min_length=1, max_length=20)
+    notes: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("participant_ids")
+    @classmethod
+    def validate_participants(cls, value: list[int]) -> list[int]:
+        if any(participant_id <= 0 for participant_id in value):
+            raise ValueError("Los IDs de integrantes deben ser positivos")
+
+        if len(value) != len(set(value)):
+            raise ValueError("No puedes repetir integrantes")
+
+        return value
+
+    @field_validator("notes")
+    @classmethod
+    def clean_notes(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        return value or None
+
+
+class RegistrationCancelRequest(BaseModel):
+    reason: str | None = Field(default=None, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def clean_reason(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        return value or None
+
+
+class RegistrationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    activity_id: int
+    family_id: int
+    status: str
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime
+    canceled_at: datetime | None
