@@ -3,16 +3,14 @@ import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
 from pwdlib import PasswordHash
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-
 from database import get_db
 from models import Family, User
+from fastapi import APIRouter, Depends, HTTPException, status
+from dependencies import get_current_user
 from schemas import (
     CurrentUserResponse,
     LoginRequest,
@@ -26,7 +24,6 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
 password_hash = PasswordHash.recommended()
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_MINUTES = 60
-bearer_scheme = HTTPBearer()
 
 
 def get_jwt_secret() -> str:
@@ -147,32 +144,6 @@ def login(
 
 @router.get("/me", response_model=CurrentUserResponse)
 def get_me(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    try:
-        payload = jwt.decode(
-            credentials.credentials,
-            get_jwt_secret(),
-            algorithms=[JWT_ALGORITHM],
-            options={"require": ["sub", "exp", "iat"]},
-        )
-        user_id = int(payload["sub"])
-
-    except (jwt.InvalidTokenError, ValueError, TypeError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    user = db.get(User, user_id)
-
-    if user is None or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no disponible",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return user
+    return current_user
