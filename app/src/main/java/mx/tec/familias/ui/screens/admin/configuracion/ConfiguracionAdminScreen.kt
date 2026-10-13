@@ -177,7 +177,7 @@ private fun ConfiguracionTarjeta(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {

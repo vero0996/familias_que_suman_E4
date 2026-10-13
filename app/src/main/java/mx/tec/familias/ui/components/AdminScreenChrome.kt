@@ -29,7 +29,7 @@ fun AdminScreenHeader(title: String) {
         modifier = Modifier.fillMaxWidth().statusBarsPadding()
             .padding(start = 18.dp, end = 18.dp, top = 10.dp),
         shape = RoundedCornerShape(30.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
