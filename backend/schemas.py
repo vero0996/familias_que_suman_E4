@@ -216,7 +216,7 @@ class ActivityResponse(BaseModel):
     title: str
     description: str
     starts_at: datetime
-    ends_at: datetime
+    ends_at: datetime | None
     location: str
     capacity_families: int
     registration_deadline: datetime | None

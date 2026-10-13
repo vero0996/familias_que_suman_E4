@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 from database import get_db
 from dependencies import require_role
 from models import Activity, Campaign, User
@@ -29,6 +29,24 @@ def ensure_campaign_access(campaign: Campaign, current_user: User) -> None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para gestionar esta campaña",
+        )
+
+
+def ensure_compatible_datetimes(*values: datetime | None) -> None:
+    """Rechaza mezclas de fechas con y sin zona horaria."""
+    awareness = {
+        value.tzinfo is not None and value.utcoffset() is not None
+        for value in values
+        if value is not None
+    }
+
+    if len(awareness) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                "Las fechas deben usar un formato consistente "
+                "con o sin zona horaria"
+            ),
         )
 
 
@@ -109,6 +127,7 @@ def create_activity(
     return activity
 
 
+
 @router.patch("/{activity_id}", response_model=ActivityResponse)
 def update_activity(
     activity_id: int,
@@ -143,10 +162,10 @@ def update_activity(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para modificar esta actividad",
         )
+
     changes = data.model_dump(exclude_unset=True, exclude_none=True)
 
-    # Validar las fechas resultantes, incluyendo los valores
-    # existentes que no se hayan modificado en el PATCH.
+    # Validar las fechas resultantes, incluso las que no se modifican.
     final_starts_at = changes.get("starts_at", activity.starts_at)
     final_ends_at = changes.get("ends_at", activity.ends_at)
     final_deadline = changes.get(
@@ -154,18 +173,21 @@ def update_activity(
         activity.registration_deadline,
     )
 
-    if final_ends_at <= final_starts_at:
+    ensure_compatible_datetimes(
+        final_starts_at,
+        final_ends_at,
+        final_deadline,
+    )
+
+    if final_ends_at is not None and final_ends_at <= final_starts_at:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             detail="La fecha de finalización debe ser posterior al inicio",
         )
 
-    if (
-        final_deadline is not None
-        and final_deadline > final_starts_at
-    ):
+    if final_deadline is not None and final_deadline > final_starts_at:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             detail="La fecha límite de inscripción no puede ser posterior al inicio",
         )
 
