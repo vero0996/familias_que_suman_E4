@@ -12,7 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import mx.tec.familias.ui.screens.admin.mensajes.ChatAdminScreen
 import mx.tec.familias.R
 import mx.tec.familias.ui.screens.publico.PublicoScreen
-
+import mx.tec.familias.ui.auth.LoginScreen
 import mx.tec.familias.ui.auth.IntegrantesScreen
 import mx.tec.familias.ui.auth.RegistroScreen
 import mx.tec.familias.ui.auth.SelectorRolScreen
@@ -28,8 +28,7 @@ import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
 import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
-
-
+import androidx.activity.compose.BackHandler
 import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.CrearCampaniaColaborativaScreen
 import mx.tec.familias.ui.screens.admin.campanias.ReutilizarCampaniaScreen
@@ -41,7 +40,7 @@ import mx.tec.familias.ui.screens.mensajes.MensajesScreen
 import mx.tec.familias.ui.screens.mensajes.ChatMessages
 import mx.tec.familias.ui.screens.mensajes.Conversacion
 import mx.tec.familias.ui.screens.admin.campanias.DetalleActividadScreen as DetalleActividadAdminScreen
-
+import androidx.compose.runtime.LaunchedEffect
 import mx.tec.familias.data.model.ActividadAdmin
 import mx.tec.familias.ui.screens.admin.campanias.FormularioActividadAdminScreen
 import androidx.compose.material3.AlertDialog
@@ -50,6 +49,7 @@ import androidx.compose.material3.TextButton
 import mx.tec.familias.data.model.EstadoParticipante
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
 import mx.tec.familias.ui.screens.admin.campanias.GestionarParticipantesScreen
+import androidx.navigation.NavHostController
 
 @Composable
 fun AppNavigation() {
@@ -62,7 +62,18 @@ fun AppNavigation() {
     var nombreUsuario by remember { mutableStateOf("") }
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
     var rutaDespuesDeIntegrantes by remember { mutableStateOf(Routes.Inicio.route) }
+    var rolUsuario by remember { mutableStateOf<String?>(null) }
+    val rolesAdmin = setOf(
+        "admin",
+        "administrador",
+        "association",
+        "asociacion",
+        "organizacion"
+    )
 
+    val tieneAccesoAdmin =
+        !familyViewModel.accessToken.value.isNullOrBlank() &&
+                rolUsuario in rolesAdmin
     var participantesAdmin by remember {
         mutableStateOf(
             listOf(
@@ -174,17 +185,7 @@ fun AppNavigation() {
         composable(Routes.Publico.route) {
             PublicoScreen(
                 onIniciarSesionClick = {
-                    rutaDespuesDeRegistro = Routes.Inicio.route
-                    rutaDespuesDeIntegrantes = Routes.Inicio.route
-                    navController.navigate(Routes.Registro.route) {
-                        popUpTo(Routes.Publico.route) { inclusive = true }
-                    }
-                },
-                onAdminClick = {
-                    // Este te manda directo al dashboard de administración para tu presentación
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.Publico.route) { inclusive = true }
-                    }
+                    navController.navigate(Routes.Login.route)
                 }
             )
         }
@@ -192,20 +193,20 @@ fun AppNavigation() {
         // ==========================================
         // PANTALLA DE PROTOTIPO (SELECCIÓN DE ROL)
         // ==========================================
-        composable(Routes.SelectorRol.route) {
-            SelectorRolScreen(
-                onFamiliaClick = {
-                    navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
-                    }
-                },
-                onAsociacionClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
-                    }
-                }
-            )
-        }
+//        composable(Routes.SelectorRol.route) {
+//            SelectorRolScreen(
+//                onFamiliaClick = {
+//                    navController.navigate(Routes.Inicio.route) {
+//                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+//                    }
+//                },
+//                onAsociacionClick = {
+//                    navController.navigate(Routes.DashboardAdmin.route) {
+//                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+//                    }
+//                }
+//            )
+//        }
 
         // ==========================================
         // RUTAS DE USUARIO FAMILIA
@@ -253,12 +254,69 @@ fun AppNavigation() {
                 },
             )
         }
+
+
+        composable(Routes.Login.route) {
+            LoginScreen(
+                onLoginSuccess = { token, usuario ->
+                    familyViewModel.guardarSesion(token.access_token)
+
+                    familyViewModel.guardarUsuarioAutenticado(
+                        nombre = usuario.full_name,
+                        correo = usuario.email,
+                        telefono = usuario.phone
+                    )
+
+                    rolUsuario = usuario.role.trim().lowercase()
+                    nombreUsuario = usuario.full_name
+
+                    android.util.Log.d(
+                        "LOGIN_ROLE",
+                        "Rol recibido del backend: '${usuario.role}'"
+                    )
+
+                    val destino = when (usuario.role.trim().lowercase()) {
+                        "admin",
+                        "administrador",
+                        "association",
+                        "asociacion",
+                        "organizacion" -> Routes.DashboardAdmin.route
+
+                        else -> Routes.Inicio.route
+                    }
+
+                    navController.navigate(destino) {
+                        popUpTo(Routes.Publico.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onRegistroClick = {
+                    navController.navigate(Routes.Registro.route)
+                }
+            )
+        }
+
+
         composable(Routes.Registro.route) {
+            BackHandler {
+                navController.navigate(Routes.Publico.route) {
+                    popUpTo(Routes.Registro.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
             RegistroScreen(
                 viewModel = familyViewModel,
                 onBackClick = {
-                    navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                    navController.navigate(Routes.Publico.route) {
+                        popUpTo(Routes.Registro.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
                 },
                 onContinuar = { nombre, registrarOtros ->
@@ -670,354 +728,508 @@ fun AppNavigation() {
         // RUTAS DE ADMINISTRADOR (ASOCIACIÓN)
         // ==========================================
         composable(Routes.DashboardAdmin.route) {
-            DashboardAdminScreen(
-                tituloActividad = actividadAdmin.titulo,
-                participantesActividad = actividadAdmin.participantes,
-                cuposTotalesActividad = actividadAdmin.cuposTotales,
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) },
-                onCrearCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
-                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) },
-                onActividadClick = {
-                    navController.navigate(Routes.DetalleActividadAdmin.route)
-                }
+            val rolesAdmin = setOf(
+                "admin",
+                "administrador",
+                "association",
+                "asociacion",
+                "organizacion"
             )
-        }
 
-        composable(Routes.MisCampanias.route) {
-            MisCampaniasScreen(
-                mostrarActividad = actividadExiste,
+            val tieneAccesoAdmin =
+                !familyViewModel.accessToken.value.isNullOrBlank() &&
+                        rolUsuario in rolesAdmin
 
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) {
+            if (!tieneAccesoAdmin) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.Publico.route) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         }
-                    }
-                },
-
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
                         launchSingleTop = true
                     }
-                },
-
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-
-                onNuevaCampaniaClick = {
-                    navController.navigate(
-                        Routes.CrearCampaniaColaborativa.route
-                    )
-                },
-
-                onGestionCampaniaClick = {
-                    navController.navigate(
-                        Routes.GestionMensajesCampania.route
-                    )
-                },
-
-                onEditarCampaniaClick = {
-                    navController.navigate(
-                        Routes.CrearCampaniaColaborativa.route
-                    )
-                },
-
-                onReutilizarCampaniaClick = {
-                    navController.navigate(
-                        Routes.ReutilizarCampania.route
-                    )
                 }
-            )
+            } else {
+                DashboardAdminScreen(
+                    tituloActividad = actividadAdmin.titulo,
+                    participantesActividad = actividadAdmin.participantes,
+                    cuposTotalesActividad = actividadAdmin.cuposTotales,
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route)
+                    },
+                    onCrearCampaniaClick = {
+                        navController.navigate(Routes.CrearCampaniaColaborativa.route)
+                    },
+                    onReutilizarCampaniaClick = {
+                        navController.navigate(Routes.ReutilizarCampania.route)
+                    },
+                    onActividadClick = {
+                        navController.navigate(Routes.DetalleActividadAdmin.route)
+                    }
+                )
+            }
         }
 
-        composable(Routes.DetalleActividadAdmin.route) {
-            DetalleActividadAdminScreen(
-                titulo = actividadAdmin.titulo,
-                fecha = actividadAdmin.fecha,
-                hora = actividadAdmin.hora,
-                ubicacion = actividadAdmin.ubicacion,
-                participantes = actividadAdmin.participantes,
-                cuposTotales = actividadAdmin.cuposTotales,
-                esUrgente = actividadAdmin.esUrgente,
-                imagenId = actividadAdmin.imagenId,
 
-                onBackClick = {
-                    navController.popBackStack()
-                },
+        composable(Routes.MisCampanias.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                MisCampaniasScreen(
+                    mostrarActividad = actividadExiste,
 
-                onEditarClick = {
-                    navController.navigate(
-                        Routes.FormularioActividadAdmin.route
-                    )
-                },
-
-                onParticipantesClick = {
-                    navController.navigate(
-                        Routes.GestionarParticipantesAdmin.route
-                    )
-                },
-
-                onCompartirClick = {
-                    // Lo conectaremos después
-                },
-
-                onEliminarClick = {
-                    mostrarDialogoEliminar = true
-                }
-            )
-
-            if (mostrarDialogoEliminar) {
-                AlertDialog(
-                    onDismissRequest = {
-                        mostrarDialogoEliminar = false
-                    },
-
-                    title = {
-                        Text(
-                            text = "¿Eliminar actividad?"
-                        )
-                    },
-
-                    text = {
-                        Text(
-                            text = "Esta acción eliminará la actividad y dejará de estar disponible para los participantes."
-                        )
-                    },
-
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-
-                                actividadExiste = false
-                                mostrarDialogoEliminar = false
-
-                                navController.navigate(
-                                    Routes.MisCampanias.route
-                                ) {
-                                    popUpTo(
-                                        Routes.DetalleActividadAdmin.route
-                                    ) {
-                                        inclusive = true
-                                    }
-                                }
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
                             }
-                        ) {
-                            Text(
-                                text = "Eliminar"
-                            )
                         }
                     },
 
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                mostrarDialogoEliminar = false
-                            }
-                        ) {
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onNuevaCampaniaClick = {
+                        navController.navigate(
+                            Routes.CrearCampaniaColaborativa.route
+                        )
+                    },
+
+                    onGestionCampaniaClick = {
+                        navController.navigate(
+                            Routes.GestionMensajesCampania.route
+                        )
+                    },
+
+                    onEditarCampaniaClick = {
+                        navController.navigate(
+                            Routes.CrearCampaniaColaborativa.route
+                        )
+                    },
+
+                    onReutilizarCampaniaClick = {
+                        navController.navigate(
+                            Routes.ReutilizarCampania.route
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.DetalleActividadAdmin.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                DetalleActividadAdminScreen(
+                    titulo = actividadAdmin.titulo,
+                    fecha = actividadAdmin.fecha,
+                    hora = actividadAdmin.hora,
+                    ubicacion = actividadAdmin.ubicacion,
+                    participantes = actividadAdmin.participantes,
+                    cuposTotales = actividadAdmin.cuposTotales,
+                    esUrgente = actividadAdmin.esUrgente,
+                    imagenId = actividadAdmin.imagenId,
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onEditarClick = {
+                        navController.navigate(
+                            Routes.FormularioActividadAdmin.route
+                        )
+                    },
+
+                    onParticipantesClick = {
+                        navController.navigate(
+                            Routes.GestionarParticipantesAdmin.route
+                        )
+                    },
+
+                    onCompartirClick = {
+                        // Lo conectaremos después
+                    },
+
+                    onEliminarClick = {
+                        mostrarDialogoEliminar = true
+                    }
+                )
+
+                if (mostrarDialogoEliminar) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            mostrarDialogoEliminar = false
+                        },
+
+                        title = {
+                            Text(text = "¿Eliminar actividad?")
+                        },
+
+                        text = {
                             Text(
-                                text = "Cancelar"
+                                text = "Esta acción eliminará la actividad y dejará de estar disponible para los participantes."
                             )
+                        },
+
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    actividadExiste = false
+                                    mostrarDialogoEliminar = false
+
+                                    navController.navigate(
+                                        Routes.MisCampanias.route
+                                    ) {
+                                        popUpTo(
+                                            Routes.DetalleActividadAdmin.route
+                                        ) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text(text = "Eliminar")
+                            }
+                        },
+
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    mostrarDialogoEliminar = false
+                                }
+                            ) {
+                                Text(text = "Cancelar")
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+
+
+        composable(Routes.FormularioActividadAdmin.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                FormularioActividadAdminScreen(
+                    actividad = actividadAdmin,
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onGuardarClick = { actividadActualizada ->
+                        actividadAdmin = actividadActualizada
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.GestionarParticipantesAdmin.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                GestionarParticipantesScreen(
+                    participantesIniciales = participantesAdmin,
+                    cuposTotales = actividadAdmin.cuposTotales,
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onParticipantesChanged = { nuevosParticipantes ->
+                        participantesAdmin = nuevosParticipantes
+
+                        val totalPersonasConfirmadas = nuevosParticipantes
+                            .filter {
+                                it.estado == EstadoParticipante.CONFIRMADO
+                            }
+                            .sumOf {
+                                it.integrantes.size
+                            }
+
+                        actividadAdmin = actividadAdmin.copy(
+                            participantes = totalPersonasConfirmadas
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.CrearCampaniaColaborativa.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                CrearCampaniaColaborativaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onContinuarClick = {
+                        navController.navigate(
+                            Routes.GestionMensajesCampania.route
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.ReutilizarCampania.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                ReutilizarCampaniaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onVistaPreviaClick = {
+                        navController.navigate(
+                            Routes.VistaPreviaCampania.route
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.VistaPreviaCampania.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                VistaPreviaCampaniaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onPublicarClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.MisCampanias.route) {
+                                inclusive = true
+                            }
                         }
                     }
                 )
             }
         }
 
-        composable(Routes.FormularioActividadAdmin.route) {
-            FormularioActividadAdminScreen(
-                actividad = actividadAdmin,
 
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onGuardarClick = { actividadActualizada ->
-
-                    actividadAdmin = actividadActualizada
-
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(Routes.GestionarParticipantesAdmin.route) {
-
-            GestionarParticipantesScreen(
-                participantesIniciales = participantesAdmin,
-                cuposTotales = actividadAdmin.cuposTotales,
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onParticipantesChanged = { nuevosParticipantes ->
-
-                    participantesAdmin = nuevosParticipantes
-
-                    val totalPersonasConfirmadas = nuevosParticipantes
-                        .filter {
-                            it.estado == EstadoParticipante.CONFIRMADO
-                        }
-                        .sumOf {
-                            it.integrantes.size
-                        }
-
-                    actividadAdmin = actividadAdmin.copy(
-                        participantes = totalPersonasConfirmadas
-                    )
-                }
-            )
-        }
-
-        composable(Routes.CrearCampaniaColaborativa.route) {
-            CrearCampaniaColaborativaScreen(
-                onBackClick = { navController.popBackStack() },
-                onContinuarClick = { navController.navigate(Routes.GestionMensajesCampania.route) }
-            )
-        }
-
-        composable(Routes.ReutilizarCampania.route) {
-            ReutilizarCampaniaScreen(
-                onBackClick = { navController.popBackStack() },
-                onVistaPreviaClick = { navController.navigate(Routes.VistaPreviaCampania.route) }
-            )
-        }
-
-        composable(Routes.VistaPreviaCampania.route) {
-            VistaPreviaCampaniaScreen(
-                onBackClick = { navController.popBackStack() },
-                onPublicarClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.MisCampanias.route) { inclusive = true }
-                    }
-                }
-            )
-        }
 
         composable(Routes.MensajesAdmin.route) {
-            MensajesAdminScreen(
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                MensajesAdminScreen(
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                        }
+                    },
+                    onChatClick = { tituloChat, imagenId ->
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("nombreChat", tituloChat)
+
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("imagenId", imagenId)
+
+                        navController.navigate(Routes.ChatAdmin.route)
+                    },
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                        }
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route)
                     }
-                },
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                    }
-                },
-                onChatClick = { tituloChat, imagenId ->
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("nombreChat", tituloChat)
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("imagenId", imagenId)
-                    navController.navigate(Routes.ChatAdmin.route)
-                },
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                    }
-                },
-                onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) }
-            )
+                )
+            }
         }
+
+
+
 
         composable(Routes.ChatAdmin.route) {
-            val nombreChat = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get("nombreChat") ?: "Chat de Asociación"
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                val nombreChat = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get("nombreChat") ?: "Chat de Asociación"
 
-            val imagenId = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get("imagenId") ?: R.drawable.icon // <-- Recuperamos la foto
+                val imagenId = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get("imagenId") ?: R.drawable.icon
 
-            ChatAdminScreen(
-                nombreChat = nombreChat,
-                imagenId = imagenId, // <-- Se la inyectamos a la pantalla del chat
-                onBackClick = { navController.popBackStack() }
-            )
+                ChatAdminScreen(
+                    nombreChat = nombreChat,
+                    imagenId = imagenId,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
+
 
 
         composable(Routes.ConfiguracionAdmin.route) {
-            ConfiguracionAdminScreen(
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                ConfiguracionAdminScreen(
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onCerrarSesionClick = {
+                        familyViewModel.cerrarSesion()
+                        rolUsuario = null
+                        nombreUsuario = ""
+
+                        navController.navigate(Routes.Publico.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
-                },
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onCerrarSesionClick = {
-                    navController.navigate(Routes.Publico.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
-            )
+                )
+            }
         }
 
+
+
         composable(Routes.GestionMensajesCampania.route) {
-            GestionMensajesCampaniaScreen(
-                onBackClick = { navController.popBackStack() },
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                GestionMensajesCampaniaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
                     }
-                },
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                }
-            )
+                )
+            }
         }
+
+    }
+}
+
+
+@Composable
+private fun RutaAdminProtegida(
+    tieneAcceso: Boolean,
+    navController: NavHostController,
+    contenido: @Composable () -> Unit
+) {
+    if (!tieneAcceso) {
+        LaunchedEffect(Unit) {
+            navController.navigate(Routes.Publico.route) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    } else {
+        contenido()
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
@@ -24,6 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +39,15 @@ fun MensajesAdminScreen(
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
 ) {
+    var mostrarFormulario by remember { mutableStateOf(false) }
+    var asuntoMensaje by remember { mutableStateOf("") }
+    var contenidoMensaje by remember { mutableStateOf("") }
+    var mostrarConfirmacion by remember { mutableStateOf(false) }
+    var mensajeEnviado by remember { mutableStateOf(false) }
+    var mostrarParticipantes by remember {
+        mutableStateOf(false)
+    }
+
     Scaffold(
         containerColor = Background,
         topBar = {
@@ -77,13 +91,20 @@ fun MensajesAdminScreen(
                     selected = false,
                     onClick = onCampaniasClick
                 )
+
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
+                    icon = {
+                        Icon(Icons.Default.Chat, contentDescription = "Mensajes")
+                    },
                     label = { Text("Mensajes") },
                     selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
+                    onClick = {},
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = TealPrimary,
+                        indicatorColor = TealLight
+                    )
                 )
+
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                     label = { Text("Configuración") },
@@ -101,6 +122,43 @@ fun MensajesAdminScreen(
                     .padding(horizontal = 20.dp),
                 contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
             ) {
+                item {
+                    Button(
+                        onClick = {
+                            mostrarFormulario = true
+                            mensajeEnviado = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BrownPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Group,
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = "Enviar mensaje a todos",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            mostrarParticipantes = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Contactar individualmente")
+                    }
+                }
+
                 item {
                     val titulo1 = "Coleta de útiles esc..."
                     MensajeCard(
@@ -144,7 +202,205 @@ fun MensajesAdminScreen(
                 }
             }
         }
+    if (mostrarFormulario) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarFormulario = false
+            },
+            title = {
+                Text(
+                    text = "Mensaje para todos",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "El mensaje se preparará para todos los participantes de la campaña.",
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = asuntoMensaje,
+                        onValueChange = { asuntoMensaje = it },
+                        label = { Text("Asunto") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = contenidoMensaje,
+                        onValueChange = { contenidoMensaje = it },
+                        label = { Text("Escribe tu mensaje") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 4
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        mostrarFormulario = false
+                        mostrarConfirmacion = true
+                    },
+                    enabled = asuntoMensaje.isNotBlank() &&
+                            contenidoMensaje.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrownPrimary
+                    )
+                ) {
+                    Text("Revisar envío")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarFormulario = false
+                    }
+                ) {
+                    Text("Cancelar", color = TextSecondary)
+                }
+            },
+            containerColor = Surface
+        )
     }
+
+    if (mostrarConfirmacion) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarConfirmacion = false
+            },
+            title = {
+                Text(
+                    text = if (mensajeEnviado) {
+                        "¡Envío simulado!"
+                    } else {
+                        "Confirmar mensaje grupal"
+                    },
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = if (mensajeEnviado) {
+                            "La simulación terminó. No se enviaron mensajes reales."
+                        } else {
+                            "Se preparará el mensaje para todos los participantes."
+                        },
+                        color = TextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = asuntoMensaje,
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = contenidoMensaje,
+                        color = TextPrimary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (mensajeEnviado) {
+                            mostrarConfirmacion = false
+                            asuntoMensaje = ""
+                            contenidoMensaje = ""
+                            mensajeEnviado = false
+                        } else {
+                            mensajeEnviado = true
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrownPrimary
+                    )
+                ) {
+                    Text(
+                        if (mensajeEnviado) "Aceptar" else "Confirmar envío"
+                    )
+                }
+            },
+            dismissButton = {
+                if (!mensajeEnviado) {
+                    TextButton(
+                        onClick = {
+                            mostrarConfirmacion = false
+                            mostrarFormulario = true
+                        }
+                    ) {
+                        Text("Volver a editar", color = TealPrimary)
+                    }
+                }
+            },
+            containerColor = Surface
+        )
+    }
+
+    if (mostrarParticipantes) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarParticipantes = false
+            },
+            title = {
+                Text("Contactar participante")
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        "Selecciona a quién deseas escribirle:"
+                    )
+
+                    val participantes = listOf(
+                        "María González",
+                        "Carlos Ramírez",
+                        "Sofía Martínez"
+                    )
+
+                    participantes.forEach { participante ->
+                        OutlinedButton(
+                            onClick = {
+                                mostrarParticipantes = false
+                                onChatClick(
+                                    participante,
+                                    R.drawable.icon
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(participante)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarParticipantes = false
+                    }
+                ) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
+}
 //}
 
 // Componente reutilizable para cada chat de la lista

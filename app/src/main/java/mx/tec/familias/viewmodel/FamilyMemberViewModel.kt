@@ -18,6 +18,20 @@ class FamilyViewModel : ViewModel() {
     var usuario = mutableStateOf<UserProfile?>(null)
         private set
 
+    // Token de autenticación recibido del backend.
+    var accessToken = mutableStateOf<String?>(null)
+        private set
+
+    fun guardarSesion(token: String) {
+        accessToken.value = token
+    }
+
+    fun cerrarSesion() {
+        accessToken.value = null
+        usuario.value = null
+        integrantes.clear()
+    }
+
     // Familiares y acompañantes
     val integrantes = mutableStateListOf<FamilyMember>()
 
@@ -32,6 +46,20 @@ class FamilyViewModel : ViewModel() {
             telefono = telefono.trim()
         )
     }
+
+
+    fun guardarUsuarioAutenticado(
+        nombre: String,
+        correo: String,
+        telefono: String?
+    ) {
+        guardarUsuario(
+            nombre = nombre,
+            correo = correo,
+            telefono = telefono.orEmpty()
+        )
+    }
+
 
     fun agregarIntegrante(
         nombre: String,

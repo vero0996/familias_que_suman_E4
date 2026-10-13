@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.theme.*
 import mx.tec.familias.R
-
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 data class MensajeAdmin(
     val texto: String,
@@ -39,6 +42,9 @@ fun ChatAdminScreen(
     onBackClick: () -> Unit = {}
 ) {
     var textoMensaje by remember { mutableStateOf("") }
+
+    val listaEstado = rememberLazyListState()
+    val alcance = rememberCoroutineScope()
 
     val listaMensajes = remember {
         mutableStateListOf(
@@ -122,8 +128,21 @@ fun ChatAdminScreen(
                     IconButton(
                         onClick = {
                             if (textoMensaje.isNotBlank()) {
-                                listaMensajes.add(MensajeAdmin(textoMensaje, true, "Ahora"))
+                                listaMensajes.add(
+                                    MensajeAdmin(
+                                        texto = textoMensaje.trim(),
+                                        esDelAdmin = true,
+                                        hora = "Ahora"
+                                    )
+                                )
+
                                 textoMensaje = ""
+
+                                alcance.launch {
+                                    listaEstado.animateScrollToItem(
+                                        listaMensajes.lastIndex
+                                    )
+                                }
                             }
                         },
                         modifier = Modifier.size(48.dp).clip(CircleShape).background(TealPrimary)
@@ -137,7 +156,11 @@ fun ChatAdminScreen(
     { paddingValues ->
         // (El LazyColumn de mensajes se queda igual)
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
+            state = listaEstado,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {

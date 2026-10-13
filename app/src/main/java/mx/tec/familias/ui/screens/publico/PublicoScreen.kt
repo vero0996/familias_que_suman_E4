@@ -22,15 +22,20 @@ import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
 import mx.tec.familias.ui.components.AdaptiveContainer // <-- IMPORTANTE PARA ADAPTAR A PANTALLAS
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.tec.familias.viewmodel.CampaignViewModel
 @Composable
 fun PublicoScreen(
     onIniciarSesionClick: () -> Unit, // Quitamos el valor por defecto para obligar a conectarlos
-    onAdminClick: () -> Unit
 ) {
     var mostrarDialogoDonacion by remember { mutableStateOf(false) }
     var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
+    val campaignViewModel: CampaignViewModel = viewModel()
+    val campaignUiState by campaignViewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        campaignViewModel.loadCampaigns()
+    }
     // ADAPTIVECONTAINER: Centra y adapta la vista en celulares anchos o tablets
     // AdaptiveContainer {
         Scaffold(
@@ -67,18 +72,23 @@ fun PublicoScreen(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TextButton(onClick = onAdminClick) {
-                                Text("Admin", fontSize = 12.sp, color = TextSecondary)
-                            }
-
                             Button(
                                 onClick = onIniciarSesionClick,
-                                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = TealPrimary
+                                ),
                                 shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                contentPadding = PaddingValues(
+                                    horizontal = 12.dp,
+                                    vertical = 6.dp
+                                ),
                                 modifier = Modifier.height(36.dp)
                             ) {
-                                Text("Iniciar Sesión", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "Iniciar Sesión",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
@@ -121,27 +131,62 @@ fun PublicoScreen(
 
                 Text("Campañas de Donación Activas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
 
-                DonationItemCard(
-                    titulo = "Sillas de Ruedas para Todos",
-                    descripcion = "Apoya a adultos mayores en situación vulnerable.",
-                    meta = "Meta: 15 unidades",
-                    imagenRes = R.drawable.comedorcomunitario,
-                    onDonarClick = {
-                        tituloCampaniaSeleccionada = "Sillas de Ruedas"
-                        mostrarDialogoDonacion = true
+                when {
+                    campaignUiState.isLoading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = TealPrimary)
+                        }
                     }
-                )
 
-                DonationItemCard(
-                    titulo = "Juguetón Familiar Navideño",
-                    descripcion = "Dona juguetes en excelente estado para casas hogar.",
-                    meta = "Meta: 300 juguetes",
-                    imagenRes = R.drawable.utilesescolares,
-                    onDonarClick = {
-                        tituloCampaniaSeleccionada = "Juguetes Navideños"
-                        mostrarDialogoDonacion = true
+                    campaignUiState.error != null -> {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "No pudimos cargar las campañas.",
+                                color = TextSecondary
+                            )
+
+                            Button(
+                                onClick = { campaignViewModel.loadCampaigns() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = TealPrimary
+                                )
+                            ) {
+                                Text("Reintentar")
+                            }
+                        }
                     }
-                )
+
+                    campaignUiState.campaigns.isEmpty() -> {
+                        Text(
+                            text = "Por el momento no hay campañas publicadas.",
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+
+                    else -> {
+                        campaignUiState.campaigns.forEach { campaign ->
+                            DonationItemCard(
+                                titulo = campaign.title,
+                                descripcion = campaign.description,
+                                meta = campaign.organization_name,
+                                imagenRes = R.drawable.comedorcomunitario,
+                                onDonarClick = {
+                                    tituloCampaniaSeleccionada = campaign.title
+                                    mostrarDialogoDonacion = true
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Text("Nuestros Proyectos Fijos", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
 
