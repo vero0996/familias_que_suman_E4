@@ -132,13 +132,32 @@ def get_available_activity(
     return activity
 
 
-def count_confirmed(db: Session, activity_id: int) -> int:
-    return db.scalar(
+
+
+def count_confirmed_people(db: Session, activity_id: int) -> int:
+    """Cuenta titulares y acompañantes de las inscripciones confirmadas."""
+
+    # Cada inscripción confirmada incluye un titular.
+    titulares = db.scalar(
         select(func.count(Registration.id)).where(
             Registration.activity_id == activity_id,
             Registration.status == "confirmada",
         )
     ) or 0
+
+    # Cada integrante asociado a la inscripción es un acompañante.
+    acompanantes = db.scalar(
+        select(func.count(FamilyMember.id))
+        .select_from(Registration)
+        .join(Registration.participants)
+        .where(
+            Registration.activity_id == activity_id,
+            Registration.status == "confirmada",
+        )
+    ) or 0
+
+    return titulares + acompanantes
+
 
 
 @router.post(
@@ -183,12 +202,21 @@ def create_registration(
             detail="Tu familia ya tiene una inscripción activa para esta actividad",
         )
 
-    confirmed = count_confirmed(db, activity.id)
+    
+    
+    confirmed_people = count_confirmed_people(db, activity.id)
+
+    # El titular de la familia también ocupa un lugar.
+    # participant_ids contiene únicamente a los acompañantes seleccionados.
+    requested_people = 1 + len(participants)
+
     new_status = (
         "confirmada"
-        if confirmed < activity.capacity_families
+        if confirmed_people + requested_people <= activity.capacity_people
         else "lista_espera"
     )
+
+
 
     try:
         if existing is None:
@@ -363,12 +391,19 @@ def cancel_registration(
 
     # Promote the oldest waiting family if a confirmed seat is freed
     # and the activity has not started.
+    
     if (
         old_status == "confirmada"
         and activity is not None
         and ensure_utc(activity.starts_at) > utc_now()
     ):
-        waiting = db.scalar(
+        confirmed_people = count_confirmed_people(db, activity_id)
+        available_people = max(
+            0,
+            activity.capacity_people - confirmed_people,
+        )
+
+        waiting_registrations = db.scalars(
             select(Registration)
             .where(
                 Registration.activity_id == activity_id,
@@ -378,11 +413,18 @@ def cancel_registration(
                 Registration.created_at,
                 Registration.id,
             )
-            .limit(1)
             .with_for_update()
-        )
+        ).all()
 
-        if waiting is not None:
+        
+        for waiting in waiting_registrations:
+            # Cada familia incluye al titular y a sus acompañantes.
+            people_count = 1 + len(waiting.participants)
+
+            if people_count > available_people:
+                continue
+
+
             previous_status = waiting.status
             waiting.status = "confirmada"
             waiting.updated_at = utc_now()
@@ -395,6 +437,8 @@ def cancel_registration(
                 from_status=previous_status,
                 details="Cupo liberado por una cancelación",
             )
+
+            available_people -= people_count
 
     db.commit()
     db.refresh(registration)

@@ -74,7 +74,10 @@ fun ExplorarScreen(
     onActividadClick: (String) -> Unit = {},
     estadoActividades: mx.tec.familias.data.model.EstadoActividades? = null,
     campaigns: List<CampaignResponse> = emptyList(),
-    mostrarMensajes: Boolean = false
+    mostrarMensajes: Boolean = false,
+    cargandoActividades: Boolean = false,
+    errorActividades: String? = null,
+    onReintentarActividades: () -> Unit = {}
 ) {
     var searchText by remember { mutableStateOf("") }
 
@@ -90,10 +93,7 @@ fun ExplorarScreen(
     val mostrarActividadesFiltro =
         filtroActual == "Todos" || filtroActual == "Voluntariado" || filtroActual == "Eventos"
 
-    val activeCampaigns = if (campaigns.isNotEmpty()) campaigns else listOf(
-        CampaignResponse(id = 1, title = "Útiles Escolares para Todos", description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.", organization_name = "Fundación Aprender Juntos", status = "active", created_at = "", updated_at = ""),
-        CampaignResponse(id = 2, title = "Canasta Solidaria de Invierno", description = "Apoya a familias de la comunidad con alimentos y productos básicos.", organization_name = "Asociación Manos Unidas", status = "active", created_at = "", updated_at = "")
-    )
+    val activeCampaigns = campaigns
 
     val matchingCampaigns = activeCampaigns.filter {
         mostrarCampanias && (busqueda.isBlank() || it.title.lowercase().contains(busqueda) || it.description.lowercase().contains(busqueda) || it.organization_name.lowercase().contains(busqueda))
@@ -170,6 +170,43 @@ fun ExplorarScreen(
                         onFiltroChange = { nuevoFiltro -> filtroActual = nuevoFiltro }
                     )
 
+                    if (cargandoActividades) {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            color = TealPrimary
+                        )
+
+                        Text(
+                            text = "Cargando actividades...",
+                            modifier = Modifier.padding(top = 8.dp),
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+
+                    if (!errorActividades.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = errorActividades,
+                            fontSize = 14.sp,
+                            color = BrownPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = onReintentarActividades,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = TealPrimary
+                            )
+                        ) {
+                            Text("Reintentar")
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(28.dp))
 
                     if (hayCampanias) {
@@ -236,7 +273,11 @@ fun ExplorarScreen(
 
 
 
-                    if (!hayResultados) {
+                    if (
+                        !hayResultados &&
+                        !cargandoActividades &&
+                        errorActividades.isNullOrBlank()
+                    ) {
                         Text(
                             text = "No encontramos resultados",
                             modifier = Modifier

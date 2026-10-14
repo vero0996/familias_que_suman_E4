@@ -68,6 +68,7 @@ import mx.tec.familias.ui.theme.TextSecondary
 fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onInscribirseClick: () -> Unit = {},
+    onConsultarCalendarioClick: () -> Unit = {},
     actividad: Activity,
     ocupados: Int,
     disponibles: Int,
@@ -355,27 +356,55 @@ fun DetalleActividadScreen(
                     )
                 }
 
+
                 if (inscripcionConfirmada) {
+                    Button(
+                        onClick = onConsultarCalendarioClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(22.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TealPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = "Consultar en calendario",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     OutlinedButton(
                         onClick = { mostrarDialogoCancelar = true },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp),
                         shape = RoundedCornerShape(22.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = Color.Red
                         )
                     ) {
-                        Text(
-                            text = "Cancelar inscripción a la actividad",
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Cancelar inscripción a la actividad")
                     }
                 } else {
                     Button(
                         onClick = onInscribirseClick,
                         enabled = !inscripcionActiva && !inscripcionesCerradas,
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
                         shape = RoundedCornerShape(22.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TealPrimary
+                        )
                     ) {
                         Text(
                             text = when {
@@ -389,6 +418,7 @@ fun DetalleActividadScreen(
                         )
                     }
                 }
+
             }
         }
     }

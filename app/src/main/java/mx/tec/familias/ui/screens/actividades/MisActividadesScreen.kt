@@ -57,6 +57,8 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
 
 data class ActividadInscrita(
     val id: String,
@@ -87,6 +89,9 @@ fun MisActividadesScreen(
     mostrarMensajes: Boolean = true
 ) {
     val estado = actividadesViewModel.estado
+    LaunchedEffect(familiaId) {
+        actividadesViewModel.cargarMisInscripcionesYEncuestas(familiaId)
+    }
     val propias = estado.inscripciones.filter { it.familiaId == familiaId }
 
     val confirmadas = propias.filter {
@@ -102,6 +107,18 @@ fun MisActividadesScreen(
     var mostrarRecordatorio by remember { mutableStateOf(true) }
     var mostrarActualizacion by remember { mutableStateOf(false) }
     var mostrarCancelacion by remember { mutableStateOf(false) }
+
+    var actividadEncuesta by remember {
+        mutableStateOf<ActividadInscrita?>(null)
+    }
+
+    var calificacionCampania by remember { mutableStateOf(5) }
+    var calificacionOrganizacion by remember { mutableStateOf(5) }
+    var calificacionComunicacion by remember { mutableStateOf(5) }
+    var calificacionGeneral by remember { mutableStateOf(5) }
+
+    var comentarioEncuesta by remember { mutableStateOf("") }
+    var mensajeEncuesta by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -222,14 +239,43 @@ fun MisActividadesScreen(
             items(confirmadas, key = { "confirmada:${it.id}" }) { solicitud ->
                 val evento = estado.evento(solicitud.eventoId)
 
+                val registroId = solicitud.id.toIntOrNull()
+
+                val encuestaCompletada = registroId != null &&
+                        actividadesViewModel.encuestasEnviadas.any {
+                            it.registration_id == registroId
+                        }
+
+                val actividadTerminada = evento.endsAtEpochMillis
+                    ?.let { it > 0L && it <= System.currentTimeMillis() }
+                    ?: false
+
                 ActividadInscritaCard(
-                    ActividadInscrita(
-                        solicitud.id,
-                        evento.nombre,
-                        evento.fecha,
-                        evento.hora,
-                        evento.lugar
-                    )
+                    actividad = ActividadInscrita(
+                        id = solicitud.id,
+                        nombre = evento.nombre,
+                        fecha = evento.fecha,
+                        hora = evento.hora,
+                        lugar = evento.lugar
+                    ),
+                    mostrarBotonEncuesta = actividadTerminada && !encuestaCompletada,
+                    encuestaCompletada = encuestaCompletada,
+                    onContestarEncuesta = {
+                        actividadEncuesta = ActividadInscrita(
+                            id = solicitud.id,
+                            nombre = evento.nombre,
+                            fecha = evento.fecha,
+                            hora = evento.hora,
+                            lugar = evento.lugar
+                        )
+
+                        calificacionCampania = 5
+                        calificacionOrganizacion = 5
+                        calificacionComunicacion = 5
+                        calificacionGeneral = 5
+                        comentarioEncuesta = ""
+                        mensajeEncuesta = null
+                    }
                 )
             }
 
@@ -441,6 +487,170 @@ fun MisActividadesScreen(
             containerColor = Surface
         )
     }
+
+    actividadEncuesta?.let { actividad ->
+        AlertDialog(
+            onDismissRequest = {
+                if (!actividadesViewModel.cargandoEncuestas) {
+                    actividadEncuesta = null
+                }
+            },
+            title = {
+                Text(
+                    text = "Cuéntanos tu experiencia",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = actividad.nombre,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Text(
+                        text = "Califica cada aspecto del 1 al 5.",
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+
+                    CalificacionEncuesta(
+                        titulo = "La campaña",
+                        valor = calificacionCampania,
+                        onSeleccionar = { calificacionCampania = it }
+                    )
+
+                    CalificacionEncuesta(
+                        titulo = "La organización",
+                        valor = calificacionOrganizacion,
+                        onSeleccionar = { calificacionOrganizacion = it }
+                    )
+
+                    CalificacionEncuesta(
+                        titulo = "La comunicación",
+                        valor = calificacionComunicacion,
+                        onSeleccionar = { calificacionComunicacion = it }
+                    )
+
+                    CalificacionEncuesta(
+                        titulo = "Experiencia general",
+                        valor = calificacionGeneral,
+                        onSeleccionar = { calificacionGeneral = it }
+                    )
+
+                    OutlinedTextField(
+                        value = comentarioEncuesta,
+                        onValueChange = { comentarioEncuesta = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Comentario (opcional)") },
+                        placeholder = {
+                            Text("¿Qué te gustó o qué mejorarías?")
+                        },
+                        minLines = 3,
+                        maxLines = 5,
+                        enabled = !actividadesViewModel.cargandoEncuestas
+                    )
+
+                    mensajeEncuesta?.let { mensaje ->
+                        Text(
+                            text = mensaje,
+                            color = if (mensaje.startsWith("¡Gracias")) {
+                                TealPrimary
+                            } else {
+                                androidx.compose.material3.MaterialTheme.colorScheme.error
+                            },
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !actividadesViewModel.cargandoEncuestas &&
+                            mensajeEncuesta?.startsWith("¡Gracias") != true,
+                    onClick = {
+                        actividadesViewModel.enviarEncuesta(
+                            registrationId = actividad.id,
+                            campaignRating = calificacionCampania,
+                            organizationRating = calificacionOrganizacion,
+                            communicationRating = calificacionComunicacion,
+                            overallRating = calificacionGeneral,
+                            comment = comentarioEncuesta
+                        ) { exito, mensaje ->
+                            mensajeEncuesta = mensaje
+
+                            if (exito) {
+                                actividadEncuesta = null
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        if (actividadesViewModel.cargandoEncuestas) {
+                            "Enviando..."
+                        } else {
+                            "Enviar encuesta"
+                        },
+                        color = TealPrimary
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !actividadesViewModel.cargandoEncuestas,
+                    onClick = {
+                        actividadEncuesta = null
+                    }
+                ) {
+                    Text("Cancelar", color = TextSecondary)
+                }
+            },
+            containerColor = Surface
+        )
+    }
+}
+
+@Composable
+private fun CalificacionEncuesta(
+    titulo: String,
+    valor: Int,
+    onSeleccionar: (Int) -> Unit
+) {
+    Column {
+        Text(
+            text = titulo,
+            color = TextPrimary,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            (1..5).forEach { calificacion ->
+                TextButton(
+                    onClick = { onSeleccionar(calificacion) }
+                ) {
+                    Text(
+                        text = if (calificacion <= valor) "★" else "☆",
+                        color = if (calificacion <= valor) {
+                            OrangePrimary
+                        } else {
+                            TextSecondary
+                        },
+                        fontSize = 25.sp
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -470,7 +680,10 @@ private fun SectionHeader(
 
 @Composable
 private fun ActividadInscritaCard(
-    actividad: ActividadInscrita
+    actividad: ActividadInscrita,
+    mostrarBotonEncuesta: Boolean = false,
+    encuestaCompletada: Boolean = false,
+    onContestarEncuesta: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -515,6 +728,39 @@ private fun ActividadInscritaCard(
                     icon = Icons.Default.Schedule,
                     text = actividad.hora
                 )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                when {
+                    encuestaCompletada -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = TealPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            Text(
+                                text = "Encuesta completada",
+                                color = TealPrimary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    mostrarBotonEncuesta -> {
+                        OutlinedButton(
+                            onClick = onContestarEncuesta,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Contestar encuesta")
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(6.dp))
 

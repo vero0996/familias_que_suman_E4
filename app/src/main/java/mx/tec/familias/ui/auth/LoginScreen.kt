@@ -31,7 +31,8 @@ import java.io.IOException
 import mx.tec.familias.data.remote.TokenResponse
 import mx.tec.familias.data.repository.AuthRepository
 import mx.tec.familias.data.remote.CurrentUserResponse
-
+import androidx.compose.ui.platform.LocalContext
+import mx.tec.familias.data.remote.SessionManager
 
 @Composable
 fun LoginScreen(
@@ -45,6 +46,8 @@ fun LoginScreen(
 
     val scope = rememberCoroutineScope()
     val authRepository = remember { AuthRepository() }
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
 
     Column(
         modifier = Modifier
@@ -130,6 +133,8 @@ fun LoginScreen(
                         val usuario = authRepository.getCurrentUser(
                             token = token.access_token
                         )
+
+                        sessionManager.saveToken(token.access_token)
 
                         onLoginSuccess(token, usuario)
 

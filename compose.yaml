@@ -30,5 +30,13 @@ services:
       db:
         condition: service_healthy
 
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 --url http://api:8000
+    depends_on:
+      - api
+
 volumes:
   postgres_data:

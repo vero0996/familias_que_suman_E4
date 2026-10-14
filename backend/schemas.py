@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
 from typing import Literal
-
+from pydantic import AliasChoices
 from pydantic import model_validator
 
 
@@ -160,7 +160,7 @@ class ActivityCreate(BaseModel):
     starts_at: datetime
     ends_at: datetime
     location: str = Field(min_length=2, max_length=300)
-    capacity_families: int = Field(gt=0)
+    capacity_people: int = Field(gt=0)
     registration_deadline: datetime | None = None
 
     @field_validator("title", "description", "location")
@@ -193,7 +193,7 @@ class ActivityUpdate(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     location: str | None = Field(default=None, min_length=2, max_length=300)
-    capacity_families: int | None = Field(default=None, gt=0)
+    capacity_people: int | None = Field(default=None, gt=0)
     registration_deadline: datetime | None = None
     status: ActivityStatus | None = None
 
@@ -218,12 +218,16 @@ class ActivityResponse(BaseModel):
     starts_at: datetime
     ends_at: datetime | None
     location: str
-    capacity_families: int
+    capacity_people: int = Field(
+        validation_alias=AliasChoices(
+            "capacity_people",
+            "capacity_families",
+        )
+    )
     registration_deadline: datetime | None
     status: str
     created_by_user_id: int | None
     created_at: datetime
-
 
 class RegistrationCreate(BaseModel):
     activity_id: int = Field(gt=0)
@@ -275,3 +279,37 @@ class RegistrationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     canceled_at: datetime | None
+
+
+class SurveyCreate(BaseModel):
+    registration_id: int = Field(gt=0)
+    campaign_rating: int = Field(ge=1, le=5)
+    organization_rating: int = Field(ge=1, le=5)
+    communication_rating: int = Field(ge=1, le=5)
+    overall_rating: int = Field(ge=1, le=5)
+    comment: str | None = Field(default=None, max_length=5000)
+    photo_url: str | None = Field(default=None, max_length=500)
+    photo_consent: bool = False
+
+    @field_validator("comment")
+    @classmethod
+    def clean_comment(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        return value or None
+
+
+class SurveyResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    registration_id: int
+    campaign_rating: int
+    organization_rating: int
+    communication_rating: int
+    overall_rating: int
+    comment: str | None
+    photo_url: str | None
+    photo_consent: bool
+    created_at: datetime

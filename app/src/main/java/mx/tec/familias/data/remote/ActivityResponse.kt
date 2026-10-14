@@ -11,7 +11,7 @@ data class ActivityResponse(
     val starts_at: String,
     val ends_at: String?,
     val location: String,
-    val capacity_families: Int,
+    val capacity_people: Int,
     val registration_deadline: String?,
     val status: String,
     val created_by_user_id: Int?,

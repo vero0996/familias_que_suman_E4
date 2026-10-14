@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import mx.tec.familias.data.model.ParticipanteActividadAdmin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +39,7 @@ fun MensajesAdminScreen(
     onChatClick: (String, Int) -> Unit = {} as (String, Int) -> Unit, // <-- Recibe el título (String) y la imagen (Int)
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
+    participantes: List<ParticipanteActividadAdmin>,
 ) {
     var mostrarFormulario by remember { mutableStateOf(false) }
     var asuntoMensaje by remember { mutableStateOf("") }

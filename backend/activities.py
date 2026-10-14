@@ -114,7 +114,7 @@ def create_activity(
         starts_at=data.starts_at,
         ends_at=data.ends_at,
         location=data.location,
-        capacity_families=data.capacity_families,
+        capacity_people=data.capacity_people,
         registration_deadline=data.registration_deadline,
         status="borrador",
         created_by_user_id=current_user.id,

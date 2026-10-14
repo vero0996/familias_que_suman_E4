@@ -13,6 +13,7 @@ from family_members import router as family_members_router
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from rate_limiter import limiter
+from surveys import router as surveys_router
 
 app = FastAPI(
     title="Familias que Suman API",
@@ -39,6 +40,7 @@ app.include_router(admin_router)
 app.include_router(activities_router)
 app.include_router(registrations_router)
 app.include_router(family_members_router)
+app.include_router(surveys_router)
 
 @app.get("/")
 def root():

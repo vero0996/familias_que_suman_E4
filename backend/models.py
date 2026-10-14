@@ -1,5 +1,6 @@
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from sqlalchemy import Date
 
 from sqlalchemy import (
     Boolean,
@@ -96,11 +97,15 @@ class FamilyMember(Base):
     )
     full_name: Mapped[str] = mapped_column(String(150))
     age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    date_of_birth: Mapped[date | None] = mapped_column(
+        Date, nullable=True
+    )
+
     relationship_type: Mapped[str] = mapped_column(String(50))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     family: Mapped["Family"] = relationship(back_populates="members")
-
 
 class Campaign(Base):
     __tablename__ = "campaigns"
@@ -150,7 +155,12 @@ class Activity(Base):
         DateTime(timezone=True), nullable=True
     )
     location: Mapped[str] = mapped_column(String(250))
-    capacity_families: Mapped[int] = mapped_column(Integer)
+    
+    capacity_people: Mapped[int] = mapped_column(
+        "capacity_families",
+        Integer,
+    )
+
     registration_deadline: Mapped[datetime] = mapped_column(
         DateTime(timezone=True)
     )

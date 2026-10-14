@@ -5,6 +5,9 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Header
 import retrofit2.http.Path
+import retrofit2.http.DELETE
+import retrofit2.http.PUT
+import retrofit2.http.PATCH
 
 interface ApiService {
 
@@ -34,4 +37,60 @@ interface ApiService {
     suspend fun getActivity(
         @Path("activity_id") activityId: Int
     ): ActivityResponse
+
+    @POST("registrations")
+    suspend fun createRegistration(
+        @Header("Authorization") authorization: String,
+        @Body request: RegistrationRequest
+    ): RegistrationResponse
+
+    @GET("family-members/me")
+    suspend fun getFamilyMembers(
+        @Header("Authorization") authorization: String
+    ): List<FamilyMemberResponse>
+
+    @POST("family-members")
+    suspend fun createFamilyMember(
+        @Header("Authorization") authorization: String,
+        @Body request: FamilyMemberCreateRequest
+    ): FamilyMemberResponse
+
+    @DELETE("family-members/{member_id}")
+    suspend fun deleteFamilyMember(
+        @Header("Authorization") authorization: String,
+        @Path("member_id") memberId: Int
+    )
+
+    @PUT("family-members/{member_id}")
+    suspend fun updateFamilyMember(
+        @Header("Authorization") authorization: String,
+        @Path("member_id") memberId: Int,
+        @Body request: FamilyMemberCreateRequest
+    ): FamilyMemberResponse
+
+
+    @GET("registrations/me")
+    suspend fun getMyRegistrations(
+        @Header("Authorization") authorization: String
+    ): List<RegistrationResponse>
+
+    @PATCH("registrations/{registration_id}/cancel")
+    suspend fun cancelRegistration(
+        @Header("Authorization") authorization: String,
+        @Path("registration_id") registrationId: Int,
+        @Body request: RegistrationCancelRequest
+    ): RegistrationResponse
+
+
+    @POST("surveys")
+    suspend fun createSurvey(
+        @Header("Authorization") authorization: String,
+        @Body request: SurveyCreateRequest
+    ): SurveyResponse
+
+    @GET("surveys/me")
+    suspend fun getMySurveys(
+        @Header("Authorization") authorization: String
+    ): List<SurveyResponse>
+
 }

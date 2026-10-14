@@ -15,7 +15,9 @@ data class Activity(
     val puntoEncuentro: String = "",
     val tipoAportacion: String = "",
     val requisitos: String = "",
-    val contacto: String = ""
+    val contacto: String = "",
+    val endsAtEpochMillis: Long? = null
+
 )
 
 enum class EstadoInscripcion {

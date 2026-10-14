@@ -54,6 +54,8 @@ import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 import mx.tec.familias.viewmodel.FamilyViewModel
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 @Composable
 fun InscripcionScreen(
@@ -64,12 +66,63 @@ fun InscripcionScreen(
     error: String? = null,
     onConfirmarClick: (List<String>, String) -> Unit = { _, _ -> }
 ) {
-    val seleccionados = remember { mutableStateListOf<String>() }
     var usuarioSeleccionado by remember { mutableStateOf(true) }
+    val seleccionados = remember { mutableStateListOf<String>() }
     var observaciones by remember { mutableStateOf("") }
+    var mostrarDialogoConfirmacion by remember {
+        mutableStateOf(false)
+    }
+    val totalSeleccionados = seleccionados.size + (if (usuarioSeleccionado) 1 else 0)
 
-    val totalSeleccionados =
-        seleccionados.size + if (usuarioSeleccionado) 1 else 0
+    if (mostrarDialogoConfirmacion) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoConfirmacion = false
+            },
+            title = {
+                Text(
+                    text = "¿Confirmar inscripción?",
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Deseas confirmar tu inscripción a " +
+                            "\"${actividad.nombre}\" con " +
+                            "$totalSeleccionados participante(s)?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoConfirmacion = false
+
+                        val participantes = seleccionados.toList()
+                        onConfirmarClick(participantes, observaciones)
+                    }
+                ) {
+                    Text(
+                        text = "Sí, confirmar",
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoConfirmacion = false
+                    }
+                ) {
+                    Text(
+                        text = "Volver",
+                        color = TextSecondary
+                    )
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -345,6 +398,7 @@ fun InscripcionScreen(
             }
         }
 
+
         // BOTÓN CONFIRMAR
         Card(
             modifier = Modifier
@@ -367,13 +421,7 @@ fun InscripcionScreen(
 
                 Button(
                     onClick = {
-                        val participantes = seleccionados.toList() +
-                                if (usuarioSeleccionado)
-                                    listOf("${viewModel.familiaId}:titular")
-                                else
-                                    emptyList()
-
-                        onConfirmarClick(participantes, observaciones)
+                        mostrarDialogoConfirmacion = true
                     },
                     enabled = totalSeleccionados > 0,
                     modifier = Modifier.fillMaxWidth().height(50.dp),

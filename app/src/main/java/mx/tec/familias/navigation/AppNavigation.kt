@@ -51,13 +51,25 @@ import mx.tec.familias.data.model.EstadoParticipante
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
 import mx.tec.familias.ui.screens.admin.campanias.GestionarParticipantesScreen
 import androidx.navigation.NavHostController
-
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.tec.familias.data.remote.SessionManager
+import mx.tec.familias.viewmodel.ActividadesViewModelFactory
+import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val familyViewModel: FamilyViewModel = viewModel()
-    val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel = viewModel()
     val campaignViewModel: mx.tec.familias.viewmodel.CampaignViewModel = viewModel()
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+
+    val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel =
+        viewModel(
+            factory = remember(sessionManager) {
+                ActividadesViewModelFactory(sessionManager)
+            }
+        )
     val estadoActividades = actividadesViewModel.estado
     val campaignState by campaignViewModel.uiState.collectAsState()
     val actividadSeleccionada = estadoActividades.evento(actividadesViewModel.eventoSeleccionadoId)
@@ -344,9 +356,18 @@ fun AppNavigation() {
         }
 
         composable(Routes.Explorar.route) {
+            LaunchedEffect(Unit) {
+                actividadesViewModel.cargarActividades()
+            }
+
             ExplorarScreen(
                 estadoActividades = estadoActividades,
                 campaigns = campaignState.campaigns,
+                cargandoActividades = actividadesViewModel.cargando,
+                errorActividades = actividadesViewModel.error,
+                onReintentarActividades = {
+                    actividadesViewModel.cargarActividades()
+                },
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -444,6 +465,13 @@ fun AppNavigation() {
                         mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
                 },
                 onBackClick = { navController.popBackStack() },
+
+                onConsultarCalendarioClick = {
+                    navController.navigate(Routes.Actividades.route) {
+                        launchSingleTop = true
+                    }
+                },
+
                 onInscribirseClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Inscripcion.route
@@ -470,79 +498,63 @@ fun AppNavigation() {
         onConfirmarClick = { participantes, observaciones ->
 
             // 1. Registrar la inscripción en el sistema de actividades
-            if (
-                actividadesViewModel.inscribir(
-                    familyViewModel.familiaId,
-                    participantes,
-                    observaciones
-                )
-            ) {
 
-                // 2. Obtener los datos del usuario actual
+            actividadesViewModel.inscribir(
+                familyViewModel.familiaId,
+                participantes,
+                observaciones
+            ) { exito, estadoRemoto ->
+
+                // No navegar si el backend rechazó la inscripción.
+                if (!exito || estadoRemoto == null) {
+                    return@inscribir
+                }
+
                 val usuarioActual = familyViewModel.usuario.value
 
                 if (usuarioActual != null) {
 
-                    // 3. Obtener los integrantes seleccionados
+                    // Los IDs seleccionados corresponden únicamente a acompañantes.
                     val integrantesSeleccionados =
                         familyViewModel.integrantes
                             .filter { it.id in participantes }
                             .map { it.nombre }
 
-                    // 4. Verificar si el titular también fue seleccionado
-                    val titularSeleccionado =
-                        participantes.contains(
-                            "${familyViewModel.familiaId}:titular"
-                        )
-
-                    // 5. Construir la lista de personas inscritas
+                    // El titular siempre participa.
                     val integrantesInscritos =
-                        (if (titularSeleccionado) {
-                            listOf(usuarioActual.nombre)
-                        } else {
-                            emptyList()
-                        }) + integrantesSeleccionados
+                        listOf(usuarioActual.nombre) + integrantesSeleccionados
 
-                    // 6. Personas que intenta registrar esta inscripción
                     val personasInscritas = integrantesInscritos.size
 
-                    // 7. Lugares que ya están ocupados en Admin
+                    // El backend es la fuente de verdad del estado.
+                    val confirmadaRemota = estadoRemoto == "confirmada"
+
+                    // Conservamos la actualización local que utiliza Admin.
                     val lugaresOcupados = participantesAdmin
                         .filter {
                             it.estado == EstadoParticipante.CONFIRMADO
                         }
-                        .flatMap {
-                            it.lugaresAsignados
-                        }
+                        .flatMap { it.lugaresAsignados }
                         .toSet()
 
-                    // 8. Lugares disponibles
-                    val lugaresDisponibles = (1..actividadAdmin.cuposTotales)
-                        .filterNot {
-                            it in lugaresOcupados
-                        }
+                    val lugaresDisponibles =
+                        (1..actividadAdmin.cuposTotales)
+                            .filterNot { it in lugaresOcupados }
 
-                    // 9. Determinar si caben todas las personas
-                    val puedeConfirmarse =
-                        lugaresDisponibles.size >= personasInscritas
-
-                    // 10. Asignar lugares disponibles
                     val lugaresAsignados =
-                        if (puedeConfirmarse) {
-                            lugaresDisponibles
-                                .take(personasInscritas)
+                        if (confirmadaRemota) {
+                            lugaresDisponibles.take(personasInscritas)
                         } else {
                             emptyList()
                         }
 
-                    // 11. Crear el participante para Admin
                     val nuevoParticipante = ParticipanteActividadAdmin(
                         id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
                         nombreFamilia = "Familia ${usuarioActual.nombre}",
                         correo = usuarioActual.correo,
                         telefono = usuarioActual.telefono,
                         integrantes = integrantesInscritos,
-                        estado = if (puedeConfirmarse) {
+                        estado = if (confirmadaRemota) {
                             EstadoParticipante.CONFIRMADO
                         } else {
                             EstadoParticipante.LISTA_ESPERA
@@ -550,27 +562,30 @@ fun AppNavigation() {
                         lugaresAsignados = lugaresAsignados
                     )
 
-                    // 12. Agregarlo a la lista que utiliza Admin
-                    participantesAdmin =
-                        participantesAdmin + nuevoParticipante
+                    participantesAdmin = participantesAdmin + nuevoParticipante
 
-                    // 13. Actualizar el contador de participantes
                     actividadAdmin = actividadAdmin.copy(
                         participantes = participantesAdmin
                             .filter {
                                 it.estado == EstadoParticipante.CONFIRMADO
                             }
-                            .sumOf {
-                                it.integrantes.size
-                            }
+                            .sumOf { it.integrantes.size }
                     )
                 }
 
-                // 14. Mostrar confirmación al usuario
-                navController.navigate(
-                    Routes.ConfirmacionInscripcion.route
-                )
+                // Navegar solamente después de recibir una respuesta exitosa.
+
+                // Navegar a Explorar únicamente después de recibir
+                // una respuesta exitosa del backend.
+                navController.navigate(Routes.Explorar.route) {
+                    popUpTo(Routes.Explorar.route) {
+                        inclusive = false
+                    }
+                    launchSingleTop = true
+                }
+
             }
+
         }
     )
 }
@@ -579,11 +594,28 @@ fun AppNavigation() {
             val solicitud = estadoActividades.inscripciones.firstOrNull {
                 it.id == actividadesViewModel.ultimaInscripcionId
             }
-            if (solicitud != null) ConfirmacionInscripcionScreen(
-                actividad = estadoActividades.evento(solicitud.eventoId),
-                estado = solicitud.estado,
-                posicion = if (solicitud.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
-                    estadoActividades.posicion(solicitud) else null,
+
+            val actividad = solicitud?.let { estadoActividades.evento(it.eventoId) }
+                ?: actividadSeleccionada
+
+            val estadoInscripcion = solicitud?.estado
+                ?: if (actividadesViewModel.ultimaInscripcionEstado == "lista_espera" ||
+                    actividadesViewModel.ultimaInscripcionEstado == "EN_ESPERA"
+                ) {
+                    mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+                } else {
+                    mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+                }
+
+            val posicion = solicitud?.let {
+                if (it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                    estadoActividades.posicion(it) else null
+            }
+
+            ConfirmacionInscripcionScreen(
+                actividad = actividad,
+                estado = estadoInscripcion,
+                posicion = posicion,
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -1062,6 +1094,8 @@ fun AppNavigation() {
                 navController = navController
             ) {
                 MensajesAdminScreen(
+                    participantes = participantesAdmin,
+
                     onInicioClick = {
                         navController.navigate(Routes.DashboardAdmin.route) {
                             popUpTo(Routes.DashboardAdmin.route) {
