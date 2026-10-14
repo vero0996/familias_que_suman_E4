@@ -77,19 +77,24 @@ fun CalendarioScreen(
     familiaId: String,
     mostrarMensajes: Boolean = true
 ) {
-    var diaSeleccionado by remember { mutableIntStateOf(24) }
-
     val actividades = estadoActividades.eventos.map { evento ->
         val solicitud = estadoActividades.inscripciones.firstOrNull {
             it.eventoId == evento.id && it.familiaId == familiaId
         }
 
+        val fechaStr = evento.fecha.trim()
+        val dia = if (fechaStr.contains("/")) {
+            fechaStr.substringBefore("/").toIntOrNull() ?: 1
+        } else {
+            fechaStr.substringBefore(" ").toIntOrNull() ?: 1
+        }
+
         ActividadCalendario(
             id = evento.id,
             nombre = evento.nombre,
-            fecha = evento.fecha.substringBefore(" ").toInt(),
+            fecha = dia,
             mes = "NOV",
-            diaSemana = if (evento.id == "arboles") "Martes" else "Miércoles",
+            diaSemana = "Miércoles",
             hora = evento.hora,
             lugar = evento.lugar,
             estado = when (solicitud?.estado) {
@@ -98,6 +103,10 @@ fun CalendarioScreen(
                 null -> if (estadoActividades.disponibles(evento.id) == 0) "CUPO LLENO" else "DISPONIBLE"
             }
         )
+    }
+
+    var diaSeleccionado by remember(actividades) {
+        mutableIntStateOf(actividades.firstOrNull()?.fecha ?: 28)
     }
 
     val actividadesDelDia = actividades.filter {

@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -56,7 +57,9 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val familyViewModel: FamilyViewModel = viewModel()
     val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel = viewModel()
+    val campaignViewModel: mx.tec.familias.viewmodel.CampaignViewModel = viewModel()
     val estadoActividades = actividadesViewModel.estado
+    val campaignState by campaignViewModel.uiState.collectAsState()
     val actividadSeleccionada = estadoActividades.evento(actividadesViewModel.eventoSeleccionadoId)
 
     var nombreUsuario by remember { mutableStateOf("") }
@@ -220,12 +223,7 @@ fun AppNavigation() {
                 },
 
                 onActividadesClick = {
-                    if (familyViewModel.usuario.value == null) {
-                        rutaDespuesDeRegistro = Routes.Actividades.route
-                        navController.navigate(Routes.Registro.route)
-                    } else {
-                        navController.navigate(Routes.Actividades.route)
-                    }
+                    navController.navigate(Routes.Actividades.route)
                 },
 
                 onMensajesClick = {
@@ -252,6 +250,8 @@ fun AppNavigation() {
                     // Esto abre la pantalla de detalles de la campaña al presionar "Unirse como Familia" o "Ver detalles"
                     navController.navigate(Routes.DetalleCampania.route)
                 },
+                campaigns = campaignState.campaigns,
+                estadoActividades = estadoActividades
             )
         }
 
@@ -346,6 +346,7 @@ fun AppNavigation() {
         composable(Routes.Explorar.route) {
             ExplorarScreen(
                 estadoActividades = estadoActividades,
+                campaigns = campaignState.campaigns,
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -592,61 +593,57 @@ fun AppNavigation() {
         }
 
         composable(Routes.Actividades.route) {
-            if (familyViewModel.usuario.value == null) {
-                navController.navigate(Routes.Registro.route)
+            var mostrarMisActividades by remember { mutableStateOf(false) }
+            if (mostrarMisActividades) {
+                MisActividadesScreen(
+                    actividadesViewModel = actividadesViewModel,
+                    familiaId = familyViewModel.familiaId,
+                    onInicioClick = {
+                        navController.navigate(Routes.Inicio.route) {
+                            popUpTo(Routes.Inicio.route) { inclusive = true }
+                        }
+                    },
+                    onExplorarClick = {
+                        navController.navigate(Routes.Explorar.route)
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.Mensajes.route)
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.Perfil.route)
+                    },
+                    onCalendarioClick = {
+                        mostrarMisActividades = false
+                    },
+                    mostrarMensajes = familyViewModel.usuario.value != null
+                )
             } else {
-                var mostrarMisActividades by remember { mutableStateOf(false) }
-                if (mostrarMisActividades) {
-                    MisActividadesScreen(
-                        actividadesViewModel = actividadesViewModel,
-                        familiaId = familyViewModel.familiaId,
-                        onInicioClick = {
-                            navController.navigate(Routes.Inicio.route) {
-                                popUpTo(Routes.Inicio.route) { inclusive = true }
-                            }
-                        },
-                        onExplorarClick = {
-                            navController.navigate(Routes.Explorar.route)
-                        },
-                        onMensajesClick = {
-                            navController.navigate(Routes.Mensajes.route)
-                        },
-                        onPerfilClick = {
-                            navController.navigate(Routes.Perfil.route)
-                        },
-                        onCalendarioClick = {
-                            mostrarMisActividades = false
-                        },
-                        mostrarMensajes = familyViewModel.usuario.value != null
-                    )
-                } else {
-                    CalendarioScreen(
-                        estadoActividades = estadoActividades,
-                        familiaId = familyViewModel.familiaId,
-                        onInicioClick = {
-                            navController.navigate(Routes.Inicio.route) {
-                                popUpTo(Routes.Inicio.route) { inclusive = true }
-                            }
-                        },
-                        onExplorarClick = {
-                            navController.navigate(Routes.Explorar.route)
-                        },
-                        onMensajesClick = {
-                            navController.navigate(Routes.Mensajes.route)
-                        },
-                        onPerfilClick = {
-                            navController.navigate(Routes.Perfil.route)
-                        },
-                        onActividadClick = { actividad ->
-                            actividadesViewModel.seleccionarEvento(actividad.id)
-                            navController.navigate(Routes.DetalleActividad.route)
-                        },
-                        onMisActividadesClick = {
-                            mostrarMisActividades = true
-                        },
-                        mostrarMensajes = familyViewModel.usuario.value != null
-                    )
-                }
+                CalendarioScreen(
+                    estadoActividades = estadoActividades,
+                    familiaId = familyViewModel.familiaId,
+                    onInicioClick = {
+                        navController.navigate(Routes.Inicio.route) {
+                            popUpTo(Routes.Inicio.route) { inclusive = true }
+                        }
+                    },
+                    onExplorarClick = {
+                        navController.navigate(Routes.Explorar.route)
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.Mensajes.route)
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.Perfil.route)
+                    },
+                    onActividadClick = { actividad ->
+                        actividadesViewModel.seleccionarEvento(actividad.id)
+                        navController.navigate(Routes.DetalleActividad.route)
+                    },
+                    onMisActividadesClick = {
+                        mostrarMisActividades = true
+                    },
+                    mostrarMensajes = familyViewModel.usuario.value != null
+                )
             }
         }
 

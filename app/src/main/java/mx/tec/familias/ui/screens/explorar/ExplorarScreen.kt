@@ -62,6 +62,7 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import mx.tec.familias.data.remote.CampaignResponse
 
 @Composable
 fun ExplorarScreen(
@@ -72,6 +73,7 @@ fun ExplorarScreen(
     onCampaniaClick: (String) -> Unit = {},
     onActividadClick: (String) -> Unit = {},
     estadoActividades: mx.tec.familias.data.model.EstadoActividades? = null,
+    campaigns: List<CampaignResponse> = emptyList(),
     mostrarMensajes: Boolean = false
 ) {
     var searchText by remember { mutableStateOf("") }
@@ -82,65 +84,29 @@ fun ExplorarScreen(
 
     val busqueda = searchText.trim().lowercase()
 
-    val mostrarFamiliaMisionera =
-        filtroActual == "Todos" || filtroActual == "Voluntariado"
-
-    val mostrarPosada =
-        filtroActual == "Todos" || filtroActual == "Eventos"
-
     val mostrarCampanias =
         filtroActual == "Todos" || filtroActual == "Donaciones"
 
-    val coincideCampania1 = listOf(
-        "útiles escolares para todos",
-        "fundación aprender juntos",
-        "ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario"
-    ).any { it.contains(busqueda) }
+    val mostrarActividadesFiltro =
+        filtroActual == "Todos" || filtroActual == "Voluntariado" || filtroActual == "Eventos"
 
-    val coincideCampania2 = listOf(
-        "canasta solidaria de invierno",
-        "asociación manos unidas",
-        "apoya a familias de la comunidad con alimentos y productos básicos"
-    ).any { it.contains(busqueda) }
+    val activeCampaigns = if (campaigns.isNotEmpty()) campaigns else listOf(
+        CampaignResponse(id = 1, title = "Útiles Escolares para Todos", description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.", organization_name = "Fundación Aprender Juntos", status = "active", created_at = "", updated_at = ""),
+        CampaignResponse(id = 2, title = "Canasta Solidaria de Invierno", description = "Apoya a familias de la comunidad con alimentos y productos básicos.", organization_name = "Asociación Manos Unidas", status = "active", created_at = "", updated_at = "")
+    )
 
-    val coincideFamiliaMisionera = listOf(
-        "familia misionera noviembre",
-        "familias que suman",
-        "visita y acompaña a familias de la comunidad durante la misión familiar de noviembre",
-        "28 nov",
-        "bahía de la paz",
-        "santa catarina"
-    ).any { it.contains(busqueda) }
+    val matchingCampaigns = activeCampaigns.filter {
+        mostrarCampanias && (busqueda.isBlank() || it.title.lowercase().contains(busqueda) || it.description.lowercase().contains(busqueda) || it.organization_name.lowercase().contains(busqueda))
+    }
 
-    val coincidePosada = listOf(
-        "posada sendero",
-        "familias que suman",
-        "celebración navideña con familias de arroyo",
-        "san ildefonso",
-        "santa catarina",
-        "28 nov"
-    ).any { it.contains(busqueda) }
+    val activeEvents = estadoActividades?.eventos ?: emptyList()
+    val matchingEvents = activeEvents.filter {
+        mostrarActividadesFiltro && (busqueda.isBlank() || it.nombre.lowercase().contains(busqueda) || it.descripcion.lowercase().contains(busqueda) || it.lugar.lowercase().contains(busqueda))
+    }
 
-    val coincideLectura = listOf(
-        "lectura compartida",
-        "fundación aprender juntos"
-    ).any { it.contains(busqueda) }
-
-    val hayCampanias =
-        mostrarCampanias &&
-                (coincideCampania1 || coincideCampania2)
-
-    val hayFamiliaMisionera =
-        mostrarFamiliaMisionera && coincideFamiliaMisionera
-
-    val hayPosada =
-        mostrarPosada && coincidePosada
-
-    val hayActividades =
-        hayFamiliaMisionera || hayPosada
-
-    val hayResultados =
-        hayCampanias || hayActividades
+    val hayCampanias = matchingCampaigns.isNotEmpty()
+    val hayActividades = matchingEvents.isNotEmpty()
+    val hayResultados = hayCampanias || hayActividades
 
 
     Column(
@@ -216,41 +182,19 @@ fun ExplorarScreen(
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
 
-
-                    // CAMPAÑAS
-                    if (hayCampanias) {
-                        if (coincideCampania1) {
+                        matchingCampaigns.forEach { campania ->
                             CampaignCard(
-                                tag = "URGENTE",
-                                tagColor = BrownPrimary,
-                                title = "Útiles Escolares para Todos",
-                                organization = "Fundación Aprender Juntos",
-                                description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.",
-                                progress = 0.80f,
-                                progressText = "80%",
-                                buttonText = "Ver campaña",
-                                onClick = {
-                                    onCampaniaClick("utiles_escolares")
-                                }
-                            )
-
-                            Spacer(modifier = Modifier.height(20.dp))
-                        }
-
-                        if (coincideCampania2) {
-                            CampaignCard(
-                                tag = "DONACIÓN",
+                                tag = campania.status.uppercase(),
                                 tagColor = TealDark,
-                                title = "Canasta Solidaria de Invierno",
-                                organization = "Asociación Manos Unidas",
-                                description = "Apoya a familias de la comunidad con alimentos y productos básicos.",
-                                progress = 0.45f,
-                                progressText = "45%",
+                                title = campania.title,
+                                organization = campania.organization_name,
+                                description = campania.description,
+                                progress = 0.75f,
+                                progressText = "75%",
                                 buttonText = "Ver campaña",
                                 onClick = {
-                                    onCampaniaClick("canasta_solidaria")
+                                    onCampaniaClick(campania.id.toString())
                                 }
                             )
 
@@ -271,57 +215,22 @@ fun ExplorarScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // VOLUNTARIADO: Familia Misionera Noviembre
-                        if (hayFamiliaMisionera) {
-                            val eventoId = "familia_misionera_noviembre"
-                            val evento = estadoActividades
-                                ?.eventoOrNull(eventoId)
-
-                            val cupos = evento?.capacidadPersonas ?: 25
-                            val ocupados =
-                                estadoActividades?.ocupados(eventoId) ?: 0
-                            val disponibles =
-                                estadoActividades?.disponibles(eventoId) ?: 25
+                        matchingEvents.forEach { evento ->
+                            val cupos = evento.capacidadPersonas
+                            val ocupados = estadoActividades?.ocupados(evento.id) ?: 0
+                            val disponibles = estadoActividades?.disponibles(evento.id) ?: cupos
 
                             ActivityCard(
-                                title = evento?.nombre
-                                    ?: "Familia Misionera Noviembre",
-                                organization = evento?.organizacion
-                                    ?: "Familias que Suman",
+                                title = evento.nombre,
+                                organization = evento.organizacion,
                                 participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
-                                date = evento?.fecha ?: "28 Nov",
+                                date = evento.fecha,
                                 onClick = {
-                                    onActividadClick(eventoId)
+                                    onActividadClick(evento.id)
                                 }
                             )
 
                             Spacer(modifier = Modifier.height(20.dp))
-                        }
-
-                        // EVENTOS: Posada Sendero
-                        if (hayPosada) {
-                            val eventoId = "posada_sendero"
-                            val evento = estadoActividades
-                                ?.eventoOrNull(eventoId)
-
-                            val cupos = evento?.capacidadPersonas ?: 15
-                            val ocupados =
-                                estadoActividades?.ocupados(eventoId) ?: 0
-                            val disponibles =
-                                estadoActividades?.disponibles(eventoId) ?: 15
-
-                            ActivityCard(
-                                title = evento?.nombre ?: "Posada Sendero",
-                                organization = evento?.organizacion
-                                    ?: "Familias que Suman",
-                                participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
-                                date = evento?.fecha ?: "28 Nov",
-                                onClick = {
-                                    onActividadClick(eventoId)
-                                }
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
 

@@ -89,11 +89,11 @@ fun BottomNavigationBar(
             icon = {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = "Actividades"
+                    contentDescription = "Calendario"
                 )
             },
             label = {
-                Text("Actividades")
+                Text("Calendario")
             },
             colors = navigationColors()
         )

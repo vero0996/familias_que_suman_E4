@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import mx.tec.familias.data.repository.ChatRepository
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -68,29 +69,7 @@ fun MensajesScreen(
         mutableStateOf("")
     }
 
-    val conversaciones = remember {
-        listOf(
-            Conversacion(
-                id = 1,
-                nombre = "Vida Comunidad",
-                ultimoMensaje = "Hola, tenemos una actualización sobre tu actividad.",
-                hora = "10:32 AM",
-                mensajesSinLeer = 2
-            ),
-            Conversacion(
-                id = 2,
-                nombre = "Reforestación Parque Central",
-                ultimoMensaje = "¡Gracias por participar! Te esperamos el domingo.",
-                hora = "Ayer"
-            ),
-            Conversacion(
-                id = 3,
-                nombre = "Centro Comunitario",
-                ultimoMensaje = "Recuerda llevar los materiales para el taller.",
-                hora = "25 Sep"
-            )
-        )
-    }
+    val conversaciones = ChatRepository.conversaciones
 
     val conversacionesFiltradas = conversaciones.filter {
         it.nombre.contains(busqueda, ignoreCase = true) ||

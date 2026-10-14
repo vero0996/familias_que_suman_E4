@@ -29,6 +29,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -143,25 +145,49 @@ fun MisActividadesScreen(
                                 end = 16.dp,
                                 bottom = 14.dp
                             ),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            OutlinedButton(
+                            FilterChip(
+                                selected = false,
                                 onClick = onCalendarioClick,
-                                shape = RoundedCornerShape(20.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.CalendarMonth,
-                                    contentDescription = null,
-                                    tint = TealPrimary
-                                )
+                                label = {
+                                    Text(
+                                        text = "Calendario",
+                                        fontSize = 14.sp
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Surface.copy(alpha = 0.84f),
+                                    labelColor = mx.tec.familias.ui.theme.TextPrimary
+                                ),
+                                shape = RoundedCornerShape(22.dp)
+                            )
 
-                                Spacer(modifier = Modifier.width(6.dp))
-
-                                Text(
-                                    text = "Calendario",
-                                    color = TealPrimary
-                                )
-                            }
+                            FilterChip(
+                                selected = true,
+                                onClick = {},
+                                label = {
+                                    Text(
+                                        text = "Mis Actividades",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = TealPrimary,
+                                    selectedLabelColor = Surface,
+                                    containerColor = Surface.copy(alpha = 0.84f),
+                                    labelColor = mx.tec.familias.ui.theme.TextPrimary
+                                ),
+                                shape = RoundedCornerShape(22.dp)
+                            )
                         }
                     }
                 }

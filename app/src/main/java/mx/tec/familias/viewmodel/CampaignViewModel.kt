@@ -22,6 +22,10 @@ class CampaignViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(CampaignUiState())
     val uiState: StateFlow<CampaignUiState> = _uiState.asStateFlow()
 
+    init {
+        loadCampaigns()
+    }
+
     fun loadCampaigns() {
         viewModelScope.launch {
             _uiState.value = CampaignUiState(isLoading = true)

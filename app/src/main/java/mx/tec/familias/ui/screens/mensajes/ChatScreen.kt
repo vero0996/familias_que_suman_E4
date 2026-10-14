@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import mx.tec.familias.data.repository.ChatRepository
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -76,28 +77,7 @@ fun ChatMessages(
     conversacion: Conversacion,
     onBackClick: () -> Unit = {}
 ) {
-    val mensajes = remember {
-        mutableStateListOf(
-            MensajeChat(
-                id = 1,
-                texto = "Hola, tenemos una actualización sobre tu actividad.",
-                hora = "10:32 AM",
-                enviadoPorUsuario = false
-            ),
-            MensajeChat(
-                id = 2,
-                texto = "¡Hola! Claro, ¿qué pasó?",
-                hora = "10:35 AM",
-                enviadoPorUsuario = true
-            ),
-            MensajeChat(
-                id = 3,
-                texto = "Se modificó ligeramente el horario de la actividad.",
-                hora = "10:37 AM",
-                enviadoPorUsuario = false
-            )
-        )
-    }
+    val mensajes = ChatRepository.getMensajes(conversacion.id)
 
     var mensaje by remember { mutableStateOf("") }
 
@@ -268,15 +248,11 @@ fun ChatMessages(
                 IconButton(
                     onClick = {
                         if (mensaje.isNotBlank()) {
-                            mensajes.add(
-                                MensajeChat(
-                                    id = (mensajes.maxOfOrNull { it.id } ?: 0) + 1,
-                                    texto = mensaje.trim(),
-                                    hora = "Ahora",
-                                    enviadoPorUsuario = true
-                                )
+                            ChatRepository.enviarMensaje(
+                                conversacion.id,
+                                mensaje.trim(),
+                                enviadoPorUsuario = true
                             )
-
                             mensaje = ""
                         }
                     },

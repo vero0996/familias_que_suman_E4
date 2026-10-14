@@ -32,6 +32,8 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextOnPrimary
 import mx.tec.familias.ui.theme.TextPrimary
+import mx.tec.familias.data.remote.CampaignResponse
+import mx.tec.familias.data.model.EstadoActividades
 import mx.tec.familias.ui.theme.TextSecondary
 
 @Composable
@@ -42,7 +44,9 @@ fun InicioScreen(
     onMensajesClick: () -> Unit = {},
     mostrarMensajes: Boolean = false,
     onPerfilClick: () -> Unit = {},
-    onCampaniaClick: () -> Unit = {}
+    onCampaniaClick: () -> Unit = {},
+    campaigns: List<CampaignResponse> = emptyList(),
+    estadoActividades: EstadoActividades? = null
 ) {
     var mostrarDialogoDonacion by remember { mutableStateOf(false) }
     var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
@@ -123,29 +127,24 @@ fun InicioScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    DonationItemCard(
-                        titulo = "Sillas de Ruedas para Todos",
-                        descripcion = "Apoya a adultos mayores en situación vulnerable.",
-                        meta = "Meta: 15 unidades",
-                        imagenRes = R.drawable.comedorcomunitario,
-                        onDonarClick = {
-                            tituloCampaniaSeleccionada = "Sillas de Ruedas"
-                            mostrarDialogoDonacion = true
-                        }
+                    val activeCampaigns = if (campaigns.isNotEmpty()) campaigns else listOf(
+                        CampaignResponse(id = 1, title = "Sillas de Ruedas para Todos", description = "Apoya a adultos mayores en situación vulnerable.", organization_name = "Familias que Suman", status = "active", created_at = "", updated_at = ""),
+                        CampaignResponse(id = 2, title = "Juguetón Familiar Navideño", description = "Dona juguetes en excelente estado para casas hogar.", organization_name = "Familias que Suman", status = "active", created_at = "", updated_at = "")
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    DonationItemCard(
-                        titulo = "Juguetón Familiar Navideño",
-                        descripcion = "Dona juguetes en excelente estado para casas hogar.",
-                        meta = "Meta: 300 juguetes",
-                        imagenRes = R.drawable.utilesescolares,
-                        onDonarClick = {
-                            tituloCampaniaSeleccionada = "Juguetes Navideños"
-                            mostrarDialogoDonacion = true
-                        }
-                    )
+                    activeCampaigns.forEach { campania ->
+                        DonationItemCard(
+                            titulo = campania.title,
+                            descripcion = campania.description,
+                            meta = "Organización: ${campania.organization_name}",
+                            imagenRes = R.drawable.comedorcomunitario,
+                            onDonarClick = {
+                                tituloCampaniaSeleccionada = campania.title
+                                mostrarDialogoDonacion = true
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
