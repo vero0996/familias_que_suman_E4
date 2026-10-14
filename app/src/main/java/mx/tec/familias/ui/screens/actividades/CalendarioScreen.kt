@@ -132,7 +132,6 @@ fun CalendarioScreen(
                 ) {
                     Column {
                         TopBar(
-                            title = "Calendario",
                             showProfile = true,
                             onProfileClick = onPerfilClick
                         )

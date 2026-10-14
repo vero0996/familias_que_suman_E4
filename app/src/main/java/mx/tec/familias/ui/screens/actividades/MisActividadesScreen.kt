@@ -132,7 +132,6 @@ fun MisActividadesScreen(
                 ) {
                     Column {
                         TopBar(
-                            title = "Mis Actividades",
                             showProfile = true,
                             onProfileClick = onPerfilClick
                         )
