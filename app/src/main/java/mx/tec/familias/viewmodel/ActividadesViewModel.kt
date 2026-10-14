@@ -165,7 +165,7 @@ class ActividadesViewModel(
                         mx.tec.familias.data.model.Inscripcion(
                             id = remote.id.toString(),
                             eventoId = remote.activity_id.toString(),
-                            familiaId = familiaId,
+                            familiaId = remote.family_id.toString(),
                             participantesIds = emptyList(),
                             observaciones = remote.notes.orEmpty(),
                             estado = it,
@@ -392,7 +392,13 @@ class ActividadesViewModel(
         if (value.isNullOrBlank()) return null
 
         return runCatching {
-            OffsetDateTime.parse(value).toLocalDateTime()
+            Instant.parse(value)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+        }.getOrNull() ?: runCatching {
+            OffsetDateTime.parse(value)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDateTime()
         }.getOrNull() ?: runCatching {
             LocalDateTime.parse(value)
         }.getOrNull()

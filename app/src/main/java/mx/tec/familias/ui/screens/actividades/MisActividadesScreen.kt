@@ -88,11 +88,12 @@ fun MisActividadesScreen(
     onCalendarioClick: () -> Unit = {},
     mostrarMensajes: Boolean = true
 ) {
+
     val estado = actividadesViewModel.estado
     LaunchedEffect(familiaId) {
         actividadesViewModel.cargarMisInscripcionesYEncuestas(familiaId)
     }
-    val propias = estado.inscripciones.filter { it.familiaId == familiaId }
+    val propias = estado.inscripciones
 
     val confirmadas = propias.filter {
         it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
