@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,26 +44,17 @@ fun ReutilizarCampaniaScreen(
     var cupos by remember { mutableStateOf(20) }
 
     Scaffold(
-        containerColor = Background,
+        containerColor = TealLight.copy(alpha = 0.12f),
         topBar = {
-            // Barra superior con flecha de regreso y logo
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon),
-                            contentDescription = "Logo",
-                            modifier = Modifier.size(24.dp).padding(end = 8.dp)
-                        )
-                        Text("Familias que Suman +", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    }
-                },
+            AdminScreenHeader(
+                title = "Reutilizar campaña",
+                titleMaxLines = 2,
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar", tint = TealPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar", tint = TealPrimary)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
+                }
             )
         }
     ) { paddingValues ->
@@ -67,8 +62,8 @@ fun ReutilizarCampaniaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -89,8 +84,10 @@ fun ReutilizarCampaniaScreen(
 
             // 1. Tarjeta de Plantilla Base
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(modifier = Modifier.fillMaxWidth().height(80.dp)) {
@@ -114,8 +111,10 @@ fun ReutilizarCampaniaScreen(
 
             // 2. Tarjeta Fecha y Horario
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -131,9 +130,10 @@ fun ReutilizarCampaniaScreen(
                         onValueChange = { fecha = it },
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 12.dp),
                         leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = TextSecondary) },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Divider.copy(alpha = 0.3f), // Fondo gris claro
+                            focusedContainerColor = Surface,
+                            unfocusedContainerColor = Surface, // Fondo gris claro
                             unfocusedBorderColor = Color.Transparent
                         )
                     )
@@ -146,9 +146,10 @@ fun ReutilizarCampaniaScreen(
                                 onValueChange = { horaInicio = it },
                                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                                 leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null, tint = TextSecondary) },
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(18.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = Divider.copy(alpha = 0.3f),
+                                    focusedContainerColor = Surface,
+                            unfocusedContainerColor = Surface,
                                     unfocusedBorderColor = Color.Transparent
                                 )
                             )
@@ -159,9 +160,10 @@ fun ReutilizarCampaniaScreen(
                                 value = horaFin,
                                 onValueChange = { horaFin = it },
                                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(18.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = Divider.copy(alpha = 0.3f),
+                                    focusedContainerColor = Surface,
+                            unfocusedContainerColor = Surface,
                                     unfocusedBorderColor = Color.Transparent
                                 )
                             )
@@ -173,8 +175,10 @@ fun ReutilizarCampaniaScreen(
 
             // 3. Tarjeta Ubicación
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -190,9 +194,10 @@ fun ReutilizarCampaniaScreen(
                         onValueChange = { ubicacion = it },
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = TextSecondary) },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Divider.copy(alpha = 0.3f),
+                            focusedContainerColor = Surface,
+                            unfocusedContainerColor = Surface,
                             unfocusedBorderColor = Color.Transparent
                         )
                     )
@@ -202,8 +207,10 @@ fun ReutilizarCampaniaScreen(
 
             // 4. Tarjeta Participación
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -230,7 +237,7 @@ fun ReutilizarCampaniaScreen(
 
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp).height(40.dp).width(60.dp).background(Divider.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            modifier = Modifier.padding(horizontal = 16.dp).height(40.dp).width(60.dp).background(Divider.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
                         ) {
                             Text(text = cupos.toString(), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TealPrimary)
                         }
@@ -250,8 +257,8 @@ fun ReutilizarCampaniaScreen(
             // 5. Botones Finales
             Button(
                 onClick = onVistaPreviaClick,
-                colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary),
-                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                shape = RoundedCornerShape(22.dp),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
                 Icon(Icons.Outlined.Visibility, contentDescription = null, tint = TextOnPrimary, modifier = Modifier.size(20.dp))
@@ -264,7 +271,7 @@ fun ReutilizarCampaniaScreen(
             OutlinedButton(
                 onClick = onBackClick,
                 border = BorderStroke(1.dp, TealPrimary),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(22.dp),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
                 Text("Cancelar", color = TealPrimary, fontWeight = FontWeight.Bold)
@@ -272,5 +279,14 @@ fun ReutilizarCampaniaScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Composable
+private fun ReutilizarCampaniasScreenPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) {
+        ReutilizarCampaniaScreen()
     }
 }

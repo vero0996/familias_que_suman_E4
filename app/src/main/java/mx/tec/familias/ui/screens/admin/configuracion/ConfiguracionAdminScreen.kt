@@ -1,5 +1,7 @@
 package mx.tec.familias.ui.screens.admin.configuracion
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +13,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,200 +40,69 @@ fun ConfiguracionAdminScreen(
     var mostrarProximamente by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Configuración",
-                        color = TealPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
-            )
-        },
+        containerColor = TealLight.copy(alpha = 0.12f),
+        topBar = { AdminScreenHeader("Configuración") },
         bottomBar = {
-            NavigationBar(containerColor = Surface) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    selected = false,
-                    onClick = onInicioClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
-                    label = { Text("Campañas") },
-                    selected = false,
-                    onClick = onCampaniasClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
-                    label = { Text("Mensajes") },
-                    selected = false,
-                    onClick = onMensajesClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
-                    label = { Text("Configuración") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = TealPrimary,
-                        indicatorColor = TealLight
-                    )
-                )
-            }
+            AdminBottomNavigationBar(
+                currentDestination = AdminDestination.CONFIGURACION,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        AdminDestination.INICIO -> onInicioClick()
+                        AdminDestination.CAMPANIAS -> onCampaniasClick()
+                        AdminDestination.MENSAJES -> onMensajesClick()
+                        AdminDestination.CONFIGURACION -> Unit
+                    }
+                }
+            )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Cuenta",
-                color = TealPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ConfiguracionFila(
-                icono = Icons.Default.Person,
-                titulo = "Editar perfil",
-                onClick = { mostrarProximamente = true }
-            )
-
-            Divider(color = Divider)
-
-            ConfiguracionFila(
-                icono = Icons.Default.Lock,
-                titulo = "Seguridad",
-                onClick = { mostrarProximamente = true }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Notificaciones",
-                color = TealPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Notifications,
-                    contentDescription = null,
-                    tint = TealPrimary
-                )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Text(
-                    text = "Notificaciones",
-                    color = TealPrimary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Switch(
-                    checked = notificaciones,
-                    onCheckedChange = { notificaciones = it }
-                )
+            Spacer(modifier = Modifier.height(18.dp))
+            ConfiguracionSeccion("Cuenta")
+            ConfiguracionTarjeta {
+                ConfiguracionFila(Icons.Default.Person, "Editar perfil") { mostrarProximamente = true }
+                ConfiguracionSeparador()
+                ConfiguracionFila(Icons.Default.Lock, "Seguridad") { mostrarProximamente = true }
             }
 
-            Divider(color = Divider)
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Schedule,
-                    contentDescription = null,
-                    tint = TealPrimary
-                )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Text(
-                    text = "Recordatorios",
-                    color = TealPrimary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Switch(
-                    checked = recordatorios,
-                    onCheckedChange = { recordatorios = it }
-                )
+            Spacer(modifier = Modifier.height(20.dp))
+            ConfiguracionSeccion("Notificaciones")
+            ConfiguracionTarjeta {
+                ConfiguracionInterruptor(
+                    Icons.Default.Notifications, "Notificaciones", notificaciones
+                ) { notificaciones = it }
+                ConfiguracionSeparador()
+                ConfiguracionInterruptor(
+                    Icons.Default.Schedule, "Recordatorios", recordatorios
+                ) { recordatorios = it }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+            ConfiguracionSeccion("Ayuda")
+            ConfiguracionTarjeta {
+                ConfiguracionFila(Icons.Default.HelpOutline, "Centro de ayuda") { mostrarProximamente = true }
+                ConfiguracionSeparador()
+                ConfiguracionFila(Icons.Default.Info, "Acerca de Familias que Suman") { mostrarAcercaDeAdmin = true }
+            }
 
-            Text(
-                text = "Ayuda",
-                color = TealPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ConfiguracionFila(
-                icono = Icons.Default.Help,
-                titulo = "Centro de ayuda",
-                onClick = { mostrarProximamente = true }
-            )
-
-            Divider(color = Divider)
-
-            // AQUÍ ESTÁ EL BOTÓN DE "Acerca de" CONECTADO
-            ConfiguracionFila(
-                icono = Icons.Default.Info,
-                titulo = "Acerca de",
-                onClick = { mostrarAcercaDeAdmin = true }
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
+            Spacer(modifier = Modifier.height(28.dp))
             OutlinedButton(
                 onClick = onCerrarSesionClick,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
+                shape = RoundedCornerShape(22.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
+                border = BorderStroke(1.dp, Error.copy(alpha = 0.5f))
             ) {
-                Icon(
-                    Icons.Default.ExitToApp,
-                    contentDescription = null,
-                    tint = Error
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "Cerrar sesión",
-                    color = Error,
-                    fontWeight = FontWeight.Bold
-                )
+                Icon(Icons.Default.ExitToApp, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Cerrar sesión", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
-
             Spacer(modifier = Modifier.height(32.dp))
         }
 
@@ -253,7 +130,8 @@ fun ConfiguracionAdminScreen(
                         Text("Cerrar", color = TealPrimary, fontWeight = FontWeight.Bold)
                     }
                 },
-                containerColor = Surface
+                containerColor = Surface,
+                shape = RoundedCornerShape(28.dp)
             )
         }
 
@@ -279,43 +157,98 @@ fun ConfiguracionAdminScreen(
                         Text("Entendido", color = TealPrimary, fontWeight = FontWeight.Bold)
                     }
                 },
-                containerColor = Surface
+                containerColor = Surface,
+                shape = RoundedCornerShape(28.dp)
             )
         }
     }
 }
 
 @Composable
-fun ConfiguracionFila(
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
-    titulo: String,
-    onClick: () -> Unit // <-- Añadido el parámetro de clic
-) {
+private fun ConfiguracionSeccion(titulo: String) {
+    Text(
+        titulo, color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp,
+        modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+private fun ConfiguracionTarjeta(content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(content = content)
+    }
+}
+
+@Composable
+private fun ConfiguracionSeparador() {
+    HorizontalDivider(
+        color = Divider.copy(alpha = 0.60f),
+        modifier = Modifier.padding(horizontal = 18.dp)
+    )
+}
+
+@Composable
+private fun ConfiguracionIcono(icono: ImageVector) {
+    Box(
+        modifier = Modifier.size(40.dp)
+            .background(TealLight.copy(alpha = 0.60f), RoundedCornerShape(14.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icono, contentDescription = null, tint = TealPrimary, modifier = Modifier.size(22.dp))
+    }
+}
+
+@Composable
+fun ConfiguracionFila(icono: ImageVector, titulo: String, onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() } // <-- Hace que toda la fila sea interactiva
-            .padding(vertical = 16.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            icono,
-            contentDescription = null,
-            tint = TealPrimary
-        )
+        ConfiguracionIcono(icono)
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(titulo, color = TextPrimary, fontSize = 16.sp, modifier = Modifier.weight(1f))
+        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null,
+            tint = TextSecondary, modifier = Modifier.size(20.dp))
+    }
+}
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Text(
-            text = titulo,
-            color = TealPrimary,
-            modifier = Modifier.weight(1f)
-        )
-
-        Icon(
-            Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = TextSecondary
+@Composable
+private fun ConfiguracionInterruptor(
+    icono: ImageVector,
+    titulo: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ConfiguracionIcono(icono)
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(titulo, color = TextPrimary, fontSize = 16.sp, modifier = Modifier.weight(1f))
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Surface,
+                checkedTrackColor = TealPrimary,
+                uncheckedThumbColor = TextSecondary,
+                uncheckedTrackColor = TealLight.copy(alpha = 0.35f),
+                uncheckedBorderColor = Border
+            )
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ConfiguracionAdminPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) { ConfiguracionAdminScreen() }
 }

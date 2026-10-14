@@ -155,10 +155,7 @@ fun IntegrantesScreen(
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = RoundedCornerShape(22.dp),
-                        border = BorderStroke(
-                            1.dp,
-                            TealPrimary.copy(alpha = 0.35f)
-                        )
+                        border = null
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
@@ -231,7 +228,7 @@ fun IntegrantesScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = Surface.copy(alpha = 0.88f)
+                            containerColor = Surface
                         ),
                         shape = RoundedCornerShape(28.dp),
                         border = BorderStroke(
@@ -290,21 +287,10 @@ fun IntegrantesScreen(
         }
 
         // BOTÓN CONTINUAR
-        Card(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 10.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Surface.copy(alpha = 0.92f)
-            ),
-            border = BorderStroke(
-                1.dp,
-                Color.White.copy(alpha = 0.95f)
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
+                .padding(horizontal = 18.dp, vertical = 10.dp)
         ) {
             Button(
                 onClick = onContinuar,
@@ -336,7 +322,7 @@ private fun IntegranteCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
+            containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(
@@ -422,7 +408,7 @@ private fun NuevoIntegranteCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
+            containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(
@@ -461,7 +447,7 @@ private fun NuevoIntegranteCard(
                     focusedContainerColor = Surface.copy(alpha = 0.92f),
                     unfocusedContainerColor = Surface.copy(alpha = 0.84f),
                     focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.90f)
                 )
             )
 
@@ -494,7 +480,7 @@ private fun NuevoIntegranteCard(
                     focusedContainerColor = Surface.copy(alpha = 0.92f),
                     unfocusedContainerColor = Surface.copy(alpha = 0.84f),
                     focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.90f)
                 )
             )
 

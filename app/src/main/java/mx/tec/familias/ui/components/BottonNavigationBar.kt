@@ -38,13 +38,8 @@ fun BottomNavigationBar(
     mostrarMensajes: Boolean = false
 ) {
     NavigationBar(
-        containerColor = Surface.copy(alpha = 0.92f),
-        tonalElevation = 3.dp,
-        modifier = Modifier.padding(
-            start = 12.dp,
-            end = 12.dp,
-            bottom = 8.dp
-        )
+        containerColor = Surface,
+        tonalElevation = 0.dp
     ) {
 
         NavigationBarItem(

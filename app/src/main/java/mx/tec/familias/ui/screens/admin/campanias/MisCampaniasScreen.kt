@@ -1,28 +1,28 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
 import androidx.compose.foundation.Image
-import mx.tec.familias.ui.components.AdaptiveContainer
+import androidx.compose.foundation.BorderStroke
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -45,55 +45,25 @@ fun MisCampaniasScreen(
     onReutilizarCampaniaClick: () -> Unit = {} // Botón flecha (Reutilizar)
 ) {
     Scaffold(
-        containerColor = Background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Mis Campañas",
-                        color = TealPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
-            )
-        },
+        containerColor = TealLight.copy(alpha = 0.12f),
+        topBar = { AdminScreenHeader("Mis Campañas") },
         bottomBar = {
-            NavigationBar(containerColor = Surface) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    selected = false,
-                    onClick = onInicioClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
-                    label = { Text("Campañas") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = TealPrimary,
-                        indicatorColor = TealLight
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "Mensajes") },
-                    label = { Text("Mensajes") },
-                    selected = false,
-                    onClick = onMensajesClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
-                    label = { Text("Configuración") },
-                    selected = false,
-                    onClick = onConfiguracionClick
-                )
-            }
+            AdminBottomNavigationBar(
+                currentDestination = AdminDestination.CAMPANIAS,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        AdminDestination.INICIO -> onInicioClick()
+                        AdminDestination.CAMPANIAS -> Unit
+                        AdminDestination.MENSAJES -> onMensajesClick()
+                        AdminDestination.CONFIGURACION -> onConfiguracionClick()
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNuevaCampaniaClick,
+                shape = RoundedCornerShape(22.dp),
                 containerColor = TealPrimary,
                 contentColor = Surface
             ) {
@@ -101,51 +71,42 @@ fun MisCampaniasScreen(
             }
         }
     ) { paddingValues ->
-        //AdaptiveContainer {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ================= PRIMERA TARJETA =================
-                if (mostrarActividad) {
-                    CampaignManagementCard(
-                        titulo = "Colecta de Invierno 2026",
-                        fecha = "15 de Octubre, 2026",
-                        hora = "10:00 AM - 4:00 PM",
-                        cuposOcupados = 35,
-                        cuposTotales = 50,
-                        estado = "Activa",
-                        imagenId = R.drawable.recorridainvierno, // <-- CAMBIA 'campania1' por el nombre de tu foto en drawable
-                        onEditarClick = onEditarCampaniaClick,
-                        onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
-                        onReutilizarClick = onReutilizarCampaniaClick
-                    )
-                }
-
-                // ================= SEGUNDA TARJETA =================
+        Column(
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
+                .verticalScroll(rememberScrollState()).padding(horizontal = 18.dp)
+        ) {
+            Spacer(modifier = Modifier.height(18.dp))
+            if (mostrarActividad) {
                 CampaignManagementCard(
-                    titulo = "Reforestación Comunitaria",
-                    fecha = "22 de Octubre, 2026",
-                    hora = "9:00 AM - 1:00 PM",
-                    cuposOcupados = 20,
-                    cuposTotales = 30,
-                    estado = "Próxima",
-                    imagenId = R.drawable.reforestacionurbana, // <-- CAMBIA 'campania2' por tu otra foto en drawable
+                    titulo = "Colecta de Invierno 2026",
+                    fecha = "15 de Octubre, 2026",
+                    hora = "10:00 AM - 4:00 PM",
+                    cuposOcupados = 35,
+                    cuposTotales = 50,
+                    estado = "Activa",
+                    imagenId = R.drawable.recorridainvierno,
                     onEditarClick = onEditarCampaniaClick,
-                    onMensajesClick = onGestionCampaniaClick, // Botón del medio: Manda a mensajes de campaña
+                    onMensajesClick = onGestionCampaniaClick,
                     onReutilizarClick = onReutilizarCampaniaClick
                 )
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
+            CampaignManagementCard(
+                titulo = "Reforestación Comunitaria",
+                fecha = "22 de Octubre, 2026",
+                hora = "9:00 AM - 1:00 PM",
+                cuposOcupados = 20,
+                cuposTotales = 30,
+                estado = "Próxima",
+                imagenId = R.drawable.reforestacionurbana,
+                onEditarClick = onEditarCampaniaClick,
+                onMensajesClick = onGestionCampaniaClick,
+                onReutilizarClick = onReutilizarCampaniaClick
+            )
+            // Espacio para que el botón flotante no cubra las acciones de la última tarjeta.
+            Spacer(modifier = Modifier.height(88.dp))
         }
     }
-//}
+}
 
 @Composable
 fun CampaignManagementCard(
@@ -163,11 +124,13 @@ fun CampaignManagementCard(
     val progreso = cuposOcupados.toFloat() / cuposTotales.toFloat()
 
     Card(
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
     ) {
-        Column {
+        Column(modifier = Modifier.padding(8.dp)) {
             // Imagen personalizada de la campaña
             Image(
                 painter = painterResource(id = imagenId),
@@ -175,10 +138,11 @@ fun CampaignManagementCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(22.dp))
             )
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 12.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -188,7 +152,8 @@ fun CampaignManagementCard(
                         text = titulo,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = TealPrimary,
+                        color = TextPrimary,
+                        lineHeight = 26.sp,
                         modifier = Modifier.weight(1f)
                     )
                     Box(
@@ -233,9 +198,9 @@ fun CampaignManagementCard(
 
                 LinearProgressIndicator(
                     progress = { progreso },
-                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(9999.dp)),
-                    color = TealLight,
-                    trackColor = Divider
+                    modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)),
+                    color = TealPrimary,
+                    trackColor = TealLight.copy(alpha = 0.35f)
                 )
 
                 Divider(modifier = Modifier.padding(vertical = 16.dp), color = Divider)
@@ -248,7 +213,7 @@ fun CampaignManagementCard(
                     // Botón Editar (Lápiz)
                     IconButton(
                         onClick = onEditarClick,
-                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
+                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(TealLight.copy(alpha = 0.60f))
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar", tint = TealPrimary, modifier = Modifier.size(20.dp))
                     }
@@ -257,7 +222,7 @@ fun CampaignManagementCard(
                     // Botón Participantes / Mensajes (Del medio)
                     IconButton(
                         onClick = onMensajesClick,
-                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
+                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(TealLight.copy(alpha = 0.60f))
                     ) {
                         Icon(Icons.Default.Group, contentDescription = "Participantes", tint = TealPrimary, modifier = Modifier.size(20.dp))
                     }
@@ -266,7 +231,7 @@ fun CampaignManagementCard(
                     // Botón Reutilizar (Flecha circular)
                     IconButton(
                         onClick = onReutilizarClick,
-                        modifier = Modifier.size(40.dp).clip(CircleShape).background(Divider)
+                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(TealLight.copy(alpha = 0.60f))
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = "Reutilizar", tint = TealPrimary, modifier = Modifier.size(20.dp))
                     }
@@ -274,4 +239,10 @@ fun CampaignManagementCard(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MisCampaniasAdminPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) { MisCampaniasScreen() }
 }

@@ -19,12 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.theme.*
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,94 +43,31 @@ fun GestionMensajesCampaniaScreen(
     var mensajeEnviado by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Background,
+        containerColor = TealLight.copy(alpha = 0.12f),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Comunicación y Seguimiento",
-                        color = TealPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                },
+            AdminScreenHeader(
+                title = "Comunicación y seguimiento",
+                titleMaxLines = 2,
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
-                            tint = TealPrimary
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar", tint = TealPrimary)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Background
-                )
+                }
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Surface) {
-
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            Icons.Default.Home,
-                            contentDescription = "Inicio"
-                        )
-                    },
-                    label = {
-                        Text("Inicio")
-                    },
-                    selected = false,
-                    onClick = onInicioClick
-                )
-
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            Icons.Default.Event,
-                            contentDescription = "Campañas"
-                        )
-                    },
-                    label = {
-                        Text("Campañas")
-                    },
-                    selected = true,
-                    onClick = onCampaniasClick,
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = TealPrimary,
-                        indicatorColor = TealLight
-                    )
-                )
-
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            Icons.Default.Chat,
-                            contentDescription = "Mensajes"
-                        )
-                    },
-                    label = {
-                        Text("Mensajes")
-                    },
-                    selected = false,
-                    onClick = onMensajesClick
-                )
-
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Configuración"
-                        )
-                    },
-                    label = {
-                        Text("Configuración")
-                    },
-                    selected = false,
-                    onClick = onConfiguracionClick
-                )
-            }
+            AdminBottomNavigationBar(
+                currentDestination = AdminDestination.CAMPANIAS,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        AdminDestination.INICIO -> onInicioClick()
+                        AdminDestination.CAMPANIAS -> onCampaniasClick()
+                        AdminDestination.MENSAJES -> onMensajesClick()
+                        AdminDestination.CONFIGURACION -> onConfiguracionClick()
+                    }
+                }
+            )
         }
     ) { paddingValues ->
 
@@ -133,19 +75,21 @@ fun GestionMensajesCampaniaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
         ) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // 1. Tarjeta: Resumen de Inscritos
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
                 ),
                 elevation = CardDefaults.cardElevation(
-                    defaultElevation = 2.dp
+                    defaultElevation = 3.dp
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -251,6 +195,8 @@ fun GestionMensajesCampaniaScreen(
 
             // 2. Tarjeta Automatización 1: Confirmación de inscripción
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
                 ),
@@ -308,6 +254,8 @@ fun GestionMensajesCampaniaScreen(
 
             // 3. Tarjeta Automatización 2: Recordatorio de actividad
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
                 ),
@@ -365,6 +313,8 @@ fun GestionMensajesCampaniaScreen(
 
             // 4. Tarjeta Automatización 3: Recordatorio el mismo día
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
                 ),
@@ -430,6 +380,8 @@ fun GestionMensajesCampaniaScreen(
 
             // 5. Tarjeta Automatización 4: Cancelación
             Card(
+                border = BorderStroke(1.dp, Color.White),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
                 ),
@@ -495,11 +447,12 @@ fun GestionMensajesCampaniaScreen(
 
             // 6. Tarjeta Inferior Destacada: Enviar actualización urgente
             Card(
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Surface
                 ),
                 elevation = CardDefaults.cardElevation(
-                    defaultElevation = 2.dp
+                    defaultElevation = 3.dp
                 ),
                 border = BorderStroke(
                     1.dp,
@@ -558,13 +511,9 @@ fun GestionMensajesCampaniaScreen(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor =
-                                if (mensajeEnviado) {
-                                    TealPrimary
-                                } else {
-                                    BrownPrimary
-                                }
+                                if (mensajeEnviado) Success else TealPrimary
                         ),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(22.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
@@ -597,5 +546,14 @@ fun GestionMensajesCampaniaScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Composable
+private fun GestionMensajesCampaniaScreenPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) {
+        GestionMensajesCampaniaScreen()
     }
 }
