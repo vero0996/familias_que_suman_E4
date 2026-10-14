@@ -84,7 +84,7 @@ fun InscripcionScreen(
                 .fillMaxWidth()
                 .padding(start = 18.dp, end = 18.dp, top = 24.dp, bottom = 16.dp),
             shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+            colors = CardDefaults.cardColors(containerColor = Surface),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
@@ -134,7 +134,7 @@ fun InscripcionScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    colors = CardDefaults.cardColors(containerColor = Surface),
                     shape = RoundedCornerShape(28.dp),
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -247,7 +247,7 @@ fun InscripcionScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                        colors = CardDefaults.cardColors(containerColor = Surface),
                         shape = RoundedCornerShape(22.dp),
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -298,8 +298,8 @@ fun InscripcionScreen(
                     },
                     shape = RoundedCornerShape(22.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Surface.copy(alpha = 0.92f),
-                        unfocusedContainerColor = Surface.copy(alpha = 0.84f),
+                        focusedContainerColor = Surface,
+                        unfocusedContainerColor = Surface,
                         focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
                         unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
                     )
@@ -346,15 +346,11 @@ fun InscripcionScreen(
         }
 
         // BOTÓN CONFIRMAR
-        Card(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 18.dp, vertical = 10.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.92f)),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 if (error != null) {
@@ -431,7 +427,7 @@ private fun UsuarioSeleccionCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         shape = RoundedCornerShape(24.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
@@ -493,7 +489,7 @@ private fun IntegranteSeleccionCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         shape = RoundedCornerShape(24.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)

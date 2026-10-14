@@ -51,7 +51,7 @@ fun PerfilScreen(
                     .padding(start = 18.dp, end = 18.dp, top = 10.dp),
                 shape = RoundedCornerShape(30.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Surface.copy(alpha = 0.88f)
+                    containerColor = Surface
                 ),
                 border = BorderStroke(
                     1.dp,
@@ -387,7 +387,7 @@ fun PerfilScreen(
             Card(
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Surface.copy(alpha = 0.92f)
+                    containerColor = Surface
                 ),
                 border = BorderStroke(
                     1.dp,
@@ -408,7 +408,7 @@ fun PerfilScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        "Cancelando tu suscripción...",
+                        "Eliminando tu cuenta...",
                         color = TextPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -427,7 +427,7 @@ private fun ConfigCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
+            containerColor = Surface
         ),
         border = BorderStroke(
             1.dp,

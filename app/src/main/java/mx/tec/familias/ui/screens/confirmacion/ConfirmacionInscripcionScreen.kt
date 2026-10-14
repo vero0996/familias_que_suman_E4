@@ -129,7 +129,7 @@ fun ConfirmacionInscripcionScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Surface.copy(alpha = 0.88f)
+                containerColor = Surface
             ),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

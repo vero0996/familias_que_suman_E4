@@ -52,9 +52,8 @@ fun AdminBottomNavigationBar(
 ) {
     // Mismos márgenes, superficie y colores que BottomNavigationBar del perfil familiar.
     NavigationBar(
-        containerColor = Surface.copy(alpha = 0.92f),
-        tonalElevation = 3.dp,
-        modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
+        containerColor = Surface,
+        tonalElevation = 0.dp
     ) {
         val destinations = listOf(
             Triple(AdminDestination.INICIO, "Inicio", Icons.Default.Home),
