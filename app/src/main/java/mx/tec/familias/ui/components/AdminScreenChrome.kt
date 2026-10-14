@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,7 +26,12 @@ import mx.tec.familias.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminScreenHeader(title: String) {
+fun AdminScreenHeader(
+    title: String,
+    titleMaxLines: Int = 1,
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth().statusBarsPadding()
             .padding(start = 18.dp, end = 18.dp, top = 10.dp),
@@ -35,8 +42,18 @@ fun AdminScreenHeader(title: String) {
     ) {
         TopAppBar(
             title = {
-                Text(title, color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                Text(
+                    title, color = TealPrimary, fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp, lineHeight = 26.sp,
+                    maxLines = titleMaxLines, overflow = TextOverflow.Ellipsis
+                )
             },
+            expandedHeight = maxOf(
+                64.dp,
+                with(LocalDensity.current) { (26.sp * titleMaxLines).toDp() } + 16.dp
+            ),
+            navigationIcon = navigationIcon,
+            actions = actions,
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)
         )

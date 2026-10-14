@@ -1,7 +1,6 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
 import androidx.compose.foundation.BorderStroke
-import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,45 +43,30 @@ fun CrearCampaniaColaborativaScreen(
     var redSolidariaInvitada by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Background,
+        containerColor = TealLight.copy(alpha = 0.12f),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Crear campaña cola...",
-                        color = TealPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                },
+            AdminScreenHeader(
+                title = "Crear campaña colaborativa",
+                titleMaxLines = 2,
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
-                            tint = TealPrimary
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar", tint = TealPrimary)
                     }
                 },
                 actions = {
                     Image(
                         painter = painterResource(id = R.drawable.asociacionsol),
                         contentDescription = "Perfil",
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .size(32.dp)
-                            .clip(CircleShape)
+                        modifier = Modifier.padding(end = 16.dp).size(32.dp).clip(CircleShape)
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Background
-                )
+                }
             )
         },
         bottomBar = {
             // Este es el bloque del "Resumen de Campaña" que se queda pegado abajo
             Surface(
-                color = Background,
+                color = Surface,
                 modifier = Modifier.shadow(
                     elevation = 8.dp,
                     spotColor = Color(0x1A000000)
@@ -95,8 +83,8 @@ fun CrearCampaniaColaborativaScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                Divider.copy(alpha = 0.2f),
-                                RoundedCornerShape(12.dp)
+                                Surface,
+                                RoundedCornerShape(22.dp)
                             )
                             .padding(16.dp)
                     ) {
@@ -211,9 +199,9 @@ fun CrearCampaniaColaborativaScreen(
                     Button(
                         onClick = onContinuarClick,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BrownPrimary
+                            containerColor = TealPrimary
                         ),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(22.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
@@ -234,8 +222,8 @@ fun CrearCampaniaColaborativaScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 20.dp)
                     .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 18.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -257,7 +245,7 @@ fun CrearCampaniaColaborativaScreen(
                     placeholder = {
                         Text(
                             "Buscar una asociación",
-                            color = Divider
+                            color = TextSecondary
                         )
                     },
                     leadingIcon = {
@@ -267,9 +255,11 @@ fun CrearCampaniaColaborativaScreen(
                             tint = TextSecondary
                         )
                     },
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Divider,
+                        focusedContainerColor = Surface,
+                        unfocusedContainerColor = Surface,
+                        unfocusedBorderColor = Border,
                         focusedBorderColor = TealPrimary
                     ),
                     singleLine = true
@@ -330,12 +320,13 @@ fun AsociacionCard(
 ) {
     // Configuramos los colores dependiendo de si ya fue invitada o no
     val backgroundColor =
-        if (estadoInvitada) TealLight.copy(alpha = 0.1f) else Surface
+        if (estadoInvitada) Color(0xFFEDF9FC) else Surface
 
     val borderColor =
-        if (estadoInvitada) TealLight.copy(alpha = 0.3f) else Color.Transparent
+        if (estadoInvitada) TealPrimary else Color.White
 
     Card(
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
@@ -453,7 +444,7 @@ fun AsociacionCard(
                 Button(
                     onClick = onInvitarClick,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BrownPrimary
+                        containerColor = TealPrimary
                     ),
                     contentPadding = PaddingValues(
                         horizontal = 16.dp,
@@ -470,5 +461,14 @@ fun AsociacionCard(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Composable
+private fun CrearCampaniaColaboradorScreenPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) {
+        CrearCampaniaColaborativaScreen()
     }
 }

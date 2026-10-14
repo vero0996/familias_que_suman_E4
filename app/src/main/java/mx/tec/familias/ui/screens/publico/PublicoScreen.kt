@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.publico
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -30,47 +32,44 @@ fun PublicoScreen(
     var tituloDonacion by remember { mutableStateOf("") }
 
     Scaffold(
-        containerColor = Background,
+        containerColor = Color(0xFFF6FDFE),
         topBar = {
-            Surface(
-                color = Surface,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(start = 18.dp, end = 18.dp, top = 10.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = CardDefaults.cardColors(containerColor = Surface),
+                border = BorderStroke(1.dp, Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .statusBarsPadding()
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.fqslogo2),
-                        contentDescription = "Logo Familias que Suman",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .height(45.dp)
-                            .weight(1f),
-                        alignment = Alignment.CenterStart
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.fqslogo2),
+                            contentDescription = "Logo Familias que Suman",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.height(56.dp).weight(1f),
+                            alignment = Alignment.CenterStart
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
                         TextButton(onClick = onAdminClick) {
                             Text("Admin", fontSize = 14.sp, color = TextSecondary)
                         }
-                        Button(
-                            onClick = onIniciarSesionClick,
-                            colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Text("Iniciar Sesión", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = onIniciarSesionClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)
+                    ) {
+                        Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                            color = TextOnPrimary)
                     }
                 }
             }
@@ -80,13 +79,14 @@ fun PublicoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 20.dp, end = 20.dp)
+            contentPadding = PaddingValues(top = 18.dp, bottom = 32.dp, start = 18.dp, end = 18.dp)
         ) {
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
@@ -109,7 +109,7 @@ fun PublicoScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Beneficios de unirte", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text("Beneficios de unirte", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 ProjectFixedCard(nombre = "Comunidad", detalle = "Sé parte de una red de familias buscando mejorar su entorno de forma continua.")
@@ -117,7 +117,7 @@ fun PublicoScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Text("Nuestros Proyectos Fijos", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text("Nuestros Proyectos Fijos", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 PublicCampaignCard(
@@ -135,7 +135,7 @@ fun PublicoScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Text("Donaciones Activas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text("Donaciones Activas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 PublicDonationItemCard(
@@ -158,7 +158,7 @@ fun PublicoScreen(
             title = { Text("Donar a: $tituloDonacion", color = TealPrimary, fontWeight = FontWeight.Bold) },
             text = { Text("Puedes realizar tu entrega física directamente en nuestro centro de acopio principal. ¡Gracias por sumar!", color = TextSecondary) },
             confirmButton = {
-                Button(onClick = { mostrarDialogoDonacion = false }, colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)) {
+                Button(onClick = { mostrarDialogoDonacion = false }, shape = RoundedCornerShape(24.dp), colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)) {
                     Text("Entendido", color = TextOnPrimary)
                 }
             },
@@ -171,12 +171,13 @@ fun PublicoScreen(
 private fun ProjectFixedCard(nombre: String, detalle: String) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(28.dp),
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(text = nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = detalle, fontSize = 13.sp, color = TextSecondary, lineHeight = 18.sp)
         }
@@ -185,11 +186,17 @@ private fun ProjectFixedCard(nombre: String, detalle: String) {
 
 @Composable
 private fun PublicCampaignCard(title: String, description: String, imagenRes: Int) {
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Surface), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(140.dp))
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(22.dp)))
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = description, fontSize = 14.sp, color = TextSecondary)
             }
@@ -201,22 +208,27 @@ private fun PublicCampaignCard(title: String, description: String, imagenRes: In
 private fun PublicDonationItemCard(titulo: String, descripcion: String, meta: String, imagenRes: Int, onDonarClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(28.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column {
-            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(130.dp))
+        Column(modifier = Modifier.padding(8.dp)) {
+            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(130.dp).clip(RoundedCornerShape(22.dp)))
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = titulo, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = descripcion, fontSize = 13.sp, color = TextSecondary)
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BrownPrimary)
-                    Button(onClick = onDonarClick, colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary), shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), modifier = Modifier.height(36.dp)) {
-                        Text("Donar", fontSize = 13.sp, color = TextOnPrimary)
-                    }
+                Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BrownPrimary)
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onDonarClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)
+                ) {
+                    Text("Donar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextOnPrimary)
                 }
             }
         }

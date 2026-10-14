@@ -5,7 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import mx.tec.familias.ui.components.AdaptiveContainer
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,6 +17,7 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -30,25 +35,23 @@ import mx.tec.familias.ui.theme.*
 fun MensajesAdminScreen(
     onInicioClick: () -> Unit = {},
     onCampaniasClick: () -> Unit = {},
-    onChatClick: (String, Int) -> Unit = {} as (String, Int) -> Unit, // <-- Recibe el título (String) y la imagen (Int)
+    onChatClick: (String, Int) -> Unit = { _, _ -> }, // <-- Recibe el título (String) y la imagen (Int)
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
 ) {
     Scaffold(
-        containerColor = Background,
+        containerColor = TealLight.copy(alpha = 0.12f),
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text("Mensajes", color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                },
+            AdminScreenHeader(
+                title = "Mensajes",
                 navigationIcon = {
                     Image(
                         painter = painterResource(id = R.drawable.fotoperfil),
                         contentDescription = "Perfil",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .padding(start = 20.dp)
-                            .size(40.dp)
+                            .padding(start = 16.dp)
+                            .size(36.dp)
                             .clip(CircleShape)
                             .clickable {
                                 onPerfilClick()
@@ -59,93 +62,74 @@ fun MensajesAdminScreen(
                     IconButton(onClick = { }, modifier = Modifier.padding(end = 8.dp)) {
                         Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones", tint = TealPrimary)
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Background)
+                }
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Surface) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    selected = false,
-                    onClick = onInicioClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
-                    label = { Text("Campañas") },
-                    selected = false,
-                    onClick = onCampaniasClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
-                    label = { Text("Mensajes") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
-                    label = { Text("Configuración") },
-                    selected = false,
-                    onClick = onConfiguracionClick
-                )
-            }
+            AdminBottomNavigationBar(
+                currentDestination = AdminDestination.MENSAJES,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        AdminDestination.INICIO -> onInicioClick()
+                        AdminDestination.CAMPANIAS -> onCampaniasClick()
+                        AdminDestination.MENSAJES -> Unit
+                        AdminDestination.CONFIGURACION -> onConfiguracionClick()
+                    }
+                }
+            )
         }
     ) { paddingValues ->
-        //AdaptiveContainer {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
-            ) {
-                item {
-                    val titulo1 = "Coleta de útiles esc..."
-                    MensajeCard(
-                        titulo = titulo1,
-                        remitente = "Fundación Aprender Juntos",
-                        mensaje = "¡Hola! No olviden traer las m...",
-                        hora = "10:30",
-                        noLeidos = 1,
-                        esAnuncio = true,
-                        imagenId = R.drawable.utilesescolares,
-                        onClick = { onChatClick(titulo1, R.drawable.utilesescolares) } // <-- CAMBIO 2: Pasamos el título de este chat
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-                item {
-                    val titulo2 = "Apoyo al comedor comun..."
-                    MensajeCard(
-                        titulo = titulo2,
-                        remitente = "Red Solidaria",
-                        mensaje = "Se ha confirmado el punto de encuentro.",
-                        hora = "Ayer",
-                        noLeidos = 0,
-                        esAnuncio = false,
-                        imagenId = R.drawable.comedorcomunitario,
-                        onClick = { onChatClick(titulo2, R.drawable.comedorcomunitario) } // <-- CAMBIO 2: Pasamos el título de este chat
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-                item {
-                    val titulo3 = "Jornada familiar de volur..."
-                    MensajeCard(
-                        titulo = titulo3,
-                        remitente = "Asociación EcoVerde",
-                        mensaje = "Gracias por participar en la reforestación.",
-                        hora = "Lunes",
-                        noLeidos = 0,
-                        esAnuncio = false,
-                        imagenId = R.drawable.eco,
-                        onClick = { onChatClick(titulo3, R.drawable.eco) } // <-- CAMBIO 2: Pasamos el título de este chat
-                    )
-                }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 18.dp),
+            contentPadding = PaddingValues(top = 18.dp, bottom = 32.dp)
+        ) {
+            item {
+                val titulo1 = "Coleta de útiles esc..."
+                MensajeCard(
+                    titulo = titulo1,
+                    remitente = "Fundación Aprender Juntos",
+                    mensaje = "¡Hola! No olviden traer las m...",
+                    hora = "10:30",
+                    noLeidos = 1,
+                    esAnuncio = true,
+                    imagenId = R.drawable.utilesescolares,
+                    onClick = { onChatClick(titulo1, R.drawable.utilesescolares) } // <-- CAMBIO 2: Pasamos el título de este chat
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            item {
+                val titulo2 = "Apoyo al comedor comun..."
+                MensajeCard(
+                    titulo = titulo2,
+                    remitente = "Red Solidaria",
+                    mensaje = "Se ha confirmado el punto de encuentro.",
+                    hora = "Ayer",
+                    noLeidos = 0,
+                    esAnuncio = false,
+                    imagenId = R.drawable.comedorcomunitario,
+                    onClick = { onChatClick(titulo2, R.drawable.comedorcomunitario) } // <-- CAMBIO 2: Pasamos el título de este chat
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            item {
+                val titulo3 = "Jornada familiar de volur..."
+                MensajeCard(
+                    titulo = titulo3,
+                    remitente = "Asociación EcoVerde",
+                    mensaje = "Gracias por participar en la reforestación.",
+                    hora = "Lunes",
+                    noLeidos = 0,
+                    esAnuncio = false,
+                    imagenId = R.drawable.eco,
+                    onClick = { onChatClick(titulo3, R.drawable.eco) } // <-- CAMBIO 2: Pasamos el título de este chat
+                )
             }
         }
     }
-//}
+}
 
 // Componente reutilizable para cada chat de la lista
 @Composable
@@ -161,7 +145,9 @@ fun MensajeCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
@@ -169,7 +155,7 @@ fun MensajeCard(
             }
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier.padding(18.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Foto del chat
@@ -177,7 +163,7 @@ fun MensajeCard(
                 painter = painterResource(id = imagenId),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.size(56.dp).clip(CircleShape).background(Divider)
+                modifier = Modifier.size(56.dp).clip(RoundedCornerShape(18.dp)).background(TealLight)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -192,7 +178,7 @@ fun MensajeCard(
                 ) {
                     Text(
                         text = titulo,
-                        color = TealPrimary,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         maxLines = 1,
@@ -258,5 +244,14 @@ fun MensajeCard(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Composable
+private fun MensajesAdminScreenPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) {
+        MensajesAdminScreen()
     }
 }
