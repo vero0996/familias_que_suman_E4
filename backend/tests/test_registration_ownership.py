@@ -273,3 +273,24 @@ def test_family_cannot_create_duplicate_active_registration(registration_sandbox
     )
 
     assert response.status_code == 409, response.text
+
+def test_family_registration_goes_to_waitlist_when_capacity_is_exceeded(
+    registration_sandbox,
+):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = 1
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == "lista_espera"
