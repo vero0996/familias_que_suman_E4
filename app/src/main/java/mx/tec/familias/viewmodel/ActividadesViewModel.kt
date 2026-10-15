@@ -25,6 +25,7 @@ import mx.tec.familias.data.repository.RegistrationRemoteRepository
 import mx.tec.familias.data.remote.SurveyCreateRequest
 import mx.tec.familias.data.remote.SurveyResponse
 import mx.tec.familias.data.repository.SurveyRemoteRepository
+import android.util.Log
 
 class ActividadesViewModel(
     private val sessionManager: SessionManager
@@ -165,7 +166,7 @@ class ActividadesViewModel(
                         mx.tec.familias.data.model.Inscripcion(
                             id = remote.id.toString(),
                             eventoId = remote.activity_id.toString(),
-                            familiaId = remote.family_id.toString(),
+                            familiaId = familiaId,
                             participantesIds = emptyList(),
                             observaciones = remote.notes.orEmpty(),
                             estado = it,
@@ -296,12 +297,31 @@ class ActividadesViewModel(
                     )
                 )
 
+                val estadoNormalizado = response.status
+                    .trim()
+                    .uppercase(java.util.Locale.ROOT)
 
-                val estadoInscripcionEnum = if (response.status == "lista_espera" || response.status == "EN_ESPERA") {
-                    mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
-                } else {
-                    mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+                val confirmadaRemota = estadoNormalizado == "CONFIRMADA"
+
+                val enEsperaRemota = estadoNormalizado in setOf(
+                    "EN_ESPERA",
+                    "LISTA_ESPERA"
+                )
+
+                val estadoInscripcionEnum = when (estadoNormalizado) {
+                    "LISTA_ESPERA", "EN_ESPERA" ->
+                        mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+
+                    "CONFIRMADA" ->
+                        mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+
+                    else -> {
+                        throw IllegalStateException(
+                            "El backend devolvió un estado de inscripción desconocido: ${response.status}"
+                        )
+                    }
                 }
+
 
                 val nuevaInscripcion = mx.tec.familias.data.model.Inscripcion(
                     id = response.id.toString(),

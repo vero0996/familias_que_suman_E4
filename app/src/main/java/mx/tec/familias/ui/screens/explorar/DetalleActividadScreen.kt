@@ -357,26 +357,39 @@ fun DetalleActividadScreen(
                 }
 
 
-                if (inscripcionConfirmada) {
-                    Button(
-                        onClick = onConsultarCalendarioClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(22.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = TealPrimary
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarToday,
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
+
+                if (inscripcionActiva) {
+
+                    // Solo las inscripciones confirmadas tienen acceso al calendario.
+                    if (inscripcionConfirmada) {
+                        Button(
+                            onClick = onConsultarCalendarioClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(22.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = TealPrimary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+
+                            Text(
+                                text = "Consultar en calendario",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
                         Text(
-                            text = "Consultar en calendario",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            text = "Tu familia está en lista de espera.",
+                            color = TealPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
 
@@ -394,10 +407,12 @@ fun DetalleActividadScreen(
                     ) {
                         Text("Cancelar inscripción a la actividad")
                     }
+
                 } else {
+
                     Button(
                         onClick = onInscribirseClick,
-                        enabled = !inscripcionActiva && !inscripcionesCerradas,
+                        enabled = !inscripcionesCerradas,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -408,7 +423,6 @@ fun DetalleActividadScreen(
                     ) {
                         Text(
                             text = when {
-                                inscripcionActiva -> "Estás en lista de espera"
                                 inscripcionesCerradas -> "Inscripciones cerradas"
                                 disponibles == 0 -> "Unirme a lista de espera"
                                 else -> "Inscribirme como Familia"

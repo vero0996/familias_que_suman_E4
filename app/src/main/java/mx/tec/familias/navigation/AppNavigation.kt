@@ -56,6 +56,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.tec.familias.data.remote.SessionManager
 import mx.tec.familias.viewmodel.ActividadesViewModelFactory
 import androidx.compose.runtime.LaunchedEffect
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.currentBackStackEntryAsState
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -445,6 +449,23 @@ fun AppNavigation() {
         }
 
         composable(Routes.DetalleActividad.route) {
+            val entradaActual by navController.currentBackStackEntryAsState()
+
+            LaunchedEffect(
+                entradaActual,
+                familyViewModel.familiaId,
+                actividadSeleccionada.id
+            ) {
+                if (
+                    entradaActual?.destination?.route == Routes.DetalleActividad.route &&
+                    familyViewModel.familiaId.isNotBlank()
+                ) {
+                    actividadesViewModel.cargarMisInscripcionesYEncuestas(
+                        familyViewModel.familiaId
+                    )
+                }
+            }
+
             DetalleActividadScreen(
                 inscripcionConfirmada = estadoActividades.inscripciones.any {
                     it.eventoId == actividadSeleccionada.id &&
@@ -453,25 +474,31 @@ fun AppNavigation() {
                 },
                 error = actividadesViewModel.error,
                 onCancelarInscripcionClick = {
-                    actividadesViewModel.cancelarInscripcion(familyViewModel.familiaId)
+                    actividadesViewModel.cancelarInscripcion(
+                        familyViewModel.familiaId
+                    )
                 },
                 actividad = actividadSeleccionada,
                 ocupados = estadoActividades.ocupados(actividadSeleccionada.id),
                 disponibles = estadoActividades.disponibles(actividadSeleccionada.id),
-                inscripcionesCerradas = System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
+                inscripcionesCerradas =
+                    System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
                 inscripcionActiva = estadoActividades.inscripciones.any {
-                    it.eventoId == actividadSeleccionada.id && it.familiaId == familyViewModel.familiaId &&
-                            it.estado in listOf(mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
-                        mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                    it.eventoId == actividadSeleccionada.id &&
+                            it.familiaId == familyViewModel.familiaId &&
+                            it.estado in listOf(
+                        mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
+                        mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+                    )
                 },
-                onBackClick = { navController.popBackStack() },
-
+                onBackClick = {
+                    navController.popBackStack()
+                },
                 onConsultarCalendarioClick = {
                     navController.navigate(Routes.Actividades.route) {
                         launchSingleTop = true
                     }
                 },
-
                 onInscribirseClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Inscripcion.route
@@ -484,111 +511,150 @@ fun AppNavigation() {
         }
 
         composable(Routes.Inscripcion.route) {
-    InscripcionScreen(
-        viewModel = familyViewModel,
-        actividad = actividadSeleccionada,
+            InscripcionScreen(
+                viewModel = familyViewModel,
+                actividad = actividadSeleccionada,
 
-        onBackClick = {
-            navController.popBackStack()
-        },
+                onBackClick = {
+                    navController.popBackStack()
+                },
 
-        enEspera = estadoActividades.disponibles(actividadSeleccionada.id) == 0,
-        error = actividadesViewModel.error,
+                enEspera = estadoActividades.disponibles(actividadSeleccionada.id) == 0,
+                error = actividadesViewModel.error,
 
-        onConfirmarClick = { participantes, observaciones ->
 
-            // 1. Registrar la inscripción en el sistema de actividades
+                onConfirmarClick = { participantes, observaciones ->
 
-            actividadesViewModel.inscribir(
-                familyViewModel.familiaId,
-                participantes,
-                observaciones
-            ) { exito, estadoRemoto ->
+                    actividadesViewModel.inscribir(
+                        familyViewModel.familiaId,
+                        participantes,
+                        observaciones
+                    ) { exito, estadoRemoto ->
 
-                // No navegar si el backend rechazó la inscripción.
-                if (!exito || estadoRemoto == null) {
-                    return@inscribir
-                }
+                        // 1. Distinguir un duplicado de un error real.
+                        if (!exito) {
+                            if (!estadoRemoto.isNullOrBlank()) {
+                                Toast.makeText(
+                                    context,
+                                    "Tu familia ya tiene una inscripción activa en esta actividad.",
+                                    Toast.LENGTH_LONG
+                                ).show()
 
-                val usuarioActual = familyViewModel.usuario.value
-
-                if (usuarioActual != null) {
-
-                    // Los IDs seleccionados corresponden únicamente a acompañantes.
-                    val integrantesSeleccionados =
-                        familyViewModel.integrantes
-                            .filter { it.id in participantes }
-                            .map { it.nombre }
-
-                    // El titular siempre participa.
-                    val integrantesInscritos =
-                        listOf(usuarioActual.nombre) + integrantesSeleccionados
-
-                    val personasInscritas = integrantesInscritos.size
-
-                    // El backend es la fuente de verdad del estado.
-                    val confirmadaRemota = estadoRemoto == "confirmada"
-
-                    // Conservamos la actualización local que utiliza Admin.
-                    val lugaresOcupados = participantesAdmin
-                        .filter {
-                            it.estado == EstadoParticipante.CONFIRMADO
-                        }
-                        .flatMap { it.lugaresAsignados }
-                        .toSet()
-
-                    val lugaresDisponibles =
-                        (1..actividadAdmin.cuposTotales)
-                            .filterNot { it in lugaresOcupados }
-
-                    val lugaresAsignados =
-                        if (confirmadaRemota) {
-                            lugaresDisponibles.take(personasInscritas)
-                        } else {
-                            emptyList()
-                        }
-
-                    val nuevoParticipante = ParticipanteActividadAdmin(
-                        id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
-                        nombreFamilia = "Familia ${usuarioActual.nombre}",
-                        correo = usuarioActual.correo,
-                        telefono = usuarioActual.telefono,
-                        integrantes = integrantesInscritos,
-                        estado = if (confirmadaRemota) {
-                            EstadoParticipante.CONFIRMADO
-                        } else {
-                            EstadoParticipante.LISTA_ESPERA
-                        },
-                        lugaresAsignados = lugaresAsignados
-                    )
-
-                    participantesAdmin = participantesAdmin + nuevoParticipante
-
-                    actividadAdmin = actividadAdmin.copy(
-                        participantes = participantesAdmin
-                            .filter {
-                                it.estado == EstadoParticipante.CONFIRMADO
+                                navController.popBackStack(
+                                    Routes.DetalleActividad.route,
+                                    inclusive = false
+                                )
                             }
-                            .sumOf { it.integrantes.size }
-                    )
-                }
 
-                // Navegar solamente después de recibir una respuesta exitosa.
+                            // Si el estado es null, el error se muestra en InscripcionScreen.
+                            return@inscribir
+                        }
 
-                // Navegar a Explorar únicamente después de recibir
-                // una respuesta exitosa del backend.
-                navController.navigate(Routes.Explorar.route) {
-                    popUpTo(Routes.Explorar.route) {
-                        inclusive = false
+                        if (estadoRemoto.isNullOrBlank()) {
+                            return@inscribir
+                        }
+
+                        // 2. Normalizar la respuesta del backend.
+                        val estadoNormalizado = estadoRemoto
+                            .trim()
+                            .uppercase(java.util.Locale.ROOT)
+
+                        val confirmadaRemota = estadoNormalizado == "CONFIRMADA"
+
+                        val enEsperaRemota = estadoNormalizado in setOf(
+                            "EN_ESPERA",
+                            "LISTA_ESPERA"
+                        )
+
+                        // No aceptar estados inesperados.
+                        if (!confirmadaRemota && !enEsperaRemota) {
+                            Toast.makeText(
+                                context,
+                                "El servidor devolvió un estado de inscripción inesperado.",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            return@inscribir
+                        }
+
+                        // 3. Actualizar los participantes de la vista Admin.
+                        val usuarioActual = familyViewModel.usuario.value
+
+                        if (usuarioActual != null) {
+                            val integrantesSeleccionados =
+                                familyViewModel.integrantes
+                                    .filter { it.id in participantes }
+                                    .map { it.nombre }
+
+                            // El titular participa junto con los acompañantes.
+                            val integrantesInscritos =
+                                listOf(usuarioActual.nombre) + integrantesSeleccionados
+
+                            val lugaresOcupados = participantesAdmin
+                                .filter {
+                                    it.estado == EstadoParticipante.CONFIRMADO
+                                }
+                                .flatMap { it.lugaresAsignados }
+                                .toSet()
+
+                            val lugaresDisponibles =
+                                (1..actividadAdmin.cuposTotales)
+                                    .filterNot { it in lugaresOcupados }
+
+                            val lugaresAsignados =
+                                if (confirmadaRemota) {
+                                    lugaresDisponibles.take(integrantesInscritos.size)
+                                } else {
+                                    emptyList()
+                                }
+
+                            val nuevoParticipante = ParticipanteActividadAdmin(
+                                id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
+                                nombreFamilia = "Familia ${usuarioActual.nombre}",
+                                correo = usuarioActual.correo,
+                                telefono = usuarioActual.telefono,
+                                integrantes = integrantesInscritos,
+                                estado = if (confirmadaRemota) {
+                                    EstadoParticipante.CONFIRMADO
+                                } else {
+                                    EstadoParticipante.LISTA_ESPERA
+                                },
+                                lugaresAsignados = lugaresAsignados
+                            )
+
+                            participantesAdmin = participantesAdmin + nuevoParticipante
+
+                            actividadAdmin = actividadAdmin.copy(
+                                participantes = participantesAdmin
+                                    .filter {
+                                        it.estado == EstadoParticipante.CONFIRMADO
+                                    }
+                                    .sumOf { it.integrantes.size }
+                            )
+                        }
+
+                        // 4. Avisar y regresar al detalle existente.
+                        val mensaje = if (confirmadaRemota) {
+                            "¡Inscripción confirmada!"
+                        } else {
+                            "Tu familia quedó en lista de espera."
+                        }
+
+                        Toast.makeText(
+                            context,
+                            mensaje,
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        navController.popBackStack(
+                            Routes.DetalleActividad.route,
+                            inclusive = false
+                        )
                     }
-                    launchSingleTop = true
                 }
 
-            }
-
+            )
         }
-    )
-}
 
         composable(Routes.ConfirmacionInscripcion.route) {
             val solicitud = estadoActividades.inscripciones.firstOrNull {
@@ -598,14 +664,22 @@ fun AppNavigation() {
             val actividad = solicitud?.let { estadoActividades.evento(it.eventoId) }
                 ?: actividadSeleccionada
 
-            val estadoInscripcion = solicitud?.estado
-                ?: if (actividadesViewModel.ultimaInscripcionEstado == "lista_espera" ||
-                    actividadesViewModel.ultimaInscripcionEstado == "EN_ESPERA"
-                ) {
-                    mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
-                } else {
+            val estadoNormalizado = actividadesViewModel
+                .ultimaInscripcionEstado
+                ?.trim()
+                ?.uppercase(java.util.Locale.ROOT)
+
+            val estadoInscripcion = when (estadoNormalizado) {
+                "CONFIRMADA" ->
                     mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
-                }
+
+                "EN_ESPERA", "LISTA_ESPERA" ->
+                    mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+
+                else ->
+                    solicitud?.estado
+                        ?: mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+            }
 
             val posicion = solicitud?.let {
                 if (it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
