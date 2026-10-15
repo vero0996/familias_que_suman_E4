@@ -109,3 +109,73 @@ def test_login_inactive_account_is_rejected(login_sandbox):
     assert response.status_code == 401
     assert response.json()["detail"] == "Correo o contraseña incorrectos"
     assert "access_token" not in response.json()
+
+
+def test_login_response_does_not_expose_sensitive_user_fields(login_sandbox):
+    client, engine = login_sandbox
+
+    from auth import password_hash
+
+    password = "Password-seguro-123!"
+
+    with Session(engine) as db:
+        db.add(
+            User(
+                full_name="Usuario de prueba",
+                email="respuesta-segura@example.com",
+                phone=None,
+                password_hash=password_hash.hash(password),
+                role="familia",
+                is_active=True,
+            )
+        )
+        db.commit()
+
+    response = client.post(
+        "/auth/login",
+        json={
+            "email": "respuesta-segura@example.com",
+            "password": password,
+        },
+    )
+
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+    assert set(body) == {"access_token", "token_type"}
+    assert "password" not in body
+    assert "password_hash" not in body
+    assert "email" not in body
+
+
+def test_current_user_response_does_not_expose_sensitive_fields(login_sandbox):
+    client, engine = login_sandbox
+
+    from auth import create_access_token, password_hash
+
+    with Session(engine) as db:
+        user = User(
+            full_name="Usuario de prueba",
+            email="perfil-seguro@example.com",
+            phone=None,
+            password_hash=password_hash.hash("Password-seguro-123!"),
+            role="familia",
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        token = create_access_token(user)
+
+    response = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+    assert set(body) == {"id", "full_name", "email", "phone", "role"}
+    assert "password" not in body
+    assert "password_hash" not in body
+    assert "is_active" not in body
