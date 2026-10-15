@@ -223,3 +223,48 @@ def test_jwt_secret_of_at_least_32_characters_is_accepted(monkeypatch):
     assert auth.get_jwt_secret() == secret
     assert dependencies.get_jwt_secret() == secret
 
+
+def test_token_signed_with_different_algorithm_is_rejected():
+    token = jwt.encode(
+        {
+            "sub": "1",
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=10),
+        },
+        "test-only-secret-key-at-least-32-characters-long",
+        algorithm="HS384",
+    )
+
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=token,
+    )
+
+    with pytest.raises(HTTPException) as error:
+        get_current_user(credentials, FakeDB(make_user()))
+
+    assert error.value.status_code == 401
+    assert error.value.detail == "Token inválido o expirado"
+
+
+def test_token_with_modified_signature_is_rejected():
+    token = make_token()
+    parts = token.split(".")
+
+    # Alterar un carácter de la firma sin cambiar el encabezado ni el payload.
+    signature = parts[2]
+    replacement = "A" if signature[0] != "A" else "B"
+    parts[2] = replacement + signature[1:]
+    tampered_token = ".".join(parts)
+
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=tampered_token,
+    )
+
+    with pytest.raises(HTTPException) as error:
+        get_current_user(credentials, FakeDB(make_user()))
+
+    assert error.value.status_code == 401
+    assert error.value.detail == "Token inválido o expirado"
+
