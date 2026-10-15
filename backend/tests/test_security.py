@@ -95,3 +95,29 @@ def test_admin_role_can_access_admin_function():
 def test_invalid_role_configuration_is_rejected():
     with pytest.raises(ValueError):
         require_role("superuser")
+
+
+def test_current_user_uses_role_from_database_not_token():
+    user = make_user(role="familia")
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=jwt.encode(
+            {
+                "sub": str(user.id),
+                "role": "admin",
+                "iat": datetime.now(timezone.utc),
+                "exp": datetime.now(timezone.utc) + timedelta(minutes=10),
+            },
+            "test-only-secret-key-at-least-32-characters-long",
+            algorithm="HS256",
+        ),
+    )
+
+    current_user = get_current_user(credentials, FakeDB(user))
+
+    assert current_user.role == "familia"
+
+    with pytest.raises(HTTPException) as error:
+        require_role("admin")(current_user=current_user)
+
+    assert error.value.status_code == 403
