@@ -62,15 +62,10 @@ data class EstadoActividades(
         )
 
     /** Total de personas ocupando lugares, incluida la ocupación publicada. */
+
     fun ocupados(id: String): Int {
         val ev = eventoOrNull(id) ?: return 0
-        return ev.ocupacionInicial +
-                inscripciones
-                    .filter {
-                        it.eventoId == id &&
-                                it.estado == EstadoInscripcion.CONFIRMADA
-                    }
-                    .sumOf { it.participantesIds.distinct().size }
+        return ev.ocupacionInicial
     }
 
     fun disponibles(id: String): Int {

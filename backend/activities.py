@@ -1,11 +1,17 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 from datetime import datetime
 from database import get_db
 from dependencies import require_role
-from models import Activity, Campaign, User
+from sqlalchemy import func, select
+from models import (
+    Activity,
+    Campaign,
+    FamilyMember,
+    Registration,
+    User,
+)
 from schemas import ActivityCreate, ActivityResponse, ActivityUpdate
 
 router = APIRouter(prefix="/activities", tags=["Actividades"])
@@ -50,9 +56,42 @@ def ensure_compatible_datetimes(*values: datetime | None) -> None:
         )
 
 
+def build_activity_response(
+    db: Session,
+    activity: Activity,
+) -> ActivityResponse:
+    """Construye la respuesta de una actividad con su ocupación real."""
+
+    # Cada inscripción confirmada cuenta un titular.
+    titulares = db.scalar(
+        select(func.count(Registration.id)).where(
+            Registration.activity_id == activity.id,
+            Registration.status == "confirmada",
+        )
+    ) or 0
+
+    # Los participantes asociados son acompañantes del titular.
+    acompanantes = db.scalar(
+        select(func.count(FamilyMember.id))
+        .select_from(Registration)
+        .join(Registration.participants)
+        .where(
+            Registration.activity_id == activity.id,
+            Registration.status == "confirmada",
+        )
+    ) or 0
+
+    response = ActivityResponse.model_validate(activity)
+
+    return response.model_copy(
+        update={"confirmed_people": titulares + acompanantes}
+    )
+
+
+
 @router.get("", response_model=list[ActivityResponse])
 def list_activities(db: Session = Depends(get_db)):
-    """Lista actividades publicadas de campañas publicadas."""
+    """Lista actividades publicadas con su ocupación real."""
     statement = (
         select(Activity)
         .join(Campaign, Activity.campaign_id == Campaign.id)
@@ -62,7 +101,14 @@ def list_activities(db: Session = Depends(get_db)):
         )
         .order_by(Activity.starts_at)
     )
-    return db.scalars(statement).all()
+
+    activities = db.scalars(statement).all()
+
+    return [
+        build_activity_response(db, activity)
+        for activity in activities
+    ]
+
 
 
 @router.get("/{activity_id}", response_model=ActivityResponse)
@@ -84,7 +130,7 @@ def get_activity(activity_id: int, db: Session = Depends(get_db)):
             detail="Actividad no encontrada",
         )
 
-    return activity
+    return build_activity_response(db, activity)
 
 
 @router.post(
@@ -124,7 +170,7 @@ def create_activity(
     db.commit()
     db.refresh(activity)
 
-    return activity
+    return build_activity_response(db, activity)
 
 
 
@@ -235,4 +281,4 @@ def update_activity(
     db.commit()
     db.refresh(activity)
 
-    return activity
+    return build_activity_response(db, activity)

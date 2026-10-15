@@ -107,7 +107,7 @@ class ActividadesViewModel(
                         cierreInscripciones = parseEpochMillis(
                             remote.registration_deadline
                         ),
-                        ocupacionInicial = 0,
+                        ocupacionInicial = remote.confirmed_people,
                         url = "",
                         puntoEncuentro = remote.location,
                         tipoAportacion = "",

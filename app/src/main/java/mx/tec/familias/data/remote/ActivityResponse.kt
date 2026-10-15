@@ -15,5 +15,6 @@ data class ActivityResponse(
     val registration_deadline: String?,
     val status: String,
     val created_by_user_id: Int?,
-    val created_at: String
+    val created_at: String,
+    val confirmed_people: Int = 0
 )

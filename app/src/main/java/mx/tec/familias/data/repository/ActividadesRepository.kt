@@ -52,6 +52,10 @@ class ActividadesRepository(
             "Selecciona al menos un participante."
         }
 
+        require(participantes.isNotEmpty()) {
+            "Selecciona al menos un participante."
+        }
+
         val evento = eventos.firstOrNull { it.id == eventoId }
             ?: throw IllegalArgumentException("La actividad no existe.")
 
@@ -66,11 +70,6 @@ class ActividadesRepository(
 
         val estadoActual = consultar()
         val disponibles = estadoActual.disponibles(eventoId)
-
-        require(participantes.size <=
-                evento.capacidadPersonas - evento.ocupacionInicial) {
-            "El número de participantes supera la capacidad disponible de la actividad."
-        }
 
         val confirmada = participantes.size <= disponibles
 

@@ -208,6 +208,7 @@ class ActivityUpdate(BaseModel):
         return value
 
 
+
 class ActivityResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -228,10 +229,12 @@ class ActivityResponse(BaseModel):
     status: str
     created_by_user_id: int | None
     created_at: datetime
+    confirmed_people: int = 0
+
 
 class RegistrationCreate(BaseModel):
-    activity_id: int = Field(gt=0)
-    participant_ids: list[int] = Field(min_length=1, max_length=20)
+    activity_id: int
+    participant_ids: list[int] = Field(default_factory=list)
     notes: str | None = Field(default=None, max_length=2000)
 
     @field_validator("participant_ids")
