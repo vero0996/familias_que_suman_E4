@@ -1,6 +1,7 @@
 ﻿from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
-
+import auth
+import dependencies
 import jwt
 import pytest
 from fastapi import HTTPException
@@ -179,4 +180,46 @@ def test_token_with_malformed_subject_is_rejected(invalid_sub):
 
     assert error.value.status_code == 401
     assert error.value.detail == "Token inválido o expirado"
+
+@pytest.mark.parametrize(
+    "secret",
+    [None, "", "corto"],
+    ids=["missing", "empty", "too-short"],
+)
+def test_auth_rejects_missing_or_weak_jwt_secret(monkeypatch, secret):
+    monkeypatch.setenv("JWT_SECRET_KEY", secret) if secret is not None else (
+        monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
+    )
+
+    with pytest.raises(HTTPException) as error:
+        auth.get_jwt_secret()
+
+    assert error.value.status_code == 503
+
+
+@pytest.mark.parametrize(
+    "secret",
+    [None, "", "corto"],
+    ids=["missing", "empty", "too-short"],
+)
+def test_dependencies_reject_missing_or_weak_jwt_secret(
+    monkeypatch, secret
+):
+    if secret is None:
+        monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
+    else:
+        monkeypatch.setenv("JWT_SECRET_KEY", secret)
+
+    with pytest.raises(HTTPException) as error:
+        dependencies.get_jwt_secret()
+
+    assert error.value.status_code == 503
+
+
+def test_jwt_secret_of_at_least_32_characters_is_accepted(monkeypatch):
+    secret = "test-only-secret-key-at-least-32-characters-long"
+    monkeypatch.setenv("JWT_SECRET_KEY", secret)
+
+    assert auth.get_jwt_secret() == secret
+    assert dependencies.get_jwt_secret() == secret
 
