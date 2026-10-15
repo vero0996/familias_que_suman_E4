@@ -334,3 +334,49 @@ def test_patch_mixed_timezone_dates_returns_validation_error(security_sandbox):
     )
 
     assert response.status_code == 422, response.text
+
+def test_campaign_patch_cannot_change_owner_or_id(security_sandbox):
+    client, _, ids, TestSession = security_sandbox
+
+    response = client.patch(
+        f"/campaigns/{ids['campaign_a']}",
+        json={
+            "title": "Título actualizado",
+            "id": ids["campaign_b"],
+            "created_by_user_id": ids["org_b"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "Título actualizado"
+    assert response.json()["id"] == ids["campaign_a"]
+    assert response.json()["created_by_user_id"] == ids["org_a"]
+
+    with TestSession() as db:
+        campaign = db.get(Campaign, ids["campaign_a"])
+        assert campaign.created_by_user_id == ids["org_a"]
+
+
+def test_activity_patch_cannot_change_owner_campaign_or_id(security_sandbox):
+    client, _, ids, TestSession = security_sandbox
+
+    response = client.patch(
+        f"/activities/{ids['activity_a']}",
+        json={
+            "title": "Actividad actualizada",
+            "id": ids["activity_b"],
+            "campaign_id": ids["campaign_b"],
+            "created_by_user_id": ids["org_b"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "Actividad actualizada"
+    assert response.json()["id"] == ids["activity_a"]
+    assert response.json()["campaign_id"] == ids["campaign_a"]
+    assert response.json()["created_by_user_id"] == ids["org_a"]
+
+    with TestSession() as db:
+        activity = db.get(Activity, ids["activity_a"])
+        assert activity.campaign_id == ids["campaign_a"]
+        assert activity.created_by_user_id == ids["org_a"]
