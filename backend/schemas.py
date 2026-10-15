@@ -232,9 +232,14 @@ class ActivityResponse(BaseModel):
     confirmed_people: int = 0
 
 
+
 class RegistrationCreate(BaseModel):
-    activity_id: int
-    participant_ids: list[int] = Field(default_factory=list)
+    activity_id: int = Field(gt=0)
+    participant_ids: list[int] = Field(
+        default_factory=list,
+        min_length=1,
+        max_length=20,
+    )
     notes: str | None = Field(default=None, max_length=2000)
 
     @field_validator("participant_ids")
@@ -244,7 +249,7 @@ class RegistrationCreate(BaseModel):
             raise ValueError("Los IDs de integrantes deben ser positivos")
 
         if len(value) != len(set(value)):
-            raise ValueError("No puedes repetir integrantes")
+            raise ValueError("No se permiten integrantes duplicados")
 
         return value
 
@@ -256,6 +261,7 @@ class RegistrationCreate(BaseModel):
 
         value = value.strip()
         return value or None
+
 
 
 class RegistrationCancelRequest(BaseModel):

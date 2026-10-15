@@ -66,7 +66,7 @@ def registration_sandbox():
             starts_at=now + timedelta(days=10),
             ends_at=now + timedelta(days=10, hours=2),
             location="Lugar de prueba",
-            capacity_families=10,
+            capacity_people=10,
             registration_deadline=now + timedelta(days=5),
             status="publicada",
         )
@@ -77,7 +77,7 @@ def registration_sandbox():
             starts_at=now + timedelta(days=10),
             ends_at=now + timedelta(days=10, hours=2),
             location="Lugar de prueba",
-            capacity_families=10,
+            capacity_people=10,
             registration_deadline=now + timedelta(days=5),
             status="publicada",
         )
