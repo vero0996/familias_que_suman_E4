@@ -185,7 +185,7 @@ def create_registration(
 
     if len(participants) != len(data.participant_ids):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Todos los integrantes deben pertenecer a tu familia y estar activos",
         )
 
