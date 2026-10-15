@@ -76,10 +76,18 @@ fun DetalleActividadScreen(
     inscripcionConfirmada: Boolean = false,
     inscripcionesCerradas: Boolean = false,
     error: String? = null,
-    onCancelarInscripcionClick: () -> Boolean
+    onCancelarInscripcionClick: (onResult: (Boolean, String?) -> Unit) -> Unit
 ) {
     var mostrarDialogoCancelar by remember(actividad.id) { mutableStateOf(false) }
     var mostrarDialogoCompartir by remember(actividad.id) { mutableStateOf(false) }
+
+    var cancelandoInscripcion by remember(actividad.id) {
+        mutableStateOf(false)
+    }
+
+    var errorCancelacion by remember(actividad.id) {
+        mutableStateOf<String?>(null)
+    }
 
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -439,7 +447,9 @@ fun DetalleActividadScreen(
 
     if (mostrarDialogoCancelar) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogoCancelar = false },
+            onDismissRequest = {
+                if (!cancelandoInscripcion) mostrarDialogoCancelar = false
+            },
             containerColor = Surface,
             title = {
                 Text(
@@ -449,26 +459,53 @@ fun DetalleActividadScreen(
                 )
             },
             text = {
-                Text(
-                    "Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
-                            "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera."
-                )
+                Column {
+                    Text(
+                        "Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
+                                "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera."
+                    )
+                    if (errorCancelacion != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = errorCancelacion!!,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             },
             confirmButton = {
                 TextButton(
+                    enabled = !cancelandoInscripcion,
                     onClick = {
-                        onCancelarInscripcionClick()
-                        mostrarDialogoCancelar = false
+                        cancelandoInscripcion = true
+                        errorCancelacion = null
+
+                        onCancelarInscripcionClick { exito, mensaje ->
+                            cancelandoInscripcion = false
+
+                            if (exito) {
+                                mostrarDialogoCancelar = false
+                                Toast.makeText(
+                                    context,
+                                    mensaje ?: "Inscripción cancelada.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                errorCancelacion = mensaje
+                                    ?: "No se pudo cancelar la inscripción."
+                            }
+                        }
                     }
                 ) {
                     Text(
-                        text = "Sí, cancelar",
+                        text = if (cancelandoInscripcion) "Cancelando..." else "Sí, cancelar",
                         color = Color.Red
                     )
                 }
             },
             dismissButton = {
                 TextButton(
+                    enabled = !cancelandoInscripcion,
                     onClick = { mostrarDialogoCancelar = false }
                 ) {
                     Text("Volver")

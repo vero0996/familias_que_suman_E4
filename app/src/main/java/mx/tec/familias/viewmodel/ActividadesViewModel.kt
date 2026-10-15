@@ -370,41 +370,51 @@ class ActividadesViewModel(
     }
 
 
-    fun cancelarInscripcion(familiaId: String): Boolean {
-        error = null
+    fun cancelarInscripcion(
+        familiaId: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            cargando = true
+            error = null
 
-        val solicitud = estado.inscripciones.firstOrNull {
-            it.eventoId == eventoSeleccionadoId &&
-                    it.familiaId == familiaId &&
-                    it.estado ==
-                    mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
-        }
+            try {
+                val token = sessionManager.token.first()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException("Tu sesión expiró. Inicia sesión nuevamente.")
 
-        if (solicitud == null) {
-            error = "No tienes una inscripción confirmada en esta actividad."
-            return false
-        }
+                val activityId = eventoSeleccionadoId.toIntOrNull()
+                    ?: throw IllegalStateException("Selecciona una actividad válida.")
 
-        return try {
-            val cancelada = repositorio.cancelar(
-                solicitud.id,
-                familiaId
-            )
+                val misInscripciones = registrationRepository.getMyRegistrations(token)
+                val inscripcionActiva = misInscripciones.firstOrNull {
+                    it.activity_id == activityId &&
+                            !it.status.equals("cancelada", ignoreCase = true)
+                } ?: throw IllegalStateException("No tienes una inscripción activa en esta actividad.")
 
-            estado = repositorio.consultar()
+                val registrationId = inscripcionActiva.id
 
-            if (!cancelada) {
-                error = "La inscripción ya no está disponible."
+                registrationRepository.cancelRegistration(
+                    token = token,
+                    registrationId = registrationId,
+                    reason = "Cancelada por la familia"
+                )
+
+                // Actualizar inscripciones y encuestas remotas para refrescar cupos y estado
+                cargarMisInscripcionesYEncuestas(familiaId)
+
+                if (ultimaInscripcionId == registrationId.toString()) {
+                    ultimaInscripcionId = null
+                    ultimaInscripcionEstado = null
+                }
+
+                onResult(true, "Inscripción cancelada correctamente.")
+            } catch (e: Exception) {
+                error = e.message ?: "No se pudo cancelar la inscripción."
+                onResult(false, error)
+            } finally {
+                cargando = false
             }
-
-            if (cancelada && ultimaInscripcionId == solicitud.id) {
-                ultimaInscripcionId = null
-            }
-
-            cancelada
-        } catch (e: IllegalArgumentException) {
-            error = e.message ?: "No se pudo cancelar la inscripción."
-            false
         }
     }
 

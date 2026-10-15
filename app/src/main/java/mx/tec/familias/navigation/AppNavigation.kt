@@ -473,9 +473,10 @@ fun AppNavigation() {
                             it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
                 },
                 error = actividadesViewModel.error,
-                onCancelarInscripcionClick = {
+                onCancelarInscripcionClick = { onResult ->
                     actividadesViewModel.cancelarInscripcion(
-                        familyViewModel.familiaId
+                        familyViewModel.familiaId,
+                        onResult
                     )
                 },
                 actividad = actividadSeleccionada,
