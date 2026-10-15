@@ -380,3 +380,22 @@ def test_activity_patch_cannot_change_owner_campaign_or_id(security_sandbox):
         activity = db.get(Activity, ids["activity_a"])
         assert activity.campaign_id == ids["campaign_a"]
         assert activity.created_by_user_id == ids["org_a"]
+
+def test_organization_cannot_create_activity_in_foreign_campaign(security_sandbox):
+    client, _, ids, _ = security_sandbox
+
+    response = client.post(
+        "/activities",
+        json={
+            "campaign_id": ids["campaign_b"],
+            "title": "Actividad ajena",
+            "description": "Prueba de seguridad",
+            "starts_at": (datetime.now(timezone.utc) + timedelta(days=20)).isoformat(),
+            "ends_at": (datetime.now(timezone.utc) + timedelta(days=20, hours=2)).isoformat(),
+            "location": "Monterrey",
+            "capacity_people": 10,
+            "registration_deadline": (datetime.now(timezone.utc) + timedelta(days=19)).isoformat(),
+        },
+    )
+
+    assert response.status_code == 403
