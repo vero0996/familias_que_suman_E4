@@ -256,3 +256,20 @@ def test_family_cannot_register_inactive_member(registration_sandbox):
     )
 
     assert response.status_code == 422
+
+def test_family_cannot_create_duplicate_active_registration(registration_sandbox):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        existing = db.get(Registration, own_id)
+        activity_id = existing.activity_id
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
