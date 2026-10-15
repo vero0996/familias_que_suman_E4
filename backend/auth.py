@@ -1,5 +1,4 @@
 
-import os
 from datetime import datetime, timedelta, timezone
 import logging
 import jwt
@@ -10,7 +9,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Family, FamilyMember, User
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from dependencies import get_current_user
+from dependencies import get_current_user, get_jwt_secret
 from schemas import (
     CurrentUserResponse,
     LoginRequest,
@@ -26,16 +25,6 @@ logger = logging.getLogger(__name__)
 password_hash = PasswordHash.recommended()
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_MINUTES = 60
-
-def get_jwt_secret() -> str:
-    secret = os.getenv("JWT_SECRET_KEY")
-    if not secret or len(secret) < 32:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="La autenticación no está configurada correctamente",
-        )
-    return secret
-
 
 def create_access_token(user: User) -> str:
     now = datetime.now(timezone.utc)
