@@ -121,3 +121,62 @@ def test_current_user_uses_role_from_database_not_token():
         require_role("admin")(current_user=current_user)
 
     assert error.value.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=10),
+            "iat": datetime.now(timezone.utc),
+        },
+        {
+            "sub": "1",
+            "iat": datetime.now(timezone.utc),
+        },
+        {
+            "sub": "1",
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=10),
+        },
+    ],
+    ids=["missing-sub", "missing-exp", "missing-iat"],
+)
+def test_token_missing_required_claim_is_rejected(payload):
+    token = jwt.encode(
+        payload,
+        "test-only-secret-key-at-least-32-characters-long",
+        algorithm="HS256",
+    )
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=token,
+    )
+
+    with pytest.raises(HTTPException) as error:
+        get_current_user(credentials, FakeDB(make_user()))
+
+    assert error.value.status_code == 401
+    assert error.value.detail == "Token inválido o expirado"
+
+
+@pytest.mark.parametrize("invalid_sub", ["abc", "1.5", "", "0x10"])
+def test_token_with_malformed_subject_is_rejected(invalid_sub):
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=jwt.encode(
+            {
+                "sub": invalid_sub,
+                "iat": datetime.now(timezone.utc),
+                "exp": datetime.now(timezone.utc) + timedelta(minutes=10),
+            },
+            "test-only-secret-key-at-least-32-characters-long",
+            algorithm="HS256",
+        ),
+    )
+
+    with pytest.raises(HTTPException) as error:
+        get_current_user(credentials, FakeDB(make_user()))
+
+    assert error.value.status_code == 401
+    assert error.value.detail == "Token inválido o expirado"
+
