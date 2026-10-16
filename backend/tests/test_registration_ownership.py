@@ -1,7 +1,8 @@
 
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
-
+from sqlalchemy import select
+from models import RegistrationEvent
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -369,3 +370,202 @@ def test_cannot_cancel_registration_twice(registration_sandbox):
         json={"reason": "Segunda cancelación"},
     )
     assert second.status_code == 409, second.text
+
+def test_family_cannot_register_after_activity_starts(registration_sandbox):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.starts_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
+
+def test_family_cannot_register_after_deadline(registration_sandbox):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.registration_deadline = (
+            datetime.now(timezone.utc) - timedelta(minutes=5)
+        )
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
+
+def test_family_cannot_register_in_draft_campaign(registration_sandbox):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        campaign = db.get(Campaign, activity.campaign_id)
+        campaign.status = "borrador"
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
+
+def test_family_cannot_register_in_draft_activity(registration_sandbox):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.status = "borrador"
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
+
+def test_family_can_register_again_after_cancellation(registration_sandbox):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(
+        f"/registrations/{own_id}/cancel"
+    )
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] in ("confirmada", "lista_espera")
+    assert response.json()["id"] == own_id
+
+def test_reactivated_registration_clears_canceled_at(registration_sandbox):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(
+        f"/registrations/{own_id}/cancel"
+    )
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        assert registration.canceled_at is not None
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["id"] == own_id
+    assert response.json()["canceled_at"] is None
+
+def test_reactivation_creates_history_event(registration_sandbox):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(f"/registrations/{own_id}/cancel")
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+    assert response.status_code == 201, response.text
+
+    with Session(engine) as db:
+        events = db.scalars(
+            select(RegistrationEvent).where(
+                RegistrationEvent.registration_id == own_id
+            )
+        ).all()
+
+        assert any(
+            event.event_type == "inscripcion_reactivada"
+            for event in events
+        )
+
+def test_reactivation_updates_participants(registration_sandbox):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+        family_id = registration.family_id
+
+        # Crear otro integrante activo de la misma familia.
+        new_member = FamilyMember(
+            family_id=family_id,
+            full_name="Integrante nuevo",
+            age=8,
+            relationship_type="Hijo",
+            is_active=True,
+)
+        db.add(new_member)
+        db.commit()
+        db.refresh(new_member)
+        new_member_id = new_member.id
+
+    cancel_response = client.patch(f"/registrations/{own_id}/cancel")
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [new_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        participant_ids = {member.id for member in registration.participants}
+
+    assert participant_ids == {new_member_id}
+    assert own_member_id not in participant_ids
