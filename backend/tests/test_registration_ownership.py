@@ -325,3 +325,32 @@ def test_cancel_confirmed_registration_promotes_waitlisted_family(
     with Session(engine) as db:
         assert db.get(Registration, own_id).status == "cancelada"
         assert db.get(Registration, waiting_id).status == "confirmada"
+
+def test_cancel_does_not_promote_waitlist_after_activity_starts(
+    registration_sandbox,
+):
+    client, engine, own_id, foreign_id, activity_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        confirmed = db.get(Registration, own_id)
+        waiting = db.get(Registration, foreign_id)
+
+        confirmed.activity_id = activity_id
+        waiting.activity_id = activity_id
+        waiting.status = "lista_espera"
+
+        activity = db.get(Activity, activity_id)
+        activity.starts_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+        db.commit()
+
+        waiting_id = waiting.id
+
+    response = client.patch(
+        f"/registrations/{own_id}/cancel",
+        json={"reason": "Prueba de actividad iniciada"},
+    )
+
+    assert response.status_code == 200, response.text
+
+    with Session(engine) as db:
+        assert db.get(Registration, waiting_id).status == "lista_espera"
