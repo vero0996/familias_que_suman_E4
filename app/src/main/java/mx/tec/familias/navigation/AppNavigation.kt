@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,7 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import mx.tec.familias.ui.screens.admin.mensajes.ChatAdminScreen
 import mx.tec.familias.R
 import mx.tec.familias.ui.screens.publico.PublicoScreen
-
+import mx.tec.familias.ui.auth.LoginScreen
 import mx.tec.familias.ui.auth.IntegrantesScreen
 import mx.tec.familias.ui.auth.RegistroScreen
 import mx.tec.familias.ui.auth.SelectorRolScreen
@@ -28,8 +29,7 @@ import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
 import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
-
-
+import androidx.activity.compose.BackHandler
 import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.CrearCampaniaColaborativaScreen
 import mx.tec.familias.ui.screens.admin.campanias.ReutilizarCampaniaScreen
@@ -41,7 +41,7 @@ import mx.tec.familias.ui.screens.mensajes.MensajesScreen
 import mx.tec.familias.ui.screens.mensajes.ChatMessages
 import mx.tec.familias.ui.screens.mensajes.Conversacion
 import mx.tec.familias.ui.screens.admin.campanias.DetalleActividadScreen as DetalleActividadAdminScreen
-
+import androidx.compose.runtime.LaunchedEffect
 import mx.tec.familias.data.model.ActividadAdmin
 import mx.tec.familias.ui.screens.admin.campanias.FormularioActividadAdminScreen
 import androidx.compose.material3.AlertDialog
@@ -50,19 +50,49 @@ import androidx.compose.material3.TextButton
 import mx.tec.familias.data.model.EstadoParticipante
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
 import mx.tec.familias.ui.screens.admin.campanias.GestionarParticipantesScreen
+import androidx.navigation.NavHostController
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.tec.familias.data.remote.SessionManager
+import mx.tec.familias.viewmodel.ActividadesViewModelFactory
+import androidx.compose.runtime.LaunchedEffect
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val familyViewModel: FamilyViewModel = viewModel()
-    val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel = viewModel()
+    val campaignViewModel: mx.tec.familias.viewmodel.CampaignViewModel = viewModel()
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+
+    val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel =
+        viewModel(
+            factory = remember(sessionManager) {
+                ActividadesViewModelFactory(sessionManager)
+            }
+        )
     val estadoActividades = actividadesViewModel.estado
+    val campaignState by campaignViewModel.uiState.collectAsState()
     val actividadSeleccionada = estadoActividades.evento(actividadesViewModel.eventoSeleccionadoId)
 
     var nombreUsuario by remember { mutableStateOf("") }
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
     var rutaDespuesDeIntegrantes by remember { mutableStateOf(Routes.Inicio.route) }
+    var rolUsuario by remember { mutableStateOf<String?>(null) }
+    val rolesAdmin = setOf(
+        "admin",
+        "administrador",
+        "association",
+        "asociacion",
+        "organizacion"
+    )
 
+    val tieneAccesoAdmin =
+        !familyViewModel.accessToken.value.isNullOrBlank() &&
+                rolUsuario in rolesAdmin
     var participantesAdmin by remember {
         mutableStateOf(
             listOf(
@@ -174,17 +204,10 @@ fun AppNavigation() {
         composable(Routes.Publico.route) {
             PublicoScreen(
                 onIniciarSesionClick = {
-                    rutaDespuesDeRegistro = Routes.Inicio.route
-                    rutaDespuesDeIntegrantes = Routes.Inicio.route
-                    navController.navigate(Routes.Registro.route) {
-                        popUpTo(Routes.Publico.route) { inclusive = true }
-                    }
+                    navController.navigate(Routes.Login.route)
                 },
                 onAdminClick = {
-                    // Este te manda directo al dashboard de administración para tu presentación
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.Publico.route) { inclusive = true }
-                    }
+                    navController.navigate(Routes.DashboardAdmin.route)
                 }
             )
         }
@@ -192,20 +215,20 @@ fun AppNavigation() {
         // ==========================================
         // PANTALLA DE PROTOTIPO (SELECCIÓN DE ROL)
         // ==========================================
-        composable(Routes.SelectorRol.route) {
-            SelectorRolScreen(
-                onFamiliaClick = {
-                    navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
-                    }
-                },
-                onAsociacionClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
-                    }
-                }
-            )
-        }
+//        composable(Routes.SelectorRol.route) {
+//            SelectorRolScreen(
+//                onFamiliaClick = {
+//                    navController.navigate(Routes.Inicio.route) {
+//                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+//                    }
+//                },
+//                onAsociacionClick = {
+//                    navController.navigate(Routes.DashboardAdmin.route) {
+//                        popUpTo(Routes.SelectorRol.route) { inclusive = true }
+//                    }
+//                }
+//            )
+//        }
 
         // ==========================================
         // RUTAS DE USUARIO FAMILIA
@@ -219,12 +242,7 @@ fun AppNavigation() {
                 },
 
                 onActividadesClick = {
-                    if (familyViewModel.usuario.value == null) {
-                        rutaDespuesDeRegistro = Routes.Actividades.route
-                        navController.navigate(Routes.Registro.route)
-                    } else {
-                        navController.navigate(Routes.Actividades.route)
-                    }
+                    navController.navigate(Routes.Actividades.route)
                 },
 
                 onMensajesClick = {
@@ -251,14 +269,73 @@ fun AppNavigation() {
                     // Esto abre la pantalla de detalles de la campaña al presionar "Unirse como Familia" o "Ver detalles"
                     navController.navigate(Routes.DetalleCampania.route)
                 },
+                campaigns = campaignState.campaigns,
+                estadoActividades = estadoActividades
             )
         }
+
+
+        composable(Routes.Login.route) {
+            LoginScreen(
+                onLoginSuccess = { token, usuario ->
+                    familyViewModel.guardarSesion(token.access_token)
+
+                    familyViewModel.guardarUsuarioAutenticado(
+                        nombre = usuario.full_name,
+                        correo = usuario.email,
+                        telefono = usuario.phone
+                    )
+
+                    rolUsuario = usuario.role.trim().lowercase()
+                    nombreUsuario = usuario.full_name
+
+                    android.util.Log.d(
+                        "LOGIN_ROLE",
+                        "Rol recibido del backend: '${usuario.role}'"
+                    )
+
+                    val destino = when (usuario.role.trim().lowercase()) {
+                        "admin",
+                        "administrador",
+                        "association",
+                        "asociacion",
+                        "organizacion" -> Routes.DashboardAdmin.route
+
+                        else -> Routes.Inicio.route
+                    }
+
+                    navController.navigate(destino) {
+                        popUpTo(Routes.Publico.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onRegistroClick = {
+                    navController.navigate(Routes.Registro.route)
+                }
+            )
+        }
+
+
         composable(Routes.Registro.route) {
+            BackHandler {
+                navController.navigate(Routes.Publico.route) {
+                    popUpTo(Routes.Registro.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
             RegistroScreen(
                 viewModel = familyViewModel,
                 onBackClick = {
-                    navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                    navController.navigate(Routes.Publico.route) {
+                        popUpTo(Routes.Registro.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
                 },
                 onContinuar = { nombre, registrarOtros ->
@@ -286,8 +363,18 @@ fun AppNavigation() {
         }
 
         composable(Routes.Explorar.route) {
+            LaunchedEffect(Unit) {
+                actividadesViewModel.cargarActividades()
+            }
+
             ExplorarScreen(
                 estadoActividades = estadoActividades,
+                campaigns = campaignState.campaigns,
+                cargandoActividades = actividadesViewModel.cargando,
+                errorActividades = actividadesViewModel.error,
+                onReintentarActividades = {
+                    actividadesViewModel.cargarActividades()
+                },
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -365,6 +452,23 @@ fun AppNavigation() {
         }
 
         composable(Routes.DetalleActividad.route) {
+            val entradaActual by navController.currentBackStackEntryAsState()
+
+            LaunchedEffect(
+                entradaActual,
+                familyViewModel.familiaId,
+                actividadSeleccionada.id
+            ) {
+                if (
+                    entradaActual?.destination?.route == Routes.DetalleActividad.route &&
+                    familyViewModel.familiaId.isNotBlank()
+                ) {
+                    actividadesViewModel.cargarMisInscripcionesYEncuestas(
+                        familyViewModel.familiaId
+                    )
+                }
+            }
+
             DetalleActividadScreen(
                 inscripcionConfirmada = estadoActividades.inscripciones.any {
                     it.eventoId == actividadSeleccionada.id &&
@@ -372,19 +476,33 @@ fun AppNavigation() {
                             it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
                 },
                 error = actividadesViewModel.error,
-                onCancelarInscripcionClick = {
-                    actividadesViewModel.cancelarInscripcion(familyViewModel.familiaId)
+                onCancelarInscripcionClick = { onResult ->
+                    actividadesViewModel.cancelarInscripcion(
+                        familyViewModel.familiaId,
+                        onResult
+                    )
                 },
                 actividad = actividadSeleccionada,
                 ocupados = estadoActividades.ocupados(actividadSeleccionada.id),
                 disponibles = estadoActividades.disponibles(actividadSeleccionada.id),
-                inscripcionesCerradas = System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
+                inscripcionesCerradas =
+                    System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
                 inscripcionActiva = estadoActividades.inscripciones.any {
-                    it.eventoId == actividadSeleccionada.id && it.familiaId == familyViewModel.familiaId &&
-                            it.estado in listOf(mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
-                        mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                    it.eventoId == actividadSeleccionada.id &&
+                            it.familiaId == familyViewModel.familiaId &&
+                            it.estado in listOf(
+                        mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA,
+                        mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+                    )
                 },
-                onBackClick = { navController.popBackStack() },
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onConsultarCalendarioClick = {
+                    navController.navigate(Routes.Actividades.route) {
+                        launchSingleTop = true
+                    }
+                },
                 onInscribirseClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Inscripcion.route
@@ -397,134 +515,185 @@ fun AppNavigation() {
         }
 
         composable(Routes.Inscripcion.route) {
-    InscripcionScreen(
-        viewModel = familyViewModel,
-        actividad = actividadSeleccionada,
+            InscripcionScreen(
+                viewModel = familyViewModel,
+                actividad = actividadSeleccionada,
 
-        onBackClick = {
-            navController.popBackStack()
-        },
+                onBackClick = {
+                    navController.popBackStack()
+                },
 
-        enEspera = estadoActividades.disponibles(actividadSeleccionada.id) == 0,
-        error = actividadesViewModel.error,
+                enEspera = estadoActividades.disponibles(actividadSeleccionada.id) == 0,
+                error = actividadesViewModel.error,
 
-        onConfirmarClick = { participantes, observaciones ->
 
-            // 1. Registrar la inscripción en el sistema de actividades
-            if (
-                actividadesViewModel.inscribir(
-                    familyViewModel.familiaId,
-                    participantes,
-                    observaciones
-                )
-            ) {
+                onConfirmarClick = { participantes, observaciones ->
 
-                // 2. Obtener los datos del usuario actual
-                val usuarioActual = familyViewModel.usuario.value
+                    actividadesViewModel.inscribir(
+                        familyViewModel.familiaId,
+                        participantes,
+                        observaciones
+                    ) { exito, estadoRemoto ->
 
-                if (usuarioActual != null) {
+                        // 1. Distinguir un duplicado de un error real.
+                        if (!exito) {
+                            if (!estadoRemoto.isNullOrBlank()) {
+                                Toast.makeText(
+                                    context,
+                                    "Tu familia ya tiene una inscripción activa en esta actividad.",
+                                    Toast.LENGTH_LONG
+                                ).show()
 
-                    // 3. Obtener los integrantes seleccionados
-                    val integrantesSeleccionados =
-                        familyViewModel.integrantes
-                            .filter { it.id in participantes }
-                            .map { it.nombre }
+                                navController.popBackStack(
+                                    Routes.DetalleActividad.route,
+                                    inclusive = false
+                                )
+                            }
 
-                    // 4. Verificar si el titular también fue seleccionado
-                    val titularSeleccionado =
-                        participantes.contains(
-                            "${familyViewModel.familiaId}:titular"
+                            // Si el estado es null, el error se muestra en InscripcionScreen.
+                            return@inscribir
+                        }
+
+                        if (estadoRemoto.isNullOrBlank()) {
+                            return@inscribir
+                        }
+
+                        // 2. Normalizar la respuesta del backend.
+                        val estadoNormalizado = estadoRemoto
+                            .trim()
+                            .uppercase(java.util.Locale.ROOT)
+
+                        val confirmadaRemota = estadoNormalizado == "CONFIRMADA"
+
+                        val enEsperaRemota = estadoNormalizado in setOf(
+                            "EN_ESPERA",
+                            "LISTA_ESPERA"
                         )
 
-                    // 5. Construir la lista de personas inscritas
-                    val integrantesInscritos =
-                        (if (titularSeleccionado) {
-                            listOf(usuarioActual.nombre)
+                        // No aceptar estados inesperados.
+                        if (!confirmadaRemota && !enEsperaRemota) {
+                            Toast.makeText(
+                                context,
+                                "El servidor devolvió un estado de inscripción inesperado.",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            return@inscribir
+                        }
+
+                        // 3. Actualizar los participantes de la vista Admin.
+                        val usuarioActual = familyViewModel.usuario.value
+
+                        if (usuarioActual != null) {
+                            val integrantesSeleccionados =
+                                familyViewModel.integrantes
+                                    .filter { it.id in participantes }
+                                    .map { it.nombre }
+
+                            // El titular participa junto con los acompañantes.
+                            val integrantesInscritos =
+                                listOf(usuarioActual.nombre) + integrantesSeleccionados
+
+                            val lugaresOcupados = participantesAdmin
+                                .filter {
+                                    it.estado == EstadoParticipante.CONFIRMADO
+                                }
+                                .flatMap { it.lugaresAsignados }
+                                .toSet()
+
+                            val lugaresDisponibles =
+                                (1..actividadAdmin.cuposTotales)
+                                    .filterNot { it in lugaresOcupados }
+
+                            val lugaresAsignados =
+                                if (confirmadaRemota) {
+                                    lugaresDisponibles.take(integrantesInscritos.size)
+                                } else {
+                                    emptyList()
+                                }
+
+                            val nuevoParticipante = ParticipanteActividadAdmin(
+                                id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
+                                nombreFamilia = "Familia ${usuarioActual.nombre}",
+                                correo = usuarioActual.correo,
+                                telefono = usuarioActual.telefono,
+                                integrantes = integrantesInscritos,
+                                estado = if (confirmadaRemota) {
+                                    EstadoParticipante.CONFIRMADO
+                                } else {
+                                    EstadoParticipante.LISTA_ESPERA
+                                },
+                                lugaresAsignados = lugaresAsignados
+                            )
+
+                            participantesAdmin = participantesAdmin + nuevoParticipante
+
+                            actividadAdmin = actividadAdmin.copy(
+                                participantes = participantesAdmin
+                                    .filter {
+                                        it.estado == EstadoParticipante.CONFIRMADO
+                                    }
+                                    .sumOf { it.integrantes.size }
+                            )
+                        }
+
+                        // 4. Avisar y regresar al detalle existente.
+                        val mensaje = if (confirmadaRemota) {
+                            "¡Inscripción confirmada!"
                         } else {
-                            emptyList()
-                        }) + integrantesSeleccionados
-
-                    // 6. Personas que intenta registrar esta inscripción
-                    val personasInscritas = integrantesInscritos.size
-
-                    // 7. Lugares que ya están ocupados en Admin
-                    val lugaresOcupados = participantesAdmin
-                        .filter {
-                            it.estado == EstadoParticipante.CONFIRMADO
-                        }
-                        .flatMap {
-                            it.lugaresAsignados
-                        }
-                        .toSet()
-
-                    // 8. Lugares disponibles
-                    val lugaresDisponibles = (1..actividadAdmin.cuposTotales)
-                        .filterNot {
-                            it in lugaresOcupados
+                            "Tu familia quedó en lista de espera."
                         }
 
-                    // 9. Determinar si caben todas las personas
-                    val puedeConfirmarse =
-                        lugaresDisponibles.size >= personasInscritas
+                        Toast.makeText(
+                            context,
+                            mensaje,
+                            Toast.LENGTH_LONG
+                        ).show()
 
-                    // 10. Asignar lugares disponibles
-                    val lugaresAsignados =
-                        if (puedeConfirmarse) {
-                            lugaresDisponibles
-                                .take(personasInscritas)
-                        } else {
-                            emptyList()
-                        }
-
-                    // 11. Crear el participante para Admin
-                    val nuevoParticipante = ParticipanteActividadAdmin(
-                        id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
-                        nombreFamilia = "Familia ${usuarioActual.nombre}",
-                        correo = usuarioActual.correo,
-                        telefono = usuarioActual.telefono,
-                        integrantes = integrantesInscritos,
-                        estado = if (puedeConfirmarse) {
-                            EstadoParticipante.CONFIRMADO
-                        } else {
-                            EstadoParticipante.LISTA_ESPERA
-                        },
-                        lugaresAsignados = lugaresAsignados
-                    )
-
-                    // 12. Agregarlo a la lista que utiliza Admin
-                    participantesAdmin =
-                        participantesAdmin + nuevoParticipante
-
-                    // 13. Actualizar el contador de participantes
-                    actividadAdmin = actividadAdmin.copy(
-                        participantes = participantesAdmin
-                            .filter {
-                                it.estado == EstadoParticipante.CONFIRMADO
-                            }
-                            .sumOf {
-                                it.integrantes.size
-                            }
-                    )
+                        navController.popBackStack(
+                            Routes.DetalleActividad.route,
+                            inclusive = false
+                        )
+                    }
                 }
 
-                // 14. Mostrar confirmación al usuario
-                navController.navigate(
-                    Routes.ConfirmacionInscripcion.route
-                )
-            }
+            )
         }
-    )
-}
 
         composable(Routes.ConfirmacionInscripcion.route) {
             val solicitud = estadoActividades.inscripciones.firstOrNull {
                 it.id == actividadesViewModel.ultimaInscripcionId
             }
-            if (solicitud != null) ConfirmacionInscripcionScreen(
-                actividad = estadoActividades.evento(solicitud.eventoId),
-                estado = solicitud.estado,
-                posicion = if (solicitud.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
-                    estadoActividades.posicion(solicitud) else null,
+
+            val actividad = solicitud?.let { estadoActividades.evento(it.eventoId) }
+                ?: actividadSeleccionada
+
+            val estadoNormalizado = actividadesViewModel
+                .ultimaInscripcionEstado
+                ?.trim()
+                ?.uppercase(java.util.Locale.ROOT)
+
+            val estadoInscripcion = when (estadoNormalizado) {
+                "CONFIRMADA" ->
+                    mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+
+                "EN_ESPERA", "LISTA_ESPERA" ->
+                    mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+
+                else ->
+                    solicitud?.estado
+                        ?: mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+            }
+
+            val posicion = solicitud?.let {
+                if (it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
+                    estadoActividades.posicion(it) else null
+            }
+
+            ConfirmacionInscripcionScreen(
+                actividad = actividad,
+                estado = estadoInscripcion,
+                posicion = posicion,
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
                         popUpTo(Routes.Inicio.route) { inclusive = true }
@@ -534,61 +703,57 @@ fun AppNavigation() {
         }
 
         composable(Routes.Actividades.route) {
-            if (familyViewModel.usuario.value == null) {
-                navController.navigate(Routes.Registro.route)
+            var mostrarMisActividades by remember { mutableStateOf(false) }
+            if (mostrarMisActividades) {
+                MisActividadesScreen(
+                    actividadesViewModel = actividadesViewModel,
+                    familiaId = familyViewModel.familiaId,
+                    onInicioClick = {
+                        navController.navigate(Routes.Inicio.route) {
+                            popUpTo(Routes.Inicio.route) { inclusive = true }
+                        }
+                    },
+                    onExplorarClick = {
+                        navController.navigate(Routes.Explorar.route)
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.Mensajes.route)
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.Perfil.route)
+                    },
+                    onCalendarioClick = {
+                        mostrarMisActividades = false
+                    },
+                    mostrarMensajes = familyViewModel.usuario.value != null
+                )
             } else {
-                var mostrarMisActividades by remember { mutableStateOf(false) }
-                if (mostrarMisActividades) {
-                    MisActividadesScreen(
-                        actividadesViewModel = actividadesViewModel,
-                        familiaId = familyViewModel.familiaId,
-                        onInicioClick = {
-                            navController.navigate(Routes.Inicio.route) {
-                                popUpTo(Routes.Inicio.route) { inclusive = true }
-                            }
-                        },
-                        onExplorarClick = {
-                            navController.navigate(Routes.Explorar.route)
-                        },
-                        onMensajesClick = {
-                            navController.navigate(Routes.Mensajes.route)
-                        },
-                        onPerfilClick = {
-                            navController.navigate(Routes.Perfil.route)
-                        },
-                        onCalendarioClick = {
-                            mostrarMisActividades = false
-                        },
-                        mostrarMensajes = familyViewModel.usuario.value != null
-                    )
-                } else {
-                    CalendarioScreen(
-                        estadoActividades = estadoActividades,
-                        familiaId = familyViewModel.familiaId,
-                        onInicioClick = {
-                            navController.navigate(Routes.Inicio.route) {
-                                popUpTo(Routes.Inicio.route) { inclusive = true }
-                            }
-                        },
-                        onExplorarClick = {
-                            navController.navigate(Routes.Explorar.route)
-                        },
-                        onMensajesClick = {
-                            navController.navigate(Routes.Mensajes.route)
-                        },
-                        onPerfilClick = {
-                            navController.navigate(Routes.Perfil.route)
-                        },
-                        onActividadClick = { actividad ->
-                            actividadesViewModel.seleccionarEvento(actividad.id)
-                            navController.navigate(Routes.DetalleActividad.route)
-                        },
-                        onMisActividadesClick = {
-                            mostrarMisActividades = true
-                        },
-                        mostrarMensajes = familyViewModel.usuario.value != null
-                    )
-                }
+                CalendarioScreen(
+                    estadoActividades = estadoActividades,
+                    familiaId = familyViewModel.familiaId,
+                    onInicioClick = {
+                        navController.navigate(Routes.Inicio.route) {
+                            popUpTo(Routes.Inicio.route) { inclusive = true }
+                        }
+                    },
+                    onExplorarClick = {
+                        navController.navigate(Routes.Explorar.route)
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.Mensajes.route)
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.Perfil.route)
+                    },
+                    onActividadClick = { actividad ->
+                        actividadesViewModel.seleccionarEvento(actividad.id)
+                        navController.navigate(Routes.DetalleActividad.route)
+                    },
+                    onMisActividadesClick = {
+                        mostrarMisActividades = true
+                    },
+                    mostrarMensajes = familyViewModel.usuario.value != null
+                )
             }
         }
 
@@ -670,354 +835,510 @@ fun AppNavigation() {
         // RUTAS DE ADMINISTRADOR (ASOCIACIÓN)
         // ==========================================
         composable(Routes.DashboardAdmin.route) {
-            DashboardAdminScreen(
-                tituloActividad = actividadAdmin.titulo,
-                participantesActividad = actividadAdmin.participantes,
-                cuposTotalesActividad = actividadAdmin.cuposTotales,
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) },
-                onCrearCampaniaClick = { navController.navigate(Routes.CrearCampaniaColaborativa.route) },
-                onReutilizarCampaniaClick = { navController.navigate(Routes.ReutilizarCampania.route) },
-                onActividadClick = {
-                    navController.navigate(Routes.DetalleActividadAdmin.route)
-                }
+            val rolesAdmin = setOf(
+                "admin",
+                "administrador",
+                "association",
+                "asociacion",
+                "organizacion"
             )
-        }
 
-        composable(Routes.MisCampanias.route) {
-            MisCampaniasScreen(
-                mostrarActividad = actividadExiste,
+            val tieneAccesoAdmin =
+                !familyViewModel.accessToken.value.isNullOrBlank() &&
+                        rolUsuario in rolesAdmin
 
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) {
+            if (!tieneAccesoAdmin) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.Publico.route) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         }
-                    }
-                },
-
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
                         launchSingleTop = true
                     }
-                },
-
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-
-                onNuevaCampaniaClick = {
-                    navController.navigate(
-                        Routes.CrearCampaniaColaborativa.route
-                    )
-                },
-
-                onGestionCampaniaClick = {
-                    navController.navigate(
-                        Routes.GestionMensajesCampania.route
-                    )
-                },
-
-                onEditarCampaniaClick = {
-                    navController.navigate(
-                        Routes.CrearCampaniaColaborativa.route
-                    )
-                },
-
-                onReutilizarCampaniaClick = {
-                    navController.navigate(
-                        Routes.ReutilizarCampania.route
-                    )
                 }
-            )
+            } else {
+                DashboardAdminScreen(
+                    tituloActividad = actividadAdmin.titulo,
+                    participantesActividad = actividadAdmin.participantes,
+                    cuposTotalesActividad = actividadAdmin.cuposTotales,
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route)
+                    },
+                    onCrearCampaniaClick = {
+                        navController.navigate(Routes.CrearCampaniaColaborativa.route)
+                    },
+                    onReutilizarCampaniaClick = {
+                        navController.navigate(Routes.ReutilizarCampania.route)
+                    },
+                    onActividadClick = {
+                        navController.navigate(Routes.DetalleActividadAdmin.route)
+                    }
+                )
+            }
         }
 
-        composable(Routes.DetalleActividadAdmin.route) {
-            DetalleActividadAdminScreen(
-                titulo = actividadAdmin.titulo,
-                fecha = actividadAdmin.fecha,
-                hora = actividadAdmin.hora,
-                ubicacion = actividadAdmin.ubicacion,
-                participantes = actividadAdmin.participantes,
-                cuposTotales = actividadAdmin.cuposTotales,
-                esUrgente = actividadAdmin.esUrgente,
-                imagenId = actividadAdmin.imagenId,
 
-                onBackClick = {
-                    navController.popBackStack()
-                },
+        composable(Routes.MisCampanias.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                MisCampaniasScreen(
+                    mostrarActividad = actividadExiste,
 
-                onEditarClick = {
-                    navController.navigate(
-                        Routes.FormularioActividadAdmin.route
-                    )
-                },
-
-                onParticipantesClick = {
-                    navController.navigate(
-                        Routes.GestionarParticipantesAdmin.route
-                    )
-                },
-
-                onCompartirClick = {
-                    // Lo conectaremos después
-                },
-
-                onEliminarClick = {
-                    mostrarDialogoEliminar = true
-                }
-            )
-
-            if (mostrarDialogoEliminar) {
-                AlertDialog(
-                    onDismissRequest = {
-                        mostrarDialogoEliminar = false
-                    },
-
-                    title = {
-                        Text(
-                            text = "¿Eliminar actividad?"
-                        )
-                    },
-
-                    text = {
-                        Text(
-                            text = "Esta acción eliminará la actividad y dejará de estar disponible para los participantes."
-                        )
-                    },
-
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-
-                                actividadExiste = false
-                                mostrarDialogoEliminar = false
-
-                                navController.navigate(
-                                    Routes.MisCampanias.route
-                                ) {
-                                    popUpTo(
-                                        Routes.DetalleActividadAdmin.route
-                                    ) {
-                                        inclusive = true
-                                    }
-                                }
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
                             }
-                        ) {
-                            Text(
-                                text = "Eliminar"
-                            )
                         }
                     },
 
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                mostrarDialogoEliminar = false
-                            }
-                        ) {
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onNuevaCampaniaClick = {
+                        navController.navigate(
+                            Routes.CrearCampaniaColaborativa.route
+                        )
+                    },
+
+                    onGestionCampaniaClick = {
+                        navController.navigate(
+                            Routes.GestionMensajesCampania.route
+                        )
+                    },
+
+                    onEditarCampaniaClick = {
+                        navController.navigate(
+                            Routes.CrearCampaniaColaborativa.route
+                        )
+                    },
+
+                    onReutilizarCampaniaClick = {
+                        navController.navigate(
+                            Routes.ReutilizarCampania.route
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.DetalleActividadAdmin.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                DetalleActividadAdminScreen(
+                    titulo = actividadAdmin.titulo,
+                    fecha = actividadAdmin.fecha,
+                    hora = actividadAdmin.hora,
+                    ubicacion = actividadAdmin.ubicacion,
+                    participantes = actividadAdmin.participantes,
+                    cuposTotales = actividadAdmin.cuposTotales,
+                    esUrgente = actividadAdmin.esUrgente,
+                    imagenId = actividadAdmin.imagenId,
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onEditarClick = {
+                        navController.navigate(
+                            Routes.FormularioActividadAdmin.route
+                        )
+                    },
+
+                    onParticipantesClick = {
+                        navController.navigate(
+                            Routes.GestionarParticipantesAdmin.route
+                        )
+                    },
+
+                    onCompartirClick = {
+                        // Lo conectaremos después
+                    },
+
+                    onEliminarClick = {
+                        mostrarDialogoEliminar = true
+                    }
+                )
+
+                if (mostrarDialogoEliminar) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            mostrarDialogoEliminar = false
+                        },
+
+                        title = {
+                            Text(text = "¿Eliminar actividad?")
+                        },
+
+                        text = {
                             Text(
-                                text = "Cancelar"
+                                text = "Esta acción eliminará la actividad y dejará de estar disponible para los participantes."
                             )
+                        },
+
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    actividadExiste = false
+                                    mostrarDialogoEliminar = false
+
+                                    navController.navigate(
+                                        Routes.MisCampanias.route
+                                    ) {
+                                        popUpTo(
+                                            Routes.DetalleActividadAdmin.route
+                                        ) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text(text = "Eliminar")
+                            }
+                        },
+
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    mostrarDialogoEliminar = false
+                                }
+                            ) {
+                                Text(text = "Cancelar")
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+
+
+        composable(Routes.FormularioActividadAdmin.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                FormularioActividadAdminScreen(
+                    actividad = actividadAdmin,
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onGuardarClick = { actividadActualizada ->
+                        actividadAdmin = actividadActualizada
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.GestionarParticipantesAdmin.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                GestionarParticipantesScreen(
+                    participantesIniciales = participantesAdmin,
+                    cuposTotales = actividadAdmin.cuposTotales,
+
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+
+                    onParticipantesChanged = { nuevosParticipantes ->
+                        participantesAdmin = nuevosParticipantes
+
+                        val totalPersonasConfirmadas = nuevosParticipantes
+                            .filter {
+                                it.estado == EstadoParticipante.CONFIRMADO
+                            }
+                            .sumOf {
+                                it.integrantes.size
+                            }
+
+                        actividadAdmin = actividadAdmin.copy(
+                            participantes = totalPersonasConfirmadas
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.CrearCampaniaColaborativa.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                CrearCampaniaColaborativaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onContinuarClick = {
+                        navController.navigate(
+                            Routes.GestionMensajesCampania.route
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.ReutilizarCampania.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                ReutilizarCampaniaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onVistaPreviaClick = {
+                        navController.navigate(
+                            Routes.VistaPreviaCampania.route
+                        )
+                    }
+                )
+            }
+        }
+
+
+
+        composable(Routes.VistaPreviaCampania.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                VistaPreviaCampaniaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onPublicarClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.MisCampanias.route) {
+                                inclusive = true
+                            }
                         }
                     }
                 )
             }
         }
 
-        composable(Routes.FormularioActividadAdmin.route) {
-            FormularioActividadAdminScreen(
-                actividad = actividadAdmin,
 
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onGuardarClick = { actividadActualizada ->
-
-                    actividadAdmin = actividadActualizada
-
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(Routes.GestionarParticipantesAdmin.route) {
-
-            GestionarParticipantesScreen(
-                participantesIniciales = participantesAdmin,
-                cuposTotales = actividadAdmin.cuposTotales,
-
-                onBackClick = {
-                    navController.popBackStack()
-                },
-
-                onParticipantesChanged = { nuevosParticipantes ->
-
-                    participantesAdmin = nuevosParticipantes
-
-                    val totalPersonasConfirmadas = nuevosParticipantes
-                        .filter {
-                            it.estado == EstadoParticipante.CONFIRMADO
-                        }
-                        .sumOf {
-                            it.integrantes.size
-                        }
-
-                    actividadAdmin = actividadAdmin.copy(
-                        participantes = totalPersonasConfirmadas
-                    )
-                }
-            )
-        }
-
-        composable(Routes.CrearCampaniaColaborativa.route) {
-            CrearCampaniaColaborativaScreen(
-                onBackClick = { navController.popBackStack() },
-                onContinuarClick = { navController.navigate(Routes.GestionMensajesCampania.route) }
-            )
-        }
-
-        composable(Routes.ReutilizarCampania.route) {
-            ReutilizarCampaniaScreen(
-                onBackClick = { navController.popBackStack() },
-                onVistaPreviaClick = { navController.navigate(Routes.VistaPreviaCampania.route) }
-            )
-        }
-
-        composable(Routes.VistaPreviaCampania.route) {
-            VistaPreviaCampaniaScreen(
-                onBackClick = { navController.popBackStack() },
-                onPublicarClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.MisCampanias.route) { inclusive = true }
-                    }
-                }
-            )
-        }
 
         composable(Routes.MensajesAdmin.route) {
-            MensajesAdminScreen(
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                MensajesAdminScreen(
+                    participantes = participantesAdmin,
+
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                        }
+                    },
+                    onChatClick = { tituloChat, imagenId ->
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("nombreChat", tituloChat)
+
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("imagenId", imagenId)
+
+                        navController.navigate(Routes.ChatAdmin.route)
+                    },
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                        }
+                    },
+                    onPerfilClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route)
                     }
-                },
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                    }
-                },
-                onChatClick = { tituloChat, imagenId ->
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("nombreChat", tituloChat)
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("imagenId", imagenId)
-                    navController.navigate(Routes.ChatAdmin.route)
-                },
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                    }
-                },
-                onPerfilClick = { navController.navigate(Routes.ConfiguracionAdmin.route) }
-            )
+                )
+            }
         }
+
+
+
 
         composable(Routes.ChatAdmin.route) {
-            val nombreChat = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get("nombreChat") ?: "Chat de Asociación"
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                val nombreChat = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get("nombreChat") ?: "Chat de Asociación"
 
-            val imagenId = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get("imagenId") ?: R.drawable.icon // <-- Recuperamos la foto
+                val imagenId = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get("imagenId") ?: R.drawable.icon
 
-            ChatAdminScreen(
-                nombreChat = nombreChat,
-                imagenId = imagenId, // <-- Se la inyectamos a la pantalla del chat
-                onBackClick = { navController.popBackStack() }
-            )
+                ChatAdminScreen(
+                    nombreChat = nombreChat,
+                    imagenId = imagenId,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
         }
+
 
 
         composable(Routes.ConfiguracionAdmin.route) {
-            ConfiguracionAdminScreen(
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                ConfiguracionAdminScreen(
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+                    onCerrarSesionClick = {
+                        familyViewModel.cerrarSesion()
+                        rolUsuario = null
+                        nombreUsuario = ""
+
+                        navController.navigate(Routes.Publico.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
-                },
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onCerrarSesionClick = {
-                    navController.navigate(Routes.Publico.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
-            )
+                )
+            }
         }
 
+
+
         composable(Routes.GestionMensajesCampania.route) {
-            GestionMensajesCampaniaScreen(
-                onBackClick = { navController.popBackStack() },
-                onInicioClick = {
-                    navController.navigate(Routes.DashboardAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route) { inclusive = true }
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                GestionMensajesCampaniaScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onInicioClick = {
+                        navController.navigate(Routes.DashboardAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onCampaniasClick = {
+                        navController.navigate(Routes.MisCampanias.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onMensajesClick = {
+                        navController.navigate(Routes.MensajesAdmin.route) {
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onConfiguracionClick = {
+                        navController.navigate(Routes.ConfiguracionAdmin.route) {
+                            popUpTo(Routes.DashboardAdmin.route)
+                            launchSingleTop = true
+                        }
                     }
-                },
-                onCampaniasClick = {
-                    navController.navigate(Routes.MisCampanias.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onMensajesClick = {
-                    navController.navigate(Routes.MensajesAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                },
-                onConfiguracionClick = {
-                    navController.navigate(Routes.ConfiguracionAdmin.route) {
-                        popUpTo(Routes.DashboardAdmin.route)
-                        launchSingleTop = true
-                    }
-                }
-            )
+                )
+            }
         }
+
+    }
+}
+
+
+@Composable
+private fun RutaAdminProtegida(
+    tieneAcceso: Boolean,
+    navController: NavHostController,
+    contenido: @Composable () -> Unit
+) {
+    if (!tieneAcceso) {
+        LaunchedEffect(Unit) {
+            navController.navigate(Routes.Publico.route) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    } else {
+        contenido()
     }
 }

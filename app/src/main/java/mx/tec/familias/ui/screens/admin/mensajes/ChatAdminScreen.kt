@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,13 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.theme.*
 import mx.tec.familias.R
-
-
-data class MensajeAdmin(
-    val texto: String,
-    val esDelAdmin: Boolean,
-    val hora: String
-)
+import mx.tec.familias.data.repository.ChatRepository
+import mx.tec.familias.ui.screens.mensajes.MensajeChat
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,12 +39,11 @@ fun ChatAdminScreen(
 ) {
     var textoMensaje by remember { mutableStateOf("") }
 
-    val listaMensajes = remember {
-        mutableStateListOf(
-            MensajeAdmin("Hola, tenemos una actualización sobre esta causa.", false, "10:30 AM"),
-            MensajeAdmin("¡Hola! Claro que sí, estamos atentos.", true, "10:32 AM")
-        )
-    }
+    val listaEstado = rememberLazyListState()
+    val alcance = rememberCoroutineScope()
+
+    val conversacion = ChatRepository.conversaciones.firstOrNull { it.nombre == nombreChat } ?: ChatRepository.conversaciones.first()
+    val mensajes = ChatRepository.getMensajes(conversacion.id)
 
     Scaffold(
         containerColor = Background,
@@ -98,9 +96,7 @@ fun ChatAdminScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface)
             )
         },
-        // ... (El resto de tu Scaffold y LazyColumn de mensajes se queda igual)
         bottomBar = {
-            // (La barra de texto inferior se queda exactamente igual que antes)
             Surface(
                 color = Surface,
                 shadowElevation = 8.dp,
@@ -122,8 +118,21 @@ fun ChatAdminScreen(
                     IconButton(
                         onClick = {
                             if (textoMensaje.isNotBlank()) {
-                                listaMensajes.add(MensajeAdmin(textoMensaje, true, "Ahora"))
+                                ChatRepository.enviarMensaje(
+                                    conversacion.id,
+                                    textoMensaje.trim(),
+                                    enviadoPorUsuario = false
+                                )
+
                                 textoMensaje = ""
+
+                                alcance.launch {
+                                    if (mensajes.isNotEmpty()) {
+                                        listaEstado.animateScrollToItem(
+                                            mensajes.lastIndex
+                                        )
+                                    }
+                                }
                             }
                         },
                         modifier = Modifier.size(48.dp).clip(CircleShape).background(TealPrimary)
@@ -135,31 +144,35 @@ fun ChatAdminScreen(
         }
     )
     { paddingValues ->
-        // (El LazyColumn de mensajes se queda igual)
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
+            state = listaEstado,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            items(listaMensajes) { mensaje ->
+            items(mensajes) { mensaje ->
+                val esDelAdmin = !mensaje.enviadoPorUsuario
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = if (mensaje.esDelAdmin) Arrangement.End else Arrangement.Start
+                    horizontalArrangement = if (esDelAdmin) Arrangement.End else Arrangement.Start
                 ) {
                     Surface(
                         shape = RoundedCornerShape(
                             topStart = 16.dp, topEnd = 16.dp,
-                            bottomStart = if (mensaje.esDelAdmin) 16.dp else 0.dp,
-                            bottomEnd = if (mensaje.esDelAdmin) 0.dp else 16.dp
+                            bottomStart = if (esDelAdmin) 16.dp else 0.dp,
+                            bottomEnd = if (esDelAdmin) 0.dp else 16.dp
                         ),
-                        color = if (mensaje.esDelAdmin) TealPrimary else Surface,
+                        color = if (esDelAdmin) TealPrimary else Surface,
                         modifier = Modifier.widthIn(max = 280.dp),
                         shadowElevation = 1.dp
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text(text = mensaje.texto, color = if (mensaje.esDelAdmin) Color.White else TextPrimary, fontSize = 14.sp)
+                            Text(text = mensaje.texto, color = if (esDelAdmin) Color.White else TextPrimary, fontSize = 14.sp)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = mensaje.hora, color = if (mensaje.esDelAdmin) Color.White.copy(alpha = 0.7f) else TextSecondary, fontSize = 10.sp, modifier = Modifier.align(Alignment.End))
+                            Text(text = mensaje.hora, color = if (esDelAdmin) Color.White.copy(alpha = 0.7f) else TextSecondary, fontSize = 10.sp, modifier = Modifier.align(Alignment.End))
                         }
                     }
                 }

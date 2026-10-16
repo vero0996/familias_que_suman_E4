@@ -21,6 +21,8 @@ import mx.tec.familias.R
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.components.TopBar
+import mx.tec.familias.data.remote.CampaignResponse
+import mx.tec.familias.data.model.EstadoActividades
 import mx.tec.familias.ui.theme.*
 
 @Composable
@@ -31,7 +33,9 @@ fun InicioScreen(
     onMensajesClick: () -> Unit = {},
     mostrarMensajes: Boolean = false,
     onPerfilClick: () -> Unit = {},
-    onCampaniaClick: () -> Unit = {}
+    onCampaniaClick: () -> Unit = {},
+    campaigns: List<CampaignResponse> = emptyList(),
+    estadoActividades: EstadoActividades? = null
 ) {
     var mostrarDialogoDonacion by remember { mutableStateOf(false) }
     var tituloDonacion by remember { mutableStateOf("") }
@@ -115,17 +119,114 @@ fun InicioScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // SECCIÓN CAMPAÑAS (Restaurada)
-                Text("Campañas Recomendadas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            }
+
+            // SECCIÓN CAMPAÑAS
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = "Campañas Recomendadas",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (campaigns.isNotEmpty()) {
+                items(campaigns.size) { index ->
+                    val campania = campaigns[index]
+
+                    CampaignCard(
+                        tag = campania.status.uppercase(),
+                        tagColor = TealDark,
+                        title = campania.title,
+                        organization = campania.organization_name,
+                        description = campania.description,
+                        progress = 0.75f,
+                        progressText = "75%",
+                        buttonText = "Ver campaña",
+                        onClick = onCampaniaClick
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            } else {
+                item {
+                    Text(
+                        text = "No hay campañas disponibles por el momento.",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+
+            // SECCIÓN PROYECTOS FIJOS
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Nuestros Proyectos Fijos",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                CampaignCard(
-                    tag = "URGENTE", tagColor = BrownPrimary,
-                    title = "Útiles Escolares para Todos", organization = "Fundación Aprender Juntos",
-                    description = "Ayuda a que niñas y niños comiencen el ciclo escolar con todo lo necesario.",
-                    progress = 0.80f, progressText = "80%", buttonText = "Ver campaña",
-                    onClick = onCampaniaClick
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Red de Comedores Comunitarios",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TealPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Operación continua de comedores que brindan más de 500 raciones diarias.",
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Surface
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Centro de Apoyo Escolar",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TealPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Espacio permanente de asesorías y material didáctico para infantes.",
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
             }
         }
     }

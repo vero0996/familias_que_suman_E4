@@ -4,7 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import mx.tec.familias.data.repository.ChatRepository
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -48,13 +52,7 @@ fun MensajesScreen(
 ) {
     var busqueda by remember { mutableStateOf("") }
 
-    val conversaciones = remember {
-        listOf(
-            Conversacion(id = 1, nombre = "Vida Comunidad", ultimoMensaje = "Hola, tenemos una actualización sobre tu actividad.", hora = "10:32 AM", mensajesSinLeer = 2),
-            Conversacion(id = 2, nombre = "Reforestación Parque Central", ultimoMensaje = "¡Gracias por participar! Te esperamos el domingo.", hora = "Ayer"),
-            Conversacion(id = 3, nombre = "Centro Comunitario", ultimoMensaje = "Recuerda llevar los materiales para el taller.", hora = "25 Sep")
-        )
-    }
+    val conversaciones = ChatRepository.conversaciones
 
     val conversacionesFiltradas = conversaciones.filter {
         it.nombre.contains(busqueda, ignoreCase = true) || it.ultimoMensaje.contains(busqueda, ignoreCase = true)

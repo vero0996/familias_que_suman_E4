@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,15 +20,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -60,22 +64,93 @@ fun IntegrantesScreen(
     val integrantes = viewModel.integrantes
 
     var mostrarFormulario by remember { mutableStateOf(false) }
+    var integranteEditando by remember {
+        mutableStateOf<FamilyMember?>(null)
+    }
     var nombre by remember { mutableStateOf("") }
     var diaNacimiento by remember { mutableStateOf("") }
     var mesNacimiento by remember { mutableStateOf("") }
     var anioNacimiento by remember { mutableStateOf("") }
     var parentesco by remember { mutableStateOf("") }
+    var errorFecha by remember { mutableStateOf<String?>(null) }
 
-    val fechaNacimiento = if (diaNacimiento.isNotBlank() && mesNacimiento.isNotBlank() && anioNacimiento.isNotBlank()) {
-        "$diaNacimiento de $mesNacimiento de $anioNacimiento"
-    } else {
-        ""
+    val numeroMes = when (mesNacimiento) {
+        "Enero" -> "01"
+        "Febrero" -> "02"
+        "Marzo" -> "03"
+        "Abril" -> "04"
+        "Mayo" -> "05"
+        "Junio" -> "06"
+        "Julio" -> "07"
+        "Agosto" -> "08"
+        "Septiembre" -> "09"
+        "Octubre" -> "10"
+        "Noviembre" -> "11"
+        "Diciembre" -> "12"
+        else -> ""
     }
+
+    val fechaNacimiento =
+        if (
+            diaNacimiento.isNotBlank() &&
+            numeroMes.isNotBlank() &&
+            anioNacimiento.isNotBlank()
+        ) {
+            "${diaNacimiento.padStart(2, '0')}/$numeroMes/$anioNacimiento"
+        } else {
+            ""
+        }
+
+    val fechaValida: Boolean
+    val mensajeErrorFecha: String?
+
+    val resultadoFecha = runCatching {
+        val formato = java.text.SimpleDateFormat(
+            "dd/MM/yyyy",
+            java.util.Locale.ROOT
+        ).apply {
+            isLenient = false
+        }
+
+        val posicion = java.text.ParsePosition(0)
+        val fecha = formato.parse(fechaNacimiento, posicion)
+
+        if (
+            fecha == null ||
+            posicion.index != fechaNacimiento.length ||
+            formato.format(fecha) != fechaNacimiento
+        ) {
+            throw IllegalArgumentException("La fecha seleccionada no existe.")
+        }
+
+        val hoy = java.text.SimpleDateFormat(
+            "dd/MM/yyyy",
+            java.util.Locale.ROOT
+        ).parse(
+            java.text.SimpleDateFormat(
+                "dd/MM/yyyy",
+                java.util.Locale.ROOT
+            ).format(java.util.Date())
+        )!!
+
+        if (fecha.after(hoy)) {
+            throw IllegalArgumentException(
+                "La fecha de nacimiento no puede ser futura."
+            )
+        }
+
+        fecha
+    }
+
+    fechaValida = resultadoFecha.isSuccess
+    mensajeErrorFecha = resultadoFecha.exceptionOrNull()?.message
+
 
     val datosValidos =
         nombre.isNotBlank() &&
                 fechaNacimiento.isNotBlank() &&
-                parentesco.isNotBlank()
+                parentesco.isNotBlank() &&
+                fechaValida
 
     Column(
         modifier = Modifier
@@ -119,6 +194,19 @@ fun IntegrantesScreen(
                 )
             }
 
+
+            viewModel.errorIntegrantes.value?.let { error ->
+                item {
+                    Text(
+                        text = error,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+
             // INTEGRANTES REGISTRADOS
             if (integrantes.isNotEmpty()) {
                 item {
@@ -137,6 +225,37 @@ fun IntegrantesScreen(
                 ) { integrante ->
                     IntegranteCard(
                         integrante = integrante,
+                        onEdit = {
+                            integranteEditando = integrante
+
+                            nombre = integrante.nombre
+                            parentesco = integrante.parentesco
+
+                            val partesFecha = integrante.fechaNacimiento.split("/")
+
+                            if (partesFecha.size == 3) {
+                                diaNacimiento = partesFecha[0]
+                                anioNacimiento = partesFecha[2]
+
+                                mesNacimiento = when (partesFecha[1]) {
+                                    "01" -> "Enero"
+                                    "02" -> "Febrero"
+                                    "03" -> "Marzo"
+                                    "04" -> "Abril"
+                                    "05" -> "Mayo"
+                                    "06" -> "Junio"
+                                    "07" -> "Julio"
+                                    "08" -> "Agosto"
+                                    "09" -> "Septiembre"
+                                    "10" -> "Octubre"
+                                    "11" -> "Noviembre"
+                                    "12" -> "Diciembre"
+                                    else -> ""
+                                }
+                            }
+
+                            mostrarFormulario = true
+                        },
                         onDelete = {
                             viewModel.eliminarIntegrante(integrante.id)
                         }
@@ -179,6 +298,27 @@ fun IntegrantesScreen(
                         anioNacimiento = anioNacimiento,
                         parentesco = parentesco,
                         datosValidos = datosValidos,
+                        guardando = viewModel.guardandoIntegrante.value,
+                        titulo = if (integranteEditando == null) {
+                            "Nuevo integrante"
+                        } else {
+                            "Editar integrante"
+                        },
+                        textoBoton = if (integranteEditando == null) {
+                            "Agregar"
+                        } else {
+                            "Guardar cambios"
+                        },
+                        mensajeErrorFecha = if (
+                            diaNacimiento.isNotBlank() &&
+                            mesNacimiento.isNotBlank() &&
+                            anioNacimiento.isNotBlank() &&
+                            !fechaValida
+                        ) {
+                            mensajeErrorFecha
+                        } else {
+                            null
+                        },
                         onNombreChange = {
                             nombre = it
                         },
@@ -196,28 +336,55 @@ fun IntegrantesScreen(
                         },
                         onCancelar = {
                             mostrarFormulario = false
+                            integranteEditando = null
                             nombre = ""
                             diaNacimiento = ""
                             mesNacimiento = ""
                             anioNacimiento = ""
                             parentesco = ""
+                            viewModel.limpiarErrorIntegrantes()
                         },
-                        onAgregar = {
-                            if (datosValidos) {
-                                viewModel.agregarIntegrante(
-                                    nombre = nombre,
-                                    fechaNacimiento = fechaNacimiento,
-                                    parentesco = parentesco
-                                )
 
-                                nombre = ""
-                                diaNacimiento = ""
-                                mesNacimiento = ""
-                                anioNacimiento = ""
-                                parentesco = ""
-                                mostrarFormulario = false
+                        onAgregar = {
+                            if (datosValidos && !viewModel.guardandoIntegrante.value) {
+                                val integranteActual = integranteEditando
+
+                                if (integranteActual == null) {
+                                    viewModel.agregarIntegrante(
+                                        nombre = nombre,
+                                        fechaNacimiento = fechaNacimiento,
+                                        parentesco = parentesco,
+                                        onSuccess = {
+                                            nombre = ""
+                                            diaNacimiento = ""
+                                            mesNacimiento = ""
+                                            anioNacimiento = ""
+                                            parentesco = ""
+                                            mostrarFormulario = false
+                                            viewModel.limpiarErrorIntegrantes()
+                                        }
+                                    )
+                                } else {
+                                    viewModel.actualizarIntegrante(
+                                        id = integranteActual.id,
+                                        nombre = nombre,
+                                        fechaNacimiento = fechaNacimiento,
+                                        parentesco = parentesco,
+                                        onSuccess = {
+                                            nombre = ""
+                                            diaNacimiento = ""
+                                            mesNacimiento = ""
+                                            anioNacimiento = ""
+                                            parentesco = ""
+                                            integranteEditando = null
+                                            mostrarFormulario = false
+                                            viewModel.limpiarErrorIntegrantes()
+                                        }
+                                    )
+                                }
                             }
                         }
+
                     )
                 }
             }
@@ -283,6 +450,21 @@ fun IntegrantesScreen(
                         }
                     }
                 }
+
+
+                item {
+                    viewModel.errorIntegrantes.value?.let { error ->
+                        Text(
+                            text = error,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
             }
         }
 
@@ -314,9 +496,11 @@ fun IntegrantesScreen(
     }
 }
 
+
 @Composable
 private fun IntegranteCard(
     integrante: FamilyMember,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     Card(
@@ -376,9 +560,15 @@ private fun IntegranteCard(
                 )
             }
 
-            IconButton(
-                onClick = onDelete
-            ) {
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Editar integrante",
+                    tint = TealPrimary
+                )
+            }
+
+            IconButton(onClick = onDelete) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Eliminar integrante",
@@ -389,6 +579,7 @@ private fun IntegranteCard(
     }
 }
 
+
 @Composable
 private fun NuevoIntegranteCard(
     nombre: String,
@@ -397,13 +588,17 @@ private fun NuevoIntegranteCard(
     anioNacimiento: String,
     parentesco: String,
     datosValidos: Boolean,
+    guardando: Boolean,
+    titulo: String,
+    textoBoton: String,
     onNombreChange: (String) -> Unit,
     onDiaChange: (String) -> Unit,
     onMesChange: (String) -> Unit,
     onAnioChange: (String) -> Unit,
     onParentescoChange: (String) -> Unit,
     onCancelar: () -> Unit,
-    onAgregar: () -> Unit
+    onAgregar: () -> Unit,
+    mensajeErrorFecha: String?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -423,7 +618,7 @@ private fun NuevoIntegranteCard(
             modifier = Modifier.padding(18.dp)
         ) {
             Text(
-                text = "Nuevo integrante",
+                text = titulo,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -461,6 +656,17 @@ private fun NuevoIntegranteCard(
                 onMesChange = onMesChange,
                 onAnioChange = onAnioChange
             )
+
+
+            if (mensajeErrorFecha != null) {
+                Text(
+                    text = mensajeErrorFecha,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -503,9 +709,10 @@ private fun NuevoIntegranteCard(
                     )
                 }
 
+
                 Button(
                     onClick = onAgregar,
-                    enabled = datosValidos,
+                    enabled = datosValidos && !guardando,
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
@@ -514,11 +721,20 @@ private fun NuevoIntegranteCard(
                         containerColor = TealPrimary
                     )
                 ) {
-                    Text(
-                        text = "Agregar",
-                        fontSize = 14.sp
-                    )
+                    if (guardando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = textoBoton,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
+
             }
         }
     }

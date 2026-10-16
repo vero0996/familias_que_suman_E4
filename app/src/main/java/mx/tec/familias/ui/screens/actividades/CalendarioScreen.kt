@@ -79,7 +79,37 @@ fun CalendarioScreen(
     familiaId: String,
     mostrarMensajes: Boolean = true
 ) {
-    var diaSeleccionado by remember { mutableIntStateOf(24) }
+    val actividades = estadoActividades.eventos.map { evento ->
+        val solicitud = estadoActividades.inscripciones.firstOrNull {
+            it.eventoId == evento.id && it.familiaId == familiaId
+        }
+
+        val fechaStr = evento.fecha.trim()
+        val dia = if (fechaStr.contains("/")) {
+            fechaStr.substringBefore("/").toIntOrNull() ?: 1
+        } else {
+            fechaStr.substringBefore(" ").toIntOrNull() ?: 1
+        }
+
+        ActividadCalendario(
+            id = evento.id,
+            nombre = evento.nombre,
+            fecha = dia,
+            mes = "NOV",
+            diaSemana = "Miércoles",
+            hora = evento.hora,
+            lugar = evento.lugar,
+            estado = when (solicitud?.estado) {
+                mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA -> "INSCRITO"
+                mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA -> "EN ESPERA"
+                null -> if (estadoActividades.disponibles(evento.id) == 0) "CUPO LLENO" else "DISPONIBLE"
+            }
+        )
+    }
+
+    var diaSeleccionado by remember(actividades) {
+        mutableIntStateOf(actividades.firstOrNull()?.fecha ?: 28)
+    }
 
     val nombreDia = remember(diaSeleccionado) {
         val fecha = Calendar.getInstance().apply {
@@ -92,27 +122,6 @@ fun CalendarioScreen(
             Calendar.LONG,
             Locale("es", "MX")
         ).orEmpty().replaceFirstChar { it.titlecase() }
-    }
-
-    val actividades = estadoActividades.eventos.map { evento ->
-        val solicitud = estadoActividades.inscripciones.firstOrNull {
-            it.eventoId == evento.id && it.familiaId == familiaId
-        }
-
-        ActividadCalendario(
-            id = evento.id,
-            nombre = evento.nombre,
-            fecha = evento.fecha.substringBefore(" ").toInt(),
-            mes = "NOV",
-            diaSemana = if (evento.id == "arboles") "Martes" else "Miércoles",
-            hora = evento.hora,
-            lugar = evento.lugar,
-            estado = when (solicitud?.estado) {
-                mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA -> "INSCRITO"
-                mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA -> "EN ESPERA"
-                null -> if (estadoActividades.disponibles(evento.id) == 0) "CUPO LLENO" else "DISPONIBLE"
-            }
-        )
     }
 
     val actividadesDelDia = actividades.filter {

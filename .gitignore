@@ -13,3 +13,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+.env
+.env.*
+!.env.example
+
+@'
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+'@ | Set-Content -Encoding ascii .gitignore

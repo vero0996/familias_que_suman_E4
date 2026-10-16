@@ -54,5 +54,6 @@ sealed class Routes(val route: String) {
     data object GestionarParticipantesAdmin : Routes("gestionarParticipantesAdmin")
 
     data object Publico : Routes("publico")
+    data object Login : Routes("login")
 
 }

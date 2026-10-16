@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
+import mx.tec.familias.ui.components.AdaptiveContainer
+import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.tec.familias.viewmodel.CampaignViewModel
 
 @Composable
 fun PublicoScreen(
@@ -29,22 +32,28 @@ fun PublicoScreen(
     onAdminClick: () -> Unit
 ) {
     var mostrarDialogoDonacion by remember { mutableStateOf(false) }
-    var tituloDonacion by remember { mutableStateOf("") }
+    var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
+
+    val campaignViewModel: CampaignViewModel = viewModel()
+    val campaignUiState by campaignViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        campaignViewModel.loadCampaigns()
+    }
 
     Scaffold(
-        containerColor = Color(0xFFF6FDFE),
+        containerColor = Background,
         topBar = {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(start = 18.dp, end = 18.dp, top = 10.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            Surface(
+                color = Surface,
+                shadowElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(horizontal = 18.dp, vertical = 10.dp)
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -53,23 +62,39 @@ fun PublicoScreen(
                             painter = painterResource(id = R.drawable.fqslogo2),
                             contentDescription = "Logo Familias que Suman",
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier.height(56.dp).weight(1f),
+                            modifier = Modifier
+                                .height(56.dp)
+                                .weight(1f),
                             alignment = Alignment.CenterStart
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+
                         TextButton(onClick = onAdminClick) {
-                            Text("Admin", fontSize = 14.sp, color = TextSecondary)
+                            Text(
+                                "Admin",
+                                fontSize = 14.sp,
+                                color = TextSecondary
+                            )
                         }
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
                     Button(
                         onClick = onIniciarSesionClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TealPrimary
+                        ),
                         shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 50.dp)
                     ) {
-                        Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                            color = TextOnPrimary)
+                        Text(
+                            "Iniciar Sesión",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextOnPrimary
+                        )
                     }
                 }
             }
@@ -112,12 +137,97 @@ fun PublicoScreen(
                 Text("Beneficios de unirte", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ProjectFixedCard(nombre = "Comunidad", detalle = "Sé parte de una red de familias buscando mejorar su entorno de forma continua.")
-                ProjectFixedCard(nombre = "Acceso a Voluntariados", detalle = "Inscríbete en eventos, talleres y voluntariados adecuados para toda la familia.")
+                // Beneficios de unirte
+                ProjectFixedCard(
+                    nombre = "Comunidad",
+                    detalle = "Sé parte de una red de familias buscando mejorar su entorno de forma continua."
+                )
+
+                ProjectFixedCard(
+                    nombre = "Acceso a Voluntariados",
+                    detalle = "Inscríbete en eventos, talleres y voluntariados adecuados para toda la familia."
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Text("Nuestros Proyectos Fijos", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
+                // Campañas cargadas desde el backend
+                Text(
+                    text = "Donaciones Activas",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                when {
+                    campaignUiState.isLoading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = TealPrimary)
+                        }
+                    }
+
+                    campaignUiState.error != null -> {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "No pudimos cargar las campañas.",
+                                color = TextSecondary
+                            )
+
+                            Button(
+                                onClick = { campaignViewModel.loadCampaigns() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = TealPrimary
+                                )
+                            ) {
+                                Text("Reintentar")
+                            }
+                        }
+                    }
+
+                    campaignUiState.campaigns.isEmpty() -> {
+                        Text(
+                            text = "Por el momento no hay campañas publicadas.",
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+
+                    else -> {
+                        campaignUiState.campaigns.forEach { campaign ->
+                            PublicDonationItemCard(
+                                titulo = campaign.title,
+                                descripcion = campaign.description,
+                                meta = campaign.organization_name,
+                                imagenRes = R.drawable.comedorcomunitario,
+                                onDonarClick = {
+                                    tituloCampaniaSeleccionada = campaign.title
+                                    mostrarDialogoDonacion = true
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Nuestros Proyectos Fijos",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 PublicCampaignCard(
@@ -125,6 +235,7 @@ fun PublicoScreen(
                     description = "Operación continua de comedores que brindan más de 500 raciones diarias a personas en situación vulnerable.",
                     imagenRes = R.drawable.comedorcomunitario
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 PublicCampaignCard(
@@ -133,21 +244,7 @@ fun PublicoScreen(
                     imagenRes = R.drawable.utilesescolares
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text("Donaciones Activas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                PublicDonationItemCard(
-                    titulo = "Sillas de Ruedas para Todos",
-                    descripcion = "Apoya a adultos mayores en situación vulnerable.",
-                    meta = "Meta: 15 unidades",
-                    imagenRes = R.drawable.comedorcomunitario,
-                    onDonarClick = {
-                        tituloDonacion = "Sillas de Ruedas para Todos"
-                        mostrarDialogoDonacion = true
-                    }
-                )
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
     }
@@ -155,7 +252,13 @@ fun PublicoScreen(
     if (mostrarDialogoDonacion) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoDonacion = false },
-            title = { Text("Donar a: $tituloDonacion", color = TealPrimary, fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    "Donar a: $tituloCampaniaSeleccionada",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = { Text("Puedes realizar tu entrega física directamente en nuestro centro de acopio principal. ¡Gracias por sumar!", color = TextSecondary) },
             confirmButton = {
                 Button(onClick = { mostrarDialogoDonacion = false }, shape = RoundedCornerShape(24.dp), colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)) {

@@ -68,6 +68,7 @@ import mx.tec.familias.ui.theme.TextSecondary
 fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onInscribirseClick: () -> Unit = {},
+    onConsultarCalendarioClick: () -> Unit = {},
     actividad: Activity,
     ocupados: Int,
     disponibles: Int,
@@ -75,10 +76,18 @@ fun DetalleActividadScreen(
     inscripcionConfirmada: Boolean = false,
     inscripcionesCerradas: Boolean = false,
     error: String? = null,
-    onCancelarInscripcionClick: () -> Boolean
+    onCancelarInscripcionClick: (onResult: (Boolean, String?) -> Unit) -> Unit
 ) {
     var mostrarDialogoCancelar by remember(actividad.id) { mutableStateOf(false) }
     var mostrarDialogoCompartir by remember(actividad.id) { mutableStateOf(false) }
+
+    var cancelandoInscripcion by remember(actividad.id) {
+        mutableStateOf(false)
+    }
+
+    var errorCancelacion by remember(actividad.id) {
+        mutableStateOf<String?>(null)
+    }
 
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -351,31 +360,73 @@ fun DetalleActividadScreen(
                     )
                 }
 
-                if (inscripcionConfirmada) {
+
+
+                if (inscripcionActiva) {
+
+                    // Solo las inscripciones confirmadas tienen acceso al calendario.
+                    if (inscripcionConfirmada) {
+                        Button(
+                            onClick = onConsultarCalendarioClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(22.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = TealPrimary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+
+                            Text(
+                                text = "Consultar en calendario",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "Tu familia está en lista de espera.",
+                            color = TealPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     OutlinedButton(
                         onClick = { mostrarDialogoCancelar = true },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp),
                         shape = RoundedCornerShape(22.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = Color.Red
                         )
                     ) {
-                        Text(
-                            text = "Cancelar inscripción a la actividad",
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Cancelar inscripción a la actividad")
                     }
+
                 } else {
+
                     Button(
                         onClick = onInscribirseClick,
-                        enabled = !inscripcionActiva && !inscripcionesCerradas,
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        enabled = !inscripcionesCerradas,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
                         shape = RoundedCornerShape(22.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TealPrimary
+                        )
                     ) {
                         Text(
                             text = when {
-                                inscripcionActiva -> "Estás en lista de espera"
                                 inscripcionesCerradas -> "Inscripciones cerradas"
                                 disponibles == 0 -> "Unirme a lista de espera"
                                 else -> "Inscribirme como Familia"
@@ -385,13 +436,16 @@ fun DetalleActividadScreen(
                         )
                     }
                 }
+
             }
         }
     }
 
     if (mostrarDialogoCancelar) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogoCancelar = false },
+            onDismissRequest = {
+                if (!cancelandoInscripcion) mostrarDialogoCancelar = false
+            },
             containerColor = Surface,
             title = {
                 Text(
@@ -401,26 +455,53 @@ fun DetalleActividadScreen(
                 )
             },
             text = {
-                Text(
-                    "Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
-                            "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera."
-                )
+                Column {
+                    Text(
+                        "Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
+                                "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera."
+                    )
+                    if (errorCancelacion != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = errorCancelacion!!,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             },
             confirmButton = {
                 TextButton(
+                    enabled = !cancelandoInscripcion,
                     onClick = {
-                        onCancelarInscripcionClick()
-                        mostrarDialogoCancelar = false
+                        cancelandoInscripcion = true
+                        errorCancelacion = null
+
+                        onCancelarInscripcionClick { exito, mensaje ->
+                            cancelandoInscripcion = false
+
+                            if (exito) {
+                                mostrarDialogoCancelar = false
+                                Toast.makeText(
+                                    context,
+                                    mensaje ?: "Inscripción cancelada.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                errorCancelacion = mensaje
+                                    ?: "No se pudo cancelar la inscripción."
+                            }
+                        }
                     }
                 ) {
                     Text(
-                        text = "Sí, cancelar",
+                        text = if (cancelandoInscripcion) "Cancelando..." else "Sí, cancelar",
                         color = Color.Red
                     )
                 }
             },
             dismissButton = {
                 TextButton(
+                    enabled = !cancelandoInscripcion,
                     onClick = { mostrarDialogoCancelar = false }
                 ) {
                     Text("Volver")
