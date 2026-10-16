@@ -205,9 +205,6 @@ fun AppNavigation() {
             PublicoScreen(
                 onIniciarSesionClick = {
                     navController.navigate(Routes.Login.route)
-                },
-                onAdminClick = {
-                    navController.navigate(Routes.DashboardAdmin.route)
                 }
             )
         }
