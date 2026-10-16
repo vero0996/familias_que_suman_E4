@@ -625,3 +625,30 @@ def test_family_cannot_reactivate_registration_after_deadline(
     )
 
     assert response.status_code == 409, response.text
+
+def test_family_cannot_reactivate_registration_for_unpublished_activity(
+    registration_sandbox,
+):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(f"/registrations/{own_id}/cancel")
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.status = "borrador"
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
