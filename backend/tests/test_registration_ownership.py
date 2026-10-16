@@ -652,3 +652,64 @@ def test_family_cannot_reactivate_registration_for_unpublished_activity(
     )
 
     assert response.status_code == 409, response.text
+
+def test_family_cannot_reactivate_registration_for_unpublished_campaign(
+    registration_sandbox,
+):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(f"/registrations/{own_id}/cancel")
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        campaign = db.get(Campaign, activity.campaign_id)
+        campaign.status = "borrador"
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
+
+def test_reactivation_event_records_previous_and_new_status(
+    registration_sandbox,
+):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(f"/registrations/{own_id}/cancel")
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+    assert response.status_code == 201, response.text
+
+    with Session(engine) as db:
+        event = db.scalar(
+            select(RegistrationEvent).where(
+                RegistrationEvent.registration_id == own_id,
+                RegistrationEvent.event_type == "inscripcion_reactivada",
+            )
+        )
+
+        assert event is not None
+        assert event.from_status == "cancelada"
+        assert event.to_status == response.json()["status"]
