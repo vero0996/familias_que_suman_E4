@@ -237,3 +237,34 @@ def test_survey_rejects_rating_below_one(survey_sandbox):
     response = client.post("/surveys", json=payload)
 
     assert response.status_code == 422
+
+
+def test_non_family_cannot_create_survey(survey_sandbox):
+    client, _, ids = survey_sandbox
+
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=ids["user_a"],
+        role="organizacion",
+        is_active=True,
+    )
+
+    response = client.post(
+        "/surveys",
+        json=survey_payload(ids["registration_a"]),
+    )
+
+    assert response.status_code == 403, response.text
+
+
+def test_non_family_cannot_list_surveys(survey_sandbox):
+    client, _, _ = survey_sandbox
+
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=999,
+        role="admin",
+        is_active=True,
+    )
+
+    response = client.get("/surveys/me")
+
+    assert response.status_code == 403, response.text

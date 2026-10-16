@@ -200,3 +200,61 @@ def test_list_organizations_requires_admin(admin_sandbox):
     response = client.get("/admin/organizations")
 
     assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "correo-invalido",
+        "sin-arroba.example.com",
+        "usuario@",
+        "",
+    ],
+)
+def test_promote_organization_rejects_invalid_email(
+    admin_sandbox,
+    email,
+):
+    client, _ = admin_sandbox
+    authenticate_as("admin")
+
+    response = client.post(
+        "/admin/organizations",
+        json={"email": email},
+    )
+
+    assert response.status_code == 422, response.text
+
+
+def test_list_organizations_returns_only_organization_accounts(
+    admin_sandbox,
+):
+    client, engine = admin_sandbox
+
+    with Session(engine) as db:
+        create_user(
+            db,
+            email="familia@example.com",
+            role="familia",
+        )
+        create_user(
+            db,
+            email="organizacion@example.com",
+            role="organizacion",
+        )
+        create_user(
+            db,
+            email="admin-lista@example.com",
+            role="admin",
+        )
+
+    authenticate_as("admin")
+
+    response = client.get("/admin/organizations")
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["email"] == "organizacion@example.com"
+    assert data[0]["role"] == "organizacion"

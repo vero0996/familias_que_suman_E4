@@ -179,3 +179,39 @@ def test_current_user_response_does_not_expose_sensitive_fields(login_sandbox):
     assert "password" not in body
     assert "password_hash" not in body
     assert "is_active" not in body
+
+
+def test_inactive_user_cannot_use_existing_token(login_sandbox):
+    client, engine = login_sandbox
+
+    from auth import create_access_token, password_hash
+
+    with Session(engine) as db:
+        user = User(
+            full_name="Usuario desactivado después del login",
+            email="token-inactivo@example.com",
+            phone=None,
+            password_hash=password_hash.hash("Password-seguro-123!"),
+            role="familia",
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        token = create_access_token(user)
+        user_id = user.id
+
+    # Simula la desactivación posterior al inicio de sesión.
+    with Session(engine) as db:
+        user = db.get(User, user_id)
+        user.is_active = False
+        db.commit()
+
+    response = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401, response.text
+    assert response.json()["detail"] == "Usuario no disponible"

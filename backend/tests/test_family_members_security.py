@@ -85,7 +85,11 @@ def member_sandbox():
             "inactive_member": inactive_member.id,
         }
 
-    identity = {"id": ids["user_a"], "role": "familia"}
+    identity = {
+        "id": ids["user_a"],
+        "role": "familia",
+        "is_active": True,
+    }
 
     def override_db():
         with TestSession() as db:
@@ -95,7 +99,7 @@ def member_sandbox():
         return SimpleNamespace(
             id=identity["id"],
             role=identity["role"],
-            is_active=True,
+            is_active=identity["is_active"],
         )
 
     app.dependency_overrides[get_db] = override_db
@@ -267,3 +271,69 @@ def test_family_can_create_member_for_own_family(member_sandbox):
         ).family_id
         assert member.full_name == "Nuevo integrante"
         assert member.is_active is True
+
+def test_non_family_role_cannot_create_family_member(member_sandbox):
+    client, TestSession, _, identity = member_sandbox
+
+    identity["role"] = "admin"
+
+    response = client.post(
+        "/family-members",
+        json={
+            "full_name": "Integrante no autorizado",
+            "date_of_birth": "2015-06-12",
+            "relationship_type": "Hijo",
+        },
+    )
+
+    assert response.status_code == 403, response.text
+
+    with TestSession() as db:
+        assert (
+            db.query(FamilyMember)
+            .filter_by(full_name="Integrante no autorizado")
+            .count()
+            == 0
+        )
+
+
+
+
+def test_inactive_family_user_cannot_create_member(member_sandbox):
+    client, TestSession, _, identity = member_sandbox
+
+    identity["is_active"] = False
+
+    original_override = app.dependency_overrides[get_current_user]
+
+    def reject_inactive_user():
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario no disponible",
+        )
+
+    app.dependency_overrides[get_current_user] = reject_inactive_user
+
+    try:
+        response = client.post(
+            "/family-members",
+            json={
+                "full_name": "Integrante de cuenta inactiva",
+                "date_of_birth": "2015-06-12",
+                "relationship_type": "Hijo",
+            },
+        )
+
+        assert response.status_code == 401, response.text
+
+        with TestSession() as db:
+            assert (
+                db.query(FamilyMember)
+                .filter_by(full_name="Integrante de cuenta inactiva")
+                .count()
+                == 0
+            )
+    finally:
+        app.dependency_overrides[get_current_user] = original_override
