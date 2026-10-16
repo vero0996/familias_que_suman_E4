@@ -242,3 +242,28 @@ def test_family_cannot_create_member_with_future_birth_date(
             .count()
             == 0
         )
+
+def test_family_can_create_member_for_own_family(member_sandbox):
+    client, TestSession, ids, _ = member_sandbox
+
+    response = client.post(
+        "/family-members",
+        json={
+            "full_name": "Nuevo integrante",
+            "date_of_birth": "2015-06-12",
+            "relationship_type": "Hijo",
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    created_id = response.json()["id"]
+
+    with TestSession() as db:
+        member = db.get(FamilyMember, created_id)
+
+        assert member is not None
+        assert member.family_id != db.get(
+            FamilyMember, ids["foreign_member"]
+        ).family_id
+        assert member.full_name == "Nuevo integrante"
+        assert member.is_active is True
