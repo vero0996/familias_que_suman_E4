@@ -354,3 +354,18 @@ def test_cancel_does_not_promote_waitlist_after_activity_starts(
 
     with Session(engine) as db:
         assert db.get(Registration, waiting_id).status == "lista_espera"
+
+def test_cannot_cancel_registration_twice(registration_sandbox):
+    client, _, own_id, *_ = registration_sandbox
+
+    first = client.patch(
+        f"/registrations/{own_id}/cancel",
+        json={"reason": "Primera cancelación"},
+    )
+    assert first.status_code == 200, first.text
+
+    second = client.patch(
+        f"/registrations/{own_id}/cancel",
+        json={"reason": "Segunda cancelación"},
+    )
+    assert second.status_code == 409, second.text
