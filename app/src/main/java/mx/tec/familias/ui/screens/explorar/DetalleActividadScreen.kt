@@ -116,7 +116,7 @@ fun DetalleActividadScreen(
                 .fillMaxWidth()
                 .padding(start = 18.dp, end = 18.dp, top = 48.dp),
             shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+            colors = CardDefaults.cardColors(containerColor = Surface),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
@@ -191,7 +191,7 @@ fun DetalleActividadScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                colors = CardDefaults.cardColors(containerColor = Surface),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -256,7 +256,7 @@ fun DetalleActividadScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.82f)),
+                colors = CardDefaults.cardColors(containerColor = Surface),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
@@ -343,15 +343,11 @@ fun DetalleActividadScreen(
         // BOTÓN INFERIOR
         // --------------------------------------------------
 
-        Card(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 18.dp, vertical = 10.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.92f)),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
         ) {
             Column(
                 modifier = Modifier.padding(12.dp)
@@ -644,7 +640,7 @@ private fun ActivityInfoCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.84f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

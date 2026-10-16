@@ -145,14 +145,13 @@ fun MisActividadesScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(30.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Surface.copy(alpha = 0.88f)
+                        containerColor = Surface
                     ),
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                 ) {
                     Column {
                         TopBar(
-                            title = "Mis Actividades",
                             showProfile = true,
                             onProfileClick = onPerfilClick
                         )
@@ -689,7 +688,7 @@ private fun ActividadInscritaCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
+            containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
@@ -781,7 +780,7 @@ private fun ActividadListaEsperaCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
+            containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
@@ -973,7 +972,7 @@ private fun EmptyActivitiesCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
+            containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),

@@ -145,7 +145,7 @@ fun DetalleCampaniaScreen(
                 .fillMaxWidth()
                 .padding(start = 18.dp, end = 18.dp, top = 48.dp),
             shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+            colors = CardDefaults.cardColors(containerColor = Surface),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
@@ -212,7 +212,7 @@ fun DetalleCampaniaScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                colors = CardDefaults.cardColors(containerColor = Surface),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -275,7 +275,7 @@ fun DetalleCampaniaScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.84f)),
+                colors = CardDefaults.cardColors(containerColor = Surface),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
@@ -327,7 +327,7 @@ fun DetalleCampaniaScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.82f)),
+                colors = CardDefaults.cardColors(containerColor = Surface),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
@@ -408,22 +408,18 @@ fun DetalleCampaniaScreen(
         }
 
         // BOTÓN FIJO
-        Card(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 18.dp, vertical = 10.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.92f)),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
         ) {
             Button(
                 onClick = onParticiparClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 12.dp),
+                    .padding(12.dp)
+                    .height(50.dp),
                 shape = RoundedCornerShape(22.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
             ) {
@@ -515,7 +511,7 @@ private fun CampaignInfoCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.84f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

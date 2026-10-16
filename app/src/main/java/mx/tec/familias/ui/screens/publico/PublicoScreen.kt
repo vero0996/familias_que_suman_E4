@@ -1,18 +1,19 @@
 package mx.tec.familias.ui.screens.publico
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -21,94 +22,97 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.ui.theme.*
-import mx.tec.familias.ui.components.AdaptiveContainer // <-- IMPORTANTE PARA ADAPTAR A PANTALLAS
+import mx.tec.familias.ui.components.AdaptiveContainer
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.tec.familias.viewmodel.CampaignViewModel
+
 @Composable
 fun PublicoScreen(
-    onIniciarSesionClick: () -> Unit, // Quitamos el valor por defecto para obligar a conectarlos
+    onIniciarSesionClick: () -> Unit,
+    onAdminClick: () -> Unit
 ) {
     var mostrarDialogoDonacion by remember { mutableStateOf(false) }
     var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
+
     val campaignViewModel: CampaignViewModel = viewModel()
     val campaignUiState by campaignViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         campaignViewModel.loadCampaigns()
     }
-    // ADAPTIVECONTAINER: Centra y adapta la vista en celulares anchos o tablets
-    // AdaptiveContainer {
-        Scaffold(
-            containerColor = Background,
-            topBar = {
-                Surface(
-                    color = Surface,
-                    shadowElevation = 2.dp,
-                    modifier = Modifier.fillMaxWidth()
+
+    Scaffold(
+        containerColor = Background,
+        topBar = {
+            Surface(
+                color = Surface,
+                shadowElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(horizontal = 18.dp, vertical = 10.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .statusBarsPadding()
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-
-                        // --- AQUÍ REEMPLAZAMOS EL TEXTO POR TU LOGO ---
                         Image(
-                            painter = painterResource(id = R.drawable.fqslogo2), // Usa tu logo
+                            painter = painterResource(id = R.drawable.fqslogo2),
                             contentDescription = "Logo Familias que Suman",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
-                                .height(70.dp) // Altura perfecta para que no se vea ni muy grande ni muy chico
-                                .weight(1f), // Hace que ocupe el espacio disponible empujando los botones
-                            alignment = Alignment.CenterStart // Lo alinea a la izquierda
+                                .height(56.dp)
+                                .weight(1f),
+                            alignment = Alignment.CenterStart
                         )
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Button(
-                                onClick = onIniciarSesionClick,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = TealPrimary
-                                ),
-                                shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(
-                                    horizontal = 12.dp,
-                                    vertical = 6.dp
-                                ),
-                                modifier = Modifier.height(36.dp)
-                            ) {
-                                Text(
-                                    "Iniciar Sesión",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                        TextButton(onClick = onAdminClick) {
+                            Text(
+                                "Admin",
+                                fontSize = 14.sp,
+                                color = TextSecondary
+                            )
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = onIniciarSesionClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TealPrimary
+                        ),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 50.dp)
+                    ) {
+                        Text(
+                            "Iniciar Sesión",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextOnPrimary
+                        )
                     }
                 }
             }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                Spacer(modifier = Modifier.height(10.dp))
-
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(top = 18.dp, bottom = 32.dp, start = 18.dp, end = 18.dp)
+        ) {
+            item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -123,13 +127,38 @@ fun PublicoScreen(
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Familias que Suman es una iniciativa dedicada a transformar nuestra comunidad fomentando el voluntariado, la empatía y la solidaridad desde el núcleo familiar. Conectamos el esfuerzo de las familias con causas reales.",
+                            text = "Familias que Suman es una iniciativa dedicada a transformar nuestra comunidad fomentando el voluntariado, la empatía y la solidaridad desde el núcleo familiar.",
                             fontSize = 14.sp, lineHeight = 20.sp, color = TextSecondary
                         )
                     }
                 }
 
-                Text("Campañas de Donación Activas", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Beneficios de unirte", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Beneficios de unirte
+                ProjectFixedCard(
+                    nombre = "Comunidad",
+                    detalle = "Sé parte de una red de familias buscando mejorar su entorno de forma continua."
+                )
+
+                ProjectFixedCard(
+                    nombre = "Acceso a Voluntariados",
+                    detalle = "Inscríbete en eventos, talleres y voluntariados adecuados para toda la familia."
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Campañas cargadas desde el backend
+                Text(
+                    text = "Donaciones Activas",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 when {
                     campaignUiState.isLoading -> {
@@ -174,7 +203,7 @@ fun PublicoScreen(
 
                     else -> {
                         campaignUiState.campaigns.forEach { campaign ->
-                            DonationItemCard(
+                            PublicDonationItemCard(
                                 titulo = campaign.title,
                                 descripcion = campaign.description,
                                 meta = campaign.organization_name,
@@ -184,69 +213,60 @@ fun PublicoScreen(
                                     mostrarDialogoDonacion = true
                                 }
                             )
+
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
 
-                Text("Nuestros Proyectos Fijos", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(modifier = Modifier.height(16.dp))
 
-                ProjectFixedCard(
-                    nombre = "Red de Comedores Comunitarios",
-                    detalle = "Operación continua de comedores que brindan más de 500 raciones diarias."
+                Text(
+                    text = "Nuestros Proyectos Fijos",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
                 )
 
-                ProjectFixedCard(
-                    nombre = "Centro de Apoyo Escolar",
-                    detalle = "Espacio permanente de asesorías y material didáctico para infantes."
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PublicCampaignCard(
+                    title = "Red de Comedores Comunitarios",
+                    description = "Operación continua de comedores que brindan más de 500 raciones diarias a personas en situación vulnerable.",
+                    imagenRes = R.drawable.comedorcomunitario
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PublicCampaignCard(
+                    title = "Centro de Apoyo Escolar",
+                    description = "Espacio permanente de asesorías y donación de material didáctico para infantes de bajos recursos.",
+                    imagenRes = R.drawable.utilesescolares
                 )
 
                 Spacer(modifier = Modifier.height(30.dp))
             }
         }
-
-        // DIÁLOGO MOCK DE DONACIÓN
-        if (mostrarDialogoDonacion) {
-            AlertDialog(
-                onDismissRequest = { mostrarDialogoDonacion = false },
-                title = { Text("Donar a: $tituloCampaniaSeleccionada", color = TealPrimary, fontWeight = FontWeight.Bold) },
-                text = { Text("Como invitado, puedes realizar tu entrega física directamente en nuestro centro de acopio principal. ¡Gracias por sumar!", color = TextSecondary) },
-                confirmButton = {
-                    Button(
-                        onClick = { mostrarDialogoDonacion = false },
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
-                    ) {
-                        Text("Entendido", color = TextOnPrimary)
-                    }
-                },
-                containerColor = Surface
-            )
-        }
     }
-//}
 
-@Composable
-private fun DonationItemCard(titulo: String, descripcion: String, meta: String, imagenRes: Int, onDonarClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column {
-            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(130.dp))
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = titulo, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = descripcion, fontSize = 13.sp, color = TextSecondary)
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BrownPrimary)
-                    Button(onClick = onDonarClick, colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary), shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), modifier = Modifier.height(36.dp)) {
-                        Text("Donar", fontSize = 13.sp, color = TextOnPrimary)
-                    }
+    if (mostrarDialogoDonacion) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoDonacion = false },
+            title = {
+                Text(
+                    "Donar a: $tituloCampaniaSeleccionada",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = { Text("Puedes realizar tu entrega física directamente en nuestro centro de acopio principal. ¡Gracias por sumar!", color = TextSecondary) },
+            confirmButton = {
+                Button(onClick = { mostrarDialogoDonacion = false }, shape = RoundedCornerShape(24.dp), colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)) {
+                    Text("Entendido", color = TextOnPrimary)
                 }
-            }
-        }
+            },
+            containerColor = Surface
+        )
     }
 }
 
@@ -254,14 +274,66 @@ private fun DonationItemCard(titulo: String, descripcion: String, meta: String, 
 private fun ProjectFixedCard(nombre: String, detalle: String) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(28.dp),
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(text = nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = detalle, fontSize = 13.sp, color = TextSecondary, lineHeight = 18.sp)
+        }
+    }
+}
+
+@Composable
+private fun PublicCampaignCard(title: String, description: String, imagenRes: Int) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(22.dp)))
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(text = description, fontSize = 14.sp, color = TextSecondary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PublicDonationItemCard(titulo: String, descripcion: String, meta: String, imagenRes: Int, onDonarClick: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        border = BorderStroke(1.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Image(painter = painterResource(id = imagenRes), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().height(130.dp).clip(RoundedCornerShape(22.dp)))
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = titulo, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TealPrimary)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = descripcion, fontSize = 13.sp, color = TextSecondary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BrownPrimary)
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onDonarClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)
+                ) {
+                    Text("Donar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextOnPrimary)
+                }
+            }
         }
     }
 }

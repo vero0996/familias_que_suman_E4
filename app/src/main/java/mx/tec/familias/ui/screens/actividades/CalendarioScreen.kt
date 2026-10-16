@@ -53,6 +53,8 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import java.util.Calendar
+import java.util.Locale
 
 data class ActividadCalendario(
     val id: String,
@@ -109,6 +111,19 @@ fun CalendarioScreen(
         mutableIntStateOf(actividades.firstOrNull()?.fecha ?: 28)
     }
 
+    val nombreDia = remember(diaSeleccionado) {
+        val fecha = Calendar.getInstance().apply {
+            clear()
+            set(2026, Calendar.NOVEMBER, diaSeleccionado)
+        }
+
+        fecha.getDisplayName(
+            Calendar.DAY_OF_WEEK,
+            Calendar.LONG,
+            Locale("es", "MX")
+        ).orEmpty().replaceFirstChar { it.titlecase() }
+    }
+
     val actividadesDelDia = actividades.filter {
         it.fecha == diaSeleccionado
     }
@@ -135,13 +150,12 @@ fun CalendarioScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(30.dp),
-                    colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+                    colors = CardDefaults.cardColors(containerColor = Surface),
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                 ) {
                     Column {
                         TopBar(
-                            title = "Calendario",
                             showProfile = true,
                             onProfileClick = onPerfilClick
                         )
@@ -171,7 +185,7 @@ fun CalendarioScreen(
                                     selectedContainerColor = TealPrimary,
                                     selectedLabelColor = Surface,
                                     selectedLeadingIconColor = Surface,
-                                    containerColor = Surface.copy(alpha = 0.84f),
+                                    containerColor = Surface,
                                     labelColor = TextPrimary
                                 ),
                                 shape = RoundedCornerShape(22.dp)
@@ -187,7 +201,7 @@ fun CalendarioScreen(
                                     )
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = Surface.copy(alpha = 0.84f),
+                                    containerColor = Surface,
                                     labelColor = TextPrimary
                                 ),
                                 shape = RoundedCornerShape(22.dp)
@@ -233,7 +247,7 @@ fun CalendarioScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Domingo, $diaSeleccionado de Nov.",
+                            text = "$nombreDia, $diaSeleccionado de Nov.",
                             fontSize = 22.sp,
                             lineHeight = 28.sp,
                             fontWeight = FontWeight.Bold,
@@ -243,7 +257,10 @@ fun CalendarioScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = "${actividadesDelDia.size} Actividades",
+                            text = if (actividadesDelDia.size == 1)
+                                "1 actividad"
+                            else
+                                "${actividadesDelDia.size} actividades",
                             fontSize = 14.sp,
                             color = TextSecondary
                         )
@@ -306,7 +323,7 @@ private fun CalendarioMensual(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -467,7 +484,7 @@ private fun LegendItem(
 ) {
     Card(
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.80f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -502,7 +519,7 @@ private fun ActividadCalendarioCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -652,7 +669,7 @@ private fun InfoRow(
 private fun EmptyDayCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.88f)),
+        colors = CardDefaults.cardColors(containerColor = Surface),
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)

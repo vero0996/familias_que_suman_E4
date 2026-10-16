@@ -84,8 +84,7 @@ fun RegistroScreen(
                 .padding(start = 18.dp, end = 18.dp, top = 18.dp),
             shape = RoundedCornerShape(30.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Surface.copy(alpha = 0.88f)
-            ),
+                containerColor = Surface),
             border = BorderStroke(
                 1.dp,
                 Color.White.copy(alpha = 0.90f)
@@ -158,8 +157,7 @@ fun RegistroScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Surface.copy(alpha = 0.88f)
-                ),
+                    containerColor = Surface),
                 border = BorderStroke(
                     1.dp,
                     Color.White.copy(alpha = 0.95f)
@@ -189,7 +187,7 @@ fun RegistroScreen(
                             focusedContainerColor = Surface.copy(alpha = 0.92f),
                             unfocusedContainerColor = Surface.copy(alpha = 0.84f),
                             focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.90f)
                         )
                     )
 
@@ -212,7 +210,7 @@ fun RegistroScreen(
                             focusedContainerColor = Surface.copy(alpha = 0.92f),
                             unfocusedContainerColor = Surface.copy(alpha = 0.84f),
                             focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.90f)
                         )
                     )
 
@@ -245,7 +243,7 @@ fun RegistroScreen(
                             focusedContainerColor = Surface.copy(alpha = 0.92f),
                             unfocusedContainerColor = Surface.copy(alpha = 0.84f),
                             focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f)
+                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.90f)
                         )
                     )
                 }
@@ -341,8 +339,7 @@ private fun RowOption(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = Surface.copy(alpha = 0.88f)
-        ),
+            containerColor = Surface),
         shape = RoundedCornerShape(22.dp),
         border = BorderStroke(
             1.dp,

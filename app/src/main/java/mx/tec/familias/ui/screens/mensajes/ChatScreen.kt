@@ -95,7 +95,7 @@ fun ChatMessages(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp),
             shape = RoundedCornerShape(30.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Surface.copy(alpha = 0.88f)
+                containerColor = Surface
             ),
             border = BorderStroke(
                 1.dp,
@@ -207,7 +207,7 @@ fun ChatMessages(
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Surface.copy(alpha = 0.90f)
+                containerColor = Surface
             ),
             border = BorderStroke(
                 1.dp,
@@ -311,7 +311,7 @@ private fun MessageBubble(
                 containerColor = if (mensaje.enviadoPorUsuario) {
                     TealPrimary
                 } else {
-                    Surface.copy(alpha = 0.90f)
+                    Surface
                 }
             ),
             border = if (mensaje.enviadoPorUsuario) {

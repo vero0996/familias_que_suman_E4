@@ -22,7 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -34,6 +36,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.AdminBottomNavigationBar
+import mx.tec.familias.ui.components.AdminDestination
+
 import mx.tec.familias.ui.theme.*
 
 @Composable
@@ -90,36 +96,34 @@ fun DashboardAdminScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Background,
-        // Aquí agregamos la barra de navegación inferior
+        containerColor = TealLight.copy(alpha = 0.12f),
+        topBar = {
+            AdminScreenHeader(
+                title = "Inicio",
+                actions = {
+                    IconButton(onClick = onPerfilClick) {
+                        Image(
+                            painter = painterResource(id = R.drawable.fotoperfil),
+                            contentDescription = "Perfil",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(36.dp).clip(CircleShape)
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
-            NavigationBar(containerColor = Surface) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
-                    label = { Text("Inicio") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
-                    label = { Text("Campañas") },
-                    selected = false,
-                    onClick = onCampaniasClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
-                    label = { Text("Mensajes") },
-                    selected = false,
-                    onClick = onMensajesClick
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
-                    label = { Text("Configuración") },
-                    selected = false,
-                    onClick = onConfiguracionClick
-                )
-            }
+            AdminBottomNavigationBar(
+                currentDestination = AdminDestination.INICIO,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        AdminDestination.INICIO -> Unit
+                        AdminDestination.CAMPANIAS -> onCampaniasClick()
+                        AdminDestination.MENSAJES -> onMensajesClick()
+                        AdminDestination.CONFIGURACION -> onConfiguracionClick()
+                    }
+                }
+            )
         }
     ) { paddingValues ->
 
@@ -128,59 +132,24 @@ fun DashboardAdminScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // TopBar
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Surface)
-                    .padding(vertical = 12.dp, horizontal = 20.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.icon),
-                    contentDescription = "Logo",
-                    modifier = Modifier.padding(end = 12.dp).size(28.dp)
-                )
-                Text(
-                    text = "CommunityHub",
-                    color = TealPrimary,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // FOTO DE PERFIL CIRCULAR
-                Image(
-                    painter = painterResource(id = R.drawable.fotoperfil), // Asegúrate de que el archivo se llame así
-                    contentDescription = "Foto de perfil",
-                    contentScale = ContentScale.Crop, // Esto evita que se aplaste
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape) // Esto la recorta en círculo perfecto
-                        .clickable {
-                            onPerfilClick()
-                        }
-                )
-            }
-
             // Contenido con scroll
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(top = 24.dp, start = 20.dp, end = 20.dp, bottom = 32.dp)
+                    .padding(top = 18.dp, start = 18.dp, end = 18.dp, bottom = 32.dp)
             ) {
                 // Saludo
                 Column(modifier = Modifier.padding(bottom = 20.dp).fillMaxWidth()) {
                     Text(
-                        text = "Hola, Asociación Banco\nde Alimentos",
+                        text = "Hola, Asociación Banco de Alimentos",
                         color = TealPrimary,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     Text(
-                        text = "Aquí tienes el resumen de tu impacto\nhoy.",
+                        text = "Aquí tienes el resumen de tu impacto hoy.",
                         color = TextSecondary,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -194,7 +163,7 @@ fun DashboardAdminScreen(
                         .padding(bottom = 20.dp)
                         .background(
                             WarningBackground,
-                            RoundedCornerShape(12.dp)
+                            RoundedCornerShape(22.dp)
                         )
                         .padding(20.dp)
                 ) {
@@ -341,15 +310,13 @@ fun DashboardAdminScreen(
 
                     // Participantes
                     Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                         modifier = Modifier.weight(1f),
                         colors = CardDefaults.cardColors(
                             containerColor = Surface
                         ),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(
-                            1.dp,
-                            Divider
-                        )
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, Color.White)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
@@ -383,15 +350,13 @@ fun DashboardAdminScreen(
 
                     // Cupos disponibles
                     Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                         modifier = Modifier.weight(1f),
                         colors = CardDefaults.cardColors(
                             containerColor = Surface
                         ),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(
-                            1.dp,
-                            Divider
-                        )
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, Color.White)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
@@ -434,15 +399,13 @@ fun DashboardAdminScreen(
 
                     // Campañas activas
                     Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                         modifier = Modifier.weight(1f),
                         colors = CardDefaults.cardColors(
                             containerColor = Surface
                         ),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(
-                            1.dp,
-                            Divider
-                        )
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, Color.White)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
@@ -476,15 +439,13 @@ fun DashboardAdminScreen(
 
                     // Porcentaje de ocupación
                     Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                         modifier = Modifier.weight(1f),
                         colors = CardDefaults.cardColors(
                             containerColor = Surface
                         ),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(
-                            1.dp,
-                            Divider
-                        )
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, Color.White)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
@@ -522,17 +483,15 @@ fun DashboardAdminScreen(
 // ==========================================
 
                 Card(
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 24.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Surface
                     ),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        Divider
-                    )
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White)
                 ) {
 
                     Column(
@@ -570,7 +529,7 @@ fun DashboardAdminScreen(
                                 .height(10.dp)
                                 .clip(RoundedCornerShape(8.dp)),
                             color = TealPrimary,
-                            trackColor = Divider
+                            trackColor = TealLight.copy(alpha = 0.35f)
                         )
 
                         Spacer(
@@ -632,17 +591,15 @@ fun DashboardAdminScreen(
 // ==========================================
 
                 Card(
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 24.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Surface
                     ),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        Divider
-                    )
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White)
                 ) {
 
                     Column(
@@ -691,7 +648,7 @@ fun DashboardAdminScreen(
                                 .height(12.dp)
                                 .clip(RoundedCornerShape(8.dp)),
                             color = TealPrimary,
-                            trackColor = Divider
+                            trackColor = TealLight.copy(alpha = 0.35f)
                         )
 
                         Spacer(
@@ -741,7 +698,7 @@ fun DashboardAdminScreen(
                                 .height(12.dp)
                                 .clip(RoundedCornerShape(8.dp)),
                             color = BrownPrimary,
-                            trackColor = Divider
+                            trackColor = TealLight.copy(alpha = 0.35f)
                         )
 
                         Spacer(
@@ -788,8 +745,10 @@ fun DashboardAdminScreen(
 
                 // Tarjeta Actividad 1 (Borde Rojo)
                 Card(
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White),
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
@@ -839,7 +798,7 @@ fun DashboardAdminScreen(
                                     .fillMaxWidth()
                                     .padding(top = 4.dp),
                                 color = Error,
-                                trackColor = Divider
+                                trackColor = TealLight.copy(alpha = 0.35f)
                             )
                         }
                     }
@@ -847,8 +806,10 @@ fun DashboardAdminScreen(
 
                 // Tarjeta Actividad 2 (Borde Teal)
                 Card(
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, Color.White),
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
@@ -871,7 +832,7 @@ fun DashboardAdminScreen(
                                 Text("Lugares disponibles", fontSize = 12.sp, color = TextSecondary)
                                 Text("12/15 cupos", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
-                            LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), color = TealLight, trackColor = Divider)
+                            LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), color = TealLight, trackColor = TealLight.copy(alpha = 0.35f))
                         }
                     }
                 }
@@ -1035,5 +996,14 @@ fun DashboardAdminScreen(
                 }
             }
         )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Composable
+private fun DashboardAdminScreenPreview() {
+    FamiliasQueSumanTheme(darkTheme = false) {
+        DashboardAdminScreen("Colecta de Invierno 2026", 35, 50)
     }
 }

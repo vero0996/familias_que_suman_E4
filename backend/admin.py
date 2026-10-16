@@ -7,7 +7,6 @@ from database import get_db
 from dependencies import require_role
 from models import User
 from schemas import (
-    CurrentUserResponse,
     OrganizationAdminResponse,
     OrganizationPromoteRequest,
 )
