@@ -294,3 +294,34 @@ def test_family_registration_goes_to_waitlist_when_capacity_is_exceeded(
 
     assert response.status_code == 201, response.text
     assert response.json()["status"] == "lista_espera"
+
+def test_cancel_confirmed_registration_promotes_waitlisted_family(
+    registration_sandbox,
+):
+    client, engine, own_id, foreign_id, activity_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        confirmed = db.get(Registration, own_id)
+        waiting = db.get(Registration, foreign_id)
+
+        # Mover ambas inscripciones a la misma actividad.
+        confirmed.activity_id = activity_id
+        waiting.activity_id = activity_id
+        waiting.status = "lista_espera"
+
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = 1
+        db.commit()
+
+        waiting_id = waiting.id
+
+    response = client.patch(
+        f"/registrations/{own_id}/cancel",
+        json={"reason": "Prueba de liberación de cupo"},
+    )
+
+    assert response.status_code == 200, response.text
+
+    with Session(engine) as db:
+        assert db.get(Registration, own_id).status == "cancelada"
+        assert db.get(Registration, waiting_id).status == "confirmada"
