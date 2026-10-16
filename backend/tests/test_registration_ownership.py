@@ -569,3 +569,30 @@ def test_reactivation_updates_participants(registration_sandbox):
 
     assert participant_ids == {new_member_id}
     assert own_member_id not in participant_ids
+
+def test_family_cannot_reactivate_registration_after_activity_starts(
+    registration_sandbox,
+):
+    client, engine, own_id, _, _, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        registration = db.get(Registration, own_id)
+        activity_id = registration.activity_id
+
+    cancel_response = client.patch(f"/registrations/{own_id}/cancel")
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.starts_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 409, response.text
