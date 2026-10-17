@@ -14,6 +14,10 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from rate_limiter import limiter
 from surveys import router as surveys_router
+from projects import router as projects_router
+from events import router as events_router
+from workshops import router as workshops_router
+from photos import router as photos_router
 
 app = FastAPI(
     title="Familias que Suman API",
@@ -41,6 +45,10 @@ app.include_router(activities_router)
 app.include_router(registrations_router)
 app.include_router(family_members_router)
 app.include_router(surveys_router)
+app.include_router(projects_router)
+app.include_router(events_router)
+app.include_router(workshops_router)
+app.include_router(photos_router)
 
 @app.get("/")
 def root():
@@ -74,3 +82,5 @@ def database_health():
             status_code=503,
             detail="Database connection failed",
         )
+
+
