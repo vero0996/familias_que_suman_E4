@@ -93,4 +93,19 @@ interface ApiService {
         @Header("Authorization") authorization: String
     ): List<SurveyResponse>
 
+    @retrofit2.http.GET("api/proyectos/")
+    suspend fun getProyectos(): retrofit2.Response<List<mx.tec.familias.data.model.Proyecto>>
+
+    @retrofit2.http.GET("api/eventos/")
+    suspend fun getEventos(): retrofit2.Response<List<mx.tec.familias.data.model.Evento>>
+
+    @retrofit2.http.GET("api/talleres/")
+    suspend fun getTalleres(): retrofit2.Response<List<mx.tec.familias.data.model.Taller>>
+
+    @retrofit2.http.Multipart
+    @retrofit2.http.POST("api/fotos/")
+    suspend fun uploadFoto(
+        @retrofit2.http.Part file: okhttp3.MultipartBody.Part
+    ): retrofit2.Response<mx.tec.familias.data.model.UploadResponse>
+
 }
