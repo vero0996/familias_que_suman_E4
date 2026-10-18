@@ -93,6 +93,7 @@ fun AppNavigation() {
     val tieneAccesoAdmin =
         !familyViewModel.accessToken.value.isNullOrBlank() &&
                 rolUsuario in rolesAdmin
+
     var participantesAdmin by remember {
         mutableStateOf(
             listOf(
@@ -192,6 +193,7 @@ fun AppNavigation() {
     var actividadExiste by remember {
         mutableStateOf(true)
     }
+
     var mostrarDialogoEliminar by remember {
         mutableStateOf(false)
     }
@@ -243,7 +245,6 @@ fun AppNavigation() {
                 },
 
                 onMensajesClick = {
-                    // Validar inicio de sesión para Mensajes
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Mensajes.route
                         navController.navigate(Routes.Registro.route)
@@ -262,15 +263,15 @@ fun AppNavigation() {
                         navController.navigate(Routes.Perfil.route)
                     }
                 },
+
                 onCampaniaClick = {
-                    // Esto abre la pantalla de detalles de la campaña al presionar "Unirse como Familia" o "Ver detalles"
                     navController.navigate(Routes.DetalleCampania.route)
                 },
+
                 campaigns = campaignState.campaigns,
                 estadoActividades = estadoActividades
             )
         }
-
 
         composable(Routes.Login.route) {
             LoginScreen(
@@ -308,12 +309,12 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 },
+
                 onRegistroClick = {
                     navController.navigate(Routes.Registro.route)
                 }
             )
         }
-
 
         composable(Routes.Registro.route) {
             BackHandler {
@@ -327,6 +328,7 @@ fun AppNavigation() {
 
             RegistroScreen(
                 viewModel = familyViewModel,
+
                 onBackClick = {
                     navController.navigate(Routes.Publico.route) {
                         popUpTo(Routes.Registro.route) {
@@ -335,13 +337,17 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 },
+
                 onContinuar = { nombre, registrarOtros ->
                     nombreUsuario = nombre
+
                     if (registrarOtros) {
                         navController.navigate(Routes.Integrantes.route)
                     } else {
                         navController.navigate(rutaDespuesDeRegistro) {
-                            popUpTo(Routes.Registro.route) { inclusive = true }
+                            popUpTo(Routes.Registro.route) {
+                                inclusive = true
+                            }
                         }
                     }
                 }
@@ -351,9 +357,12 @@ fun AppNavigation() {
         composable(Routes.Integrantes.route) {
             IntegrantesScreen(
                 viewModel = familyViewModel,
+
                 onContinuar = {
                     navController.navigate(rutaDespuesDeIntegrantes) {
-                        popUpTo(Routes.Integrantes.route) { inclusive = true }
+                        popUpTo(Routes.Integrantes.route) {
+                            inclusive = true
+                        }
                     }
                 }
             )
@@ -369,12 +378,16 @@ fun AppNavigation() {
                 campaigns = campaignState.campaigns,
                 cargandoActividades = actividadesViewModel.cargando,
                 errorActividades = actividadesViewModel.error,
+
                 onReintentarActividades = {
                     actividadesViewModel.cargarActividades()
                 },
+
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                        popUpTo(Routes.Inicio.route) {
+                            inclusive = true
+                        }
                     }
                 },
 
@@ -383,7 +396,6 @@ fun AppNavigation() {
                 },
 
                 onMensajesClick = {
-                    // Validar inicio de sesión para Mensajes
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Mensajes.route
                         navController.navigate(Routes.Registro.route)
@@ -426,7 +438,11 @@ fun AppNavigation() {
 
             DetalleCampaniaScreen(
                 campaniaId = campaniaId,
-                onBackClick = { navController.popBackStack() },
+
+                onBackClick = {
+                    navController.popBackStack()
+                },
+
                 onParticiparClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.DetalleCampania.route
@@ -442,7 +458,9 @@ fun AppNavigation() {
             ConfirmacionCampaniaScreen(
                 onExplorarClick = {
                     navController.navigate(Routes.Explorar.route) {
-                        popUpTo(Routes.Explorar.route) { inclusive = true }
+                        popUpTo(Routes.Explorar.route) {
+                            inclusive = true
+                        }
                     }
                 }
             )
@@ -472,18 +490,23 @@ fun AppNavigation() {
                             it.familiaId == familyViewModel.familiaId &&
                             it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
                 },
+
                 error = actividadesViewModel.error,
+
                 onCancelarInscripcionClick = { onResult ->
                     actividadesViewModel.cancelarInscripcion(
                         familyViewModel.familiaId,
                         onResult
                     )
                 },
+
                 actividad = actividadSeleccionada,
                 ocupados = estadoActividades.ocupados(actividadSeleccionada.id),
                 disponibles = estadoActividades.disponibles(actividadSeleccionada.id),
+
                 inscripcionesCerradas =
                     System.currentTimeMillis() >= actividadSeleccionada.cierreInscripciones,
+
                 inscripcionActiva = estadoActividades.inscripciones.any {
                     it.eventoId == actividadSeleccionada.id &&
                             it.familiaId == familyViewModel.familiaId &&
@@ -492,14 +515,17 @@ fun AppNavigation() {
                         mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
                     )
                 },
+
                 onBackClick = {
                     navController.popBackStack()
                 },
+
                 onConsultarCalendarioClick = {
                     navController.navigate(Routes.Actividades.route) {
                         launchSingleTop = true
                     }
                 },
+
                 onInscribirseClick = {
                     if (familyViewModel.usuario.value == null) {
                         rutaDespuesDeRegistro = Routes.Inscripcion.route
@@ -523,7 +549,6 @@ fun AppNavigation() {
                 enEspera = estadoActividades.disponibles(actividadSeleccionada.id) == 0,
                 error = actividadesViewModel.error,
 
-
                 onConfirmarClick = { participantes, observaciones ->
 
                     actividadesViewModel.inscribir(
@@ -532,7 +557,6 @@ fun AppNavigation() {
                         observaciones
                     ) { exito, estadoRemoto ->
 
-                        // 1. Distinguir un duplicado de un error real.
                         if (!exito) {
                             if (!estadoRemoto.isNullOrBlank()) {
                                 Toast.makeText(
@@ -547,7 +571,6 @@ fun AppNavigation() {
                                 )
                             }
 
-                            // Si el estado es null, el error se muestra en InscripcionScreen.
                             return@inscribir
                         }
 
@@ -555,19 +578,18 @@ fun AppNavigation() {
                             return@inscribir
                         }
 
-                        // 2. Normalizar la respuesta del backend.
                         val estadoNormalizado = estadoRemoto
                             .trim()
                             .uppercase(java.util.Locale.ROOT)
 
-                        val confirmadaRemota = estadoNormalizado == "CONFIRMADA"
+                        val confirmadaRemota =
+                            estadoNormalizado == "CONFIRMADA"
 
                         val enEsperaRemota = estadoNormalizado in setOf(
                             "EN_ESPERA",
                             "LISTA_ESPERA"
                         )
 
-                        // No aceptar estados inesperados.
                         if (!confirmadaRemota && !enEsperaRemota) {
                             Toast.makeText(
                                 context,
@@ -578,16 +600,18 @@ fun AppNavigation() {
                             return@inscribir
                         }
 
-                        // 3. Actualizar los participantes de la vista Admin.
                         val usuarioActual = familyViewModel.usuario.value
 
                         if (usuarioActual != null) {
                             val integrantesSeleccionados =
                                 familyViewModel.integrantes
-                                    .filter { it.id in participantes }
-                                    .map { it.nombre }
+                                    .filter {
+                                        it.id in participantes
+                                    }
+                                    .map {
+                                        it.nombre
+                                    }
 
-                            // El titular participa junto con los acompañantes.
                             val integrantesInscritos =
                                 listOf(usuarioActual.nombre) + integrantesSeleccionados
 
@@ -595,12 +619,16 @@ fun AppNavigation() {
                                 .filter {
                                     it.estado == EstadoParticipante.CONFIRMADO
                                 }
-                                .flatMap { it.lugaresAsignados }
+                                .flatMap {
+                                    it.lugaresAsignados
+                                }
                                 .toSet()
 
                             val lugaresDisponibles =
                                 (1..actividadAdmin.cuposTotales)
-                                    .filterNot { it in lugaresOcupados }
+                                    .filterNot {
+                                        it in lugaresOcupados
+                                    }
 
                             val lugaresAsignados =
                                 if (confirmadaRemota) {
@@ -610,7 +638,9 @@ fun AppNavigation() {
                                 }
 
                             val nuevoParticipante = ParticipanteActividadAdmin(
-                                id = (participantesAdmin.maxOfOrNull { it.id } ?: 0) + 1,
+                                id = (participantesAdmin.maxOfOrNull {
+                                    it.id
+                                } ?: 0) + 1,
                                 nombreFamilia = "Familia ${usuarioActual.nombre}",
                                 correo = usuarioActual.correo,
                                 telefono = usuarioActual.telefono,
@@ -623,18 +653,20 @@ fun AppNavigation() {
                                 lugaresAsignados = lugaresAsignados
                             )
 
-                            participantesAdmin = participantesAdmin + nuevoParticipante
+                            participantesAdmin =
+                                participantesAdmin + nuevoParticipante
 
                             actividadAdmin = actividadAdmin.copy(
                                 participantes = participantesAdmin
                                     .filter {
                                         it.estado == EstadoParticipante.CONFIRMADO
                                     }
-                                    .sumOf { it.integrantes.size }
+                                    .sumOf {
+                                        it.integrantes.size
+                                    }
                             )
                         }
 
-                        // 4. Avisar y regresar al detalle existente.
                         val mensaje = if (confirmadaRemota) {
                             "¡Inscripción confirmada!"
                         } else {
@@ -653,7 +685,6 @@ fun AppNavigation() {
                         )
                     }
                 }
-
             )
         }
 
@@ -662,8 +693,10 @@ fun AppNavigation() {
                 it.id == actividadesViewModel.ultimaInscripcionId
             }
 
-            val actividad = solicitud?.let { estadoActividades.evento(it.eventoId) }
-                ?: actividadSeleccionada
+            val actividad =
+                solicitud?.let {
+                    estadoActividades.evento(it.eventoId)
+                } ?: actividadSeleccionada
 
             val estadoNormalizado = actividadesViewModel
                 .ultimaInscripcionEstado
@@ -683,73 +716,104 @@ fun AppNavigation() {
             }
 
             val posicion = solicitud?.let {
-                if (it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA)
-                    estadoActividades.posicion(it) else null
+                if (
+                    it.estado ==
+                    mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+                ) {
+                    estadoActividades.posicion(it)
+                } else {
+                    null
+                }
             }
 
             ConfirmacionInscripcionScreen(
                 actividad = actividad,
                 estado = estadoInscripcion,
                 posicion = posicion,
+
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                        popUpTo(Routes.Inicio.route) {
+                            inclusive = true
+                        }
                     }
                 }
             )
         }
 
         composable(Routes.Actividades.route) {
-            var mostrarMisActividades by remember { mutableStateOf(false) }
+            var mostrarMisActividades by remember {
+                mutableStateOf(false)
+            }
+
             if (mostrarMisActividades) {
                 MisActividadesScreen(
                     actividadesViewModel = actividadesViewModel,
                     familiaId = familyViewModel.familiaId,
+
                     onInicioClick = {
                         navController.navigate(Routes.Inicio.route) {
-                            popUpTo(Routes.Inicio.route) { inclusive = true }
+                            popUpTo(Routes.Inicio.route) {
+                                inclusive = true
+                            }
                         }
                     },
+
                     onExplorarClick = {
                         navController.navigate(Routes.Explorar.route)
                     },
+
                     onMensajesClick = {
                         navController.navigate(Routes.Mensajes.route)
                     },
+
                     onPerfilClick = {
                         navController.navigate(Routes.Perfil.route)
                     },
+
                     onCalendarioClick = {
                         mostrarMisActividades = false
                     },
-                    mostrarMensajes = familyViewModel.usuario.value != null
+
+                    mostrarMensajes =
+                        familyViewModel.usuario.value != null
                 )
             } else {
                 CalendarioScreen(
                     estadoActividades = estadoActividades,
                     familiaId = familyViewModel.familiaId,
+
                     onInicioClick = {
                         navController.navigate(Routes.Inicio.route) {
-                            popUpTo(Routes.Inicio.route) { inclusive = true }
+                            popUpTo(Routes.Inicio.route) {
+                                inclusive = true
+                            }
                         }
                     },
+
                     onExplorarClick = {
                         navController.navigate(Routes.Explorar.route)
                     },
+
                     onMensajesClick = {
                         navController.navigate(Routes.Mensajes.route)
                     },
+
                     onPerfilClick = {
                         navController.navigate(Routes.Perfil.route)
                     },
+
                     onActividadClick = { actividad ->
                         actividadesViewModel.seleccionarEvento(actividad.id)
                         navController.navigate(Routes.DetalleActividad.route)
                     },
+
                     onMisActividadesClick = {
                         mostrarMisActividades = true
                     },
-                    mostrarMensajes = familyViewModel.usuario.value != null
+
+                    mostrarMensajes =
+                        familyViewModel.usuario.value != null
                 )
             }
         }
@@ -763,26 +827,30 @@ fun AppNavigation() {
                         }
                     }
                 },
+
                 onExplorarClick = {
                     navController.navigate(Routes.Explorar.route)
                 },
+
                 onActividadesClick = {
                     navController.navigate(Routes.Actividades.route)
                 },
+
                 onPerfilClick = {
                     navController.navigate(Routes.Perfil.route)
                 },
+
                 onConversacionClick = { conversacion ->
                     navController.currentBackStackEntry
                         ?.savedStateHandle
                         ?.set("conversacion", conversacion)
+
                     navController.navigate(Routes.ChatMessages.route)
                 }
             )
         }
 
         composable(Routes.ChatMessages.route) {
-            // CORRECCIÓN: Se fuerza el tipo de dato (as? Conversacion) para que Android Studio no marque error.
             val conversacion = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get("conversacion") as? Conversacion
@@ -790,6 +858,7 @@ fun AppNavigation() {
             if (conversacion != null) {
                 ChatMessages(
                     conversacion = conversacion,
+
                     onBackClick = {
                         navController.popBackStack()
                     }
@@ -800,29 +869,48 @@ fun AppNavigation() {
         composable(Routes.Perfil.route) {
             PerfilScreen(
                 viewModel = familyViewModel,
+
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {
-                        popUpTo(Routes.Inicio.route) { inclusive = true }
+                        popUpTo(Routes.Inicio.route) {
+                            inclusive = true
+                        }
                     }
                 },
-                onExplorarClick = { navController.navigate(Routes.Explorar.route) },
-                onActividadesClick = { navController.navigate(Routes.Actividades.route) },
-                onMensajesClick = { navController.navigate(Routes.Mensajes.route) },
-                onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
+
+                onExplorarClick = {
+                    navController.navigate(Routes.Explorar.route)
+                },
+
+                onActividadesClick = {
+                    navController.navigate(Routes.Actividades.route)
+                },
+
+                onMensajesClick = {
+                    navController.navigate(Routes.Mensajes.route)
+                },
+
+                onAgregarIntegrante = {
+                    navController.navigate(Routes.Integrantes.route)
+                },
+
                 onCambiarRolClick = {
                     familyViewModel.usuario.value = null
+
                     navController.navigate(Routes.Publico.route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(0) {
+                            inclusive = true
+                        }
                     }
                 },
-                // NUEVA LÓGICA DE CANCELACIÓN DE INSCRIPCIÓN:
+
                 onCancelarInscripcionClick = {
-                    // 1. Limpiamos la sesión del usuario
                     familyViewModel.usuario.value = null
 
-                    // 2. Lo mandamos a la pantalla de registro y borramos el historial para que no pueda dar "Atrás"
                     navController.navigate(Routes.Registro.route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(0) {
+                            inclusive = true
+                        }
                     }
                 }
             )
@@ -850,6 +938,7 @@ fun AppNavigation() {
                         popUpTo(navController.graph.id) {
                             inclusive = true
                         }
+
                         launchSingleTop = true
                     }
                 }
@@ -858,40 +947,52 @@ fun AppNavigation() {
                     tituloActividad = actividadAdmin.titulo,
                     participantesActividad = actividadAdmin.participantes,
                     cuposTotalesActividad = actividadAdmin.cuposTotales,
+
                     onCampaniasClick = {
                         navController.navigate(Routes.MisCampanias.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                             launchSingleTop = true
                         }
                     },
+
                     onMensajesClick = {
                         navController.navigate(Routes.MensajesAdmin.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                             launchSingleTop = true
                         }
                     },
+
                     onConfiguracionClick = {
                         navController.navigate(Routes.ConfiguracionAdmin.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                             launchSingleTop = true
                         }
                     },
+
                     onPerfilClick = {
                         navController.navigate(Routes.ConfiguracionAdmin.route)
                     },
+
                     onCrearCampaniaClick = {
-                        navController.navigate(Routes.CrearCampaniaColaborativa.route)
+                        navController.navigate(
+                            Routes.CrearCampaniaColaborativa.route
+                        )
                     },
+
                     onReutilizarCampaniaClick = {
-                        navController.navigate(Routes.ReutilizarCampania.route)
+                        navController.navigate(
+                            Routes.ReutilizarCampania.route
+                        )
                     },
+
                     onActividadClick = {
-                        navController.navigate(Routes.DetalleActividadAdmin.route)
+                        navController.navigate(
+                            Routes.DetalleActividadAdmin.route
+                        )
                     }
                 )
             }
         }
-
 
         composable(Routes.MisCampanias.route) {
             RutaAdminProtegida(
@@ -950,8 +1051,6 @@ fun AppNavigation() {
             }
         }
 
-
-
         composable(Routes.DetalleActividadAdmin.route) {
             RutaAdminProtegida(
                 tieneAcceso = tieneAccesoAdmin,
@@ -984,7 +1083,6 @@ fun AppNavigation() {
                     },
 
                     onCompartirClick = {
-                        // Lo conectaremos después
                     },
 
                     onEliminarClick = {
@@ -1043,8 +1141,6 @@ fun AppNavigation() {
             }
         }
 
-
-
         composable(Routes.FormularioActividadAdmin.route) {
             RutaAdminProtegida(
                 tieneAcceso = tieneAccesoAdmin,
@@ -1065,8 +1161,6 @@ fun AppNavigation() {
             }
         }
 
-
-
         composable(Routes.GestionarParticipantesAdmin.route) {
             RutaAdminProtegida(
                 tieneAcceso = tieneAccesoAdmin,
@@ -1083,13 +1177,14 @@ fun AppNavigation() {
                     onParticipantesChanged = { nuevosParticipantes ->
                         participantesAdmin = nuevosParticipantes
 
-                        val totalPersonasConfirmadas = nuevosParticipantes
-                            .filter {
-                                it.estado == EstadoParticipante.CONFIRMADO
-                            }
-                            .sumOf {
-                                it.integrantes.size
-                            }
+                        val totalPersonasConfirmadas =
+                            nuevosParticipantes
+                                .filter {
+                                    it.estado == EstadoParticipante.CONFIRMADO
+                                }
+                                .sumOf {
+                                    it.integrantes.size
+                                }
 
                         actividadAdmin = actividadAdmin.copy(
                             participantes = totalPersonasConfirmadas
@@ -1098,8 +1193,6 @@ fun AppNavigation() {
                 )
             }
         }
-
-
 
         composable(Routes.CrearCampaniaColaborativa.route) {
             RutaAdminProtegida(
@@ -1110,6 +1203,7 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
+
                     onContinuarClick = {
                         navController.navigate(
                             Routes.GestionMensajesCampania.route
@@ -1118,8 +1212,6 @@ fun AppNavigation() {
                 )
             }
         }
-
-
 
         composable(Routes.ReutilizarCampania.route) {
             RutaAdminProtegida(
@@ -1130,6 +1222,7 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
+
                     onVistaPreviaClick = {
                         navController.navigate(
                             Routes.VistaPreviaCampania.route
@@ -1138,8 +1231,6 @@ fun AppNavigation() {
                 )
             }
         }
-
-
 
         composable(Routes.VistaPreviaCampania.route) {
             RutaAdminProtegida(
@@ -1150,6 +1241,7 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
+
                     onPublicarClick = {
                         navController.navigate(Routes.MisCampanias.route) {
                             popUpTo(Routes.MisCampanias.route) {
@@ -1160,8 +1252,6 @@ fun AppNavigation() {
                 )
             }
         }
-
-
 
         composable(Routes.MensajesAdmin.route) {
             RutaAdminProtegida(
@@ -1178,12 +1268,18 @@ fun AppNavigation() {
                             }
                         }
                     },
+
                     onCampaniasClick = {
                         navController.navigate(Routes.MisCampanias.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                         }
                     },
-                    onChatClick = { tituloChat, imagenId ->
+
+                    onChatClick = { userId, tituloChat, imagenId ->
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("userId", userId)
+
                         navController.currentBackStackEntry
                             ?.savedStateHandle
                             ?.set("nombreChat", tituloChat)
@@ -1194,45 +1290,50 @@ fun AppNavigation() {
 
                         navController.navigate(Routes.ChatAdmin.route)
                     },
+
                     onConfiguracionClick = {
                         navController.navigate(Routes.ConfiguracionAdmin.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                         }
                     },
+
                     onPerfilClick = {
-                        navController.navigate(Routes.ConfiguracionAdmin.route)
+                        navController.navigate(
+                            Routes.ConfiguracionAdmin.route
+                        )
                     }
                 )
             }
         }
-
-
-
 
         composable(Routes.ChatAdmin.route) {
             RutaAdminProtegida(
                 tieneAcceso = tieneAccesoAdmin,
                 navController = navController
             ) {
+                val userId = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Int>("userId") ?: 0
+
                 val nombreChat = navController.previousBackStackEntry
                     ?.savedStateHandle
-                    ?.get("nombreChat") ?: "Chat de Asociación"
+                    ?.get<String>("nombreChat") ?: "Chat"
 
                 val imagenId = navController.previousBackStackEntry
                     ?.savedStateHandle
-                    ?.get("imagenId") ?: R.drawable.icon
+                    ?.get<Int>("imagenId") ?: R.drawable.icon
 
                 ChatAdminScreen(
+                    userId = userId,
                     nombreChat = nombreChat,
                     imagenId = imagenId,
+
                     onBackClick = {
                         navController.popBackStack()
                     }
                 )
             }
         }
-
-
 
         composable(Routes.ConfiguracionAdmin.route) {
             RutaAdminProtegida(
@@ -1247,18 +1348,21 @@ fun AppNavigation() {
                             }
                         }
                     },
+
                     onCampaniasClick = {
                         navController.navigate(Routes.MisCampanias.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                             launchSingleTop = true
                         }
                     },
+
                     onMensajesClick = {
                         navController.navigate(Routes.MensajesAdmin.route) {
                             popUpTo(Routes.DashboardAdmin.route)
                             launchSingleTop = true
                         }
                     },
+
                     onCerrarSesionClick = {
                         familyViewModel.cerrarSesion()
                         rolUsuario = null
@@ -1268,14 +1372,13 @@ fun AppNavigation() {
                             popUpTo(navController.graph.id) {
                                 inclusive = true
                             }
+
                             launchSingleTop = true
                         }
                     }
                 )
             }
         }
-
-
 
         composable(Routes.GestionMensajesCampania.route) {
             RutaAdminProtegida(
@@ -1286,6 +1389,7 @@ fun AppNavigation() {
                     onBackClick = {
                         navController.popBackStack()
                     },
+
                     onInicioClick = {
                         navController.navigate(Routes.DashboardAdmin.route) {
                             popUpTo(Routes.DashboardAdmin.route) {
@@ -1293,6 +1397,7 @@ fun AppNavigation() {
                             }
                         }
                     },
+
                     onCampaniasClick = {
                         navController.navigate(Routes.MisCampanias.route) {
                             popUpTo(Routes.DashboardAdmin.route)
@@ -1315,10 +1420,8 @@ fun AppNavigation() {
                 )
             }
         }
-
     }
 }
-
 
 @Composable
 private fun RutaAdminProtegida(
@@ -1332,6 +1435,7 @@ private fun RutaAdminProtegida(
                 popUpTo(navController.graph.id) {
                     inclusive = true
                 }
+
                 launchSingleTop = true
             }
         }

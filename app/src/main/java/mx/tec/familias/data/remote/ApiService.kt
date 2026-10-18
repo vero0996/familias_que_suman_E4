@@ -68,7 +68,6 @@ interface ApiService {
         @Body request: FamilyMemberCreateRequest
     ): FamilyMemberResponse
 
-
     @GET("registrations/me")
     suspend fun getMyRegistrations(
         @Header("Authorization") authorization: String
@@ -80,7 +79,6 @@ interface ApiService {
         @Path("registration_id") registrationId: Int,
         @Body request: RegistrationCancelRequest
     ): RegistrationResponse
-
 
     @POST("surveys")
     suspend fun createSurvey(
@@ -108,4 +106,20 @@ interface ApiService {
         @retrofit2.http.Part file: okhttp3.MultipartBody.Part
     ): retrofit2.Response<mx.tec.familias.data.model.UploadResponse>
 
+    @GET("api/mensajes/usuarios")
+    suspend fun getMessageUsers(
+        @Header("Authorization") authorization: String
+    ): List<MessageUserResponse>
+
+    @GET("api/mensajes/{user_id}")
+    suspend fun getMessages(
+        @Header("Authorization") authorization: String,
+        @Path("user_id") userId: Int
+    ): List<MessageResponse>
+
+    @POST("api/mensajes/")
+    suspend fun sendMessage(
+        @Header("Authorization") authorization: String,
+        @Body request: MessageCreateRequest
+    ): MessageResponse
 }
