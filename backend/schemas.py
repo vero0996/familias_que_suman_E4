@@ -1,4 +1,3 @@
-
 import re
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -153,6 +152,7 @@ class OrganizationAdminResponse(BaseModel):
     is_active: bool
     created_at: datetime
 
+
 class ActivityCreate(BaseModel):
     campaign_id: int = Field(gt=0)
     title: str = Field(min_length=3, max_length=200)
@@ -208,7 +208,6 @@ class ActivityUpdate(BaseModel):
         return value
 
 
-
 class ActivityResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -230,7 +229,6 @@ class ActivityResponse(BaseModel):
     created_by_user_id: int | None
     created_at: datetime
     confirmed_people: int = 0
-
 
 
 class RegistrationCreate(BaseModel):
@@ -261,7 +259,6 @@ class RegistrationCreate(BaseModel):
 
         value = value.strip()
         return value or None
-
 
 
 class RegistrationCancelRequest(BaseModel):
@@ -323,16 +320,65 @@ class SurveyResponse(BaseModel):
     photo_consent: bool
     created_at: datetime
 
+
 class ProjectCreate(BaseModel):
     title: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=1, max_length=5000)
 
+
+class ProjectUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=200)
+    description: str | None = Field(default=None, min_length=1, max_length=5000)
+
+
 class ProjectResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
     id: int
     title: str
     description: str
     created_at: datetime
+
+
+class DonationCreate(BaseModel):
+    title: str = Field(min_length=3, max_length=200)
+    description: str = Field(min_length=1, max_length=5000)
+    goal_amount: int = Field(gt=0)
+    current_amount: int = Field(default=0, ge=0)
+
+
+class DonationUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=200)
+    description: str | None = Field(default=None, min_length=1, max_length=5000)
+    goal_amount: int | None = Field(default=None, gt=0)
+    current_amount: int | None = Field(default=None, ge=0)
+
+
+class DonationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    description: str
+    goal_amount: int
+    current_amount: int
+    created_at: datetime
+
+
+class MessageCreate(BaseModel):
+    receiver_user_id: int = Field(gt=0)
+    text: str = Field(min_length=1, max_length=5000)
+
+
+class MessageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    sender_user_id: int
+    receiver_user_id: int
+    text: str
+    created_at: datetime
+
 
 class EventCreate(BaseModel):
     title: str = Field(min_length=3, max_length=200)
@@ -340,8 +386,17 @@ class EventCreate(BaseModel):
     location: str = Field(min_length=2, max_length=300)
     starts_at: datetime
 
+
+class EventUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=200)
+    description: str | None = Field(default=None, min_length=1, max_length=5000)
+    location: str | None = Field(default=None, min_length=2, max_length=300)
+    starts_at: datetime | None = None
+
+
 class EventResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
     id: int
     title: str
     description: str
@@ -349,14 +404,24 @@ class EventResponse(BaseModel):
     starts_at: datetime
     created_at: datetime
 
+
 class WorkshopCreate(BaseModel):
     title: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=1, max_length=5000)
     location: str = Field(min_length=2, max_length=300)
     starts_at: datetime
 
+
+class WorkshopUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=200)
+    description: str | None = Field(default=None, min_length=1, max_length=5000)
+    location: str | None = Field(default=None, min_length=2, max_length=300)
+    starts_at: datetime | None = None
+
+
 class WorkshopResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
     id: int
     title: str
     description: str

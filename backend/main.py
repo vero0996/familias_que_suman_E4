@@ -1,4 +1,3 @@
-
 import os
 
 from fastapi import FastAPI, HTTPException
@@ -18,6 +17,9 @@ from projects import router as projects_router
 from events import router as events_router
 from workshops import router as workshops_router
 from photos import router as photos_router
+from donations import router as donations_router
+from messages import router as messages_router
+
 
 app = FastAPI(
     title="Familias que Suman API",
@@ -49,6 +51,9 @@ app.include_router(projects_router)
 app.include_router(events_router)
 app.include_router(workshops_router)
 app.include_router(photos_router)
+app.include_router(donations_router)
+app.include_router(messages_router)
+
 
 @app.get("/")
 def root():
@@ -82,5 +87,3 @@ def database_health():
             status_code=503,
             detail="Database connection failed",
         )
-
-
