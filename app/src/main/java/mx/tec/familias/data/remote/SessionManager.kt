@@ -1,38 +1,32 @@
-
 package mx.tec.familias.data.remote
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-
-private val Context.sessionDataStore by preferencesDataStore(
-    name = "user_session"
-)
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 class SessionManager(context: Context) {
+    // Ciberseguridad: Cifrado simétrico AES-256 para almacenamiento local
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
 
-    private val dataStore = context.applicationContext.sessionDataStore
+    private val sharedPreferences = EncryptedSharedPreferences.create(
+        context,
+        "user_session_secure",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
-    private companion object {
-        val TOKEN_KEY = stringPreferencesKey("auth_token")
+    fun saveToken(token: String) {
+        sharedPreferences.edit().putString("auth_token", token).apply()
     }
 
-    val token: Flow<String?> = dataStore.data.map { preferences ->
-        preferences[TOKEN_KEY]
+    fun getToken(): String? {
+        return sharedPreferences.getString("auth_token", null)
     }
 
-    suspend fun saveToken(token: String) {
-        dataStore.edit { preferences ->
-            preferences[TOKEN_KEY] = token
-        }
-    }
-
-    suspend fun clearSession() {
-        dataStore.edit { preferences ->
-            preferences.remove(TOKEN_KEY)
-        }
+    fun clearSession() {
+        sharedPreferences.edit().remove("auth_token").apply()
     }
 }

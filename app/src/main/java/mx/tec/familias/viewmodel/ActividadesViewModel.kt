@@ -1,31 +1,39 @@
-
 package mx.tec.familias.viewmodel
 
+import android.content.Context
+import android.net.Uri
+import kotlinx.coroutines.flow.first
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mx.tec.familias.data.model.Activity
 import mx.tec.familias.data.model.EstadoActividades
+import mx.tec.familias.data.remote.RegistrationRequest
 import mx.tec.familias.data.remote.SessionManager
+import mx.tec.familias.data.remote.SurveyCreateRequest
+import mx.tec.familias.data.remote.SurveyResponse
 import mx.tec.familias.data.repository.ActividadesRepository
 import mx.tec.familias.data.repository.ActivityRemoteRepository
 import mx.tec.familias.data.repository.CampaignRepository
+import mx.tec.familias.data.repository.RegistrationRemoteRepository
+import mx.tec.familias.data.repository.SurveyRemoteRepository
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.flow.first
-import mx.tec.familias.data.remote.RegistrationRequest
-import mx.tec.familias.data.repository.RegistrationRemoteRepository
-import mx.tec.familias.data.remote.SurveyCreateRequest
-import mx.tec.familias.data.remote.SurveyResponse
-import mx.tec.familias.data.repository.SurveyRemoteRepository
-import android.util.Log
 
 class ActividadesViewModel(
     private val sessionManager: SessionManager
@@ -33,11 +41,12 @@ class ActividadesViewModel(
 
     private val repositorioRemoto = ActivityRemoteRepository()
     private val campaignRepository = CampaignRepository()
-
     private val registrationRepository = RegistrationRemoteRepository()
+    private val surveyRepository = SurveyRemoteRepository()
 
     var ultimaInscripcionEstado by mutableStateOf<String?>(null)
         private set
+
     private var repositorio = ActividadesRepository.prototipo()
 
     var estado by mutableStateOf(repositorio.consultar())
@@ -53,8 +62,6 @@ class ActividadesViewModel(
 
     var error by mutableStateOf<String?>(null)
         private set
-
-    private val surveyRepository = SurveyRemoteRepository()
 
     var encuestasEnviadas by mutableStateOf<List<SurveyResponse>>(emptyList())
         private set
@@ -141,8 +148,7 @@ class ActividadesViewModel(
             errorEncuestas = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Inicia sesión para consultar tus encuestas."
                     )
@@ -202,10 +208,6 @@ class ActividadesViewModel(
         error = null
     }
 
-    // Estas dos operaciones todavía utilizan el repositorio local.
-    // Las conectaremos a POST /registrations y PATCH de cancelación
-    // en el siguiente paso.
-
     fun inscribir(
         familiaId: String,
         participantes: List<String>,
@@ -228,21 +230,17 @@ class ActividadesViewModel(
                         }
                     )
 
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
 
-                // Solo IDs reales de acompañantes.
-                // El titular se cuenta automáticamente en el backend.
                 val participantIds = participantes.map { id ->
                     id.toIntOrNull()
                         ?: throw IllegalArgumentException(
                             "Uno de los integrantes seleccionados tiene un ID inválido."
                         )
                 }
-
 
                 val inscripcionesExistentes =
                     registrationRepository.getMyRegistrations(token)
@@ -301,13 +299,6 @@ class ActividadesViewModel(
                     .trim()
                     .uppercase(java.util.Locale.ROOT)
 
-                val confirmadaRemota = estadoNormalizado == "CONFIRMADA"
-
-                val enEsperaRemota = estadoNormalizado in setOf(
-                    "EN_ESPERA",
-                    "LISTA_ESPERA"
-                )
-
                 val estadoInscripcionEnum = when (estadoNormalizado) {
                     "LISTA_ESPERA", "EN_ESPERA" ->
                         mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
@@ -321,7 +312,6 @@ class ActividadesViewModel(
                         )
                     }
                 }
-
 
                 val nuevaInscripcion = mx.tec.familias.data.model.Inscripcion(
                     id = response.id.toString(),
@@ -369,7 +359,6 @@ class ActividadesViewModel(
         }
     }
 
-
     fun cancelarInscripcion(
         familiaId: String,
         onResult: (Boolean, String?) -> Unit
@@ -379,8 +368,7 @@ class ActividadesViewModel(
             error = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException("Tu sesión expiró. Inicia sesión nuevamente.")
 
                 val activityId = eventoSeleccionadoId.toIntOrNull()
@@ -400,7 +388,6 @@ class ActividadesViewModel(
                     reason = "Cancelada por la familia"
                 )
 
-                // Actualizar inscripciones y encuestas remotas para refrescar cupos y estado
                 cargarMisInscripcionesYEncuestas(familiaId)
 
                 if (ultimaInscripcionId == registrationId.toString()) {
@@ -463,8 +450,7 @@ class ActividadesViewModel(
             errorEncuestas = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -546,6 +532,30 @@ class ActividadesViewModel(
             }
         }
     }
+
+    fun subirFotoCampania(context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // 1. Convertir el Uri de la galería a un archivo físico
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val file = File(context.cacheDir, "foto_temp.jpg")
+                val outputStream = FileOutputStream(file)
+                inputStream?.copyTo(outputStream)
+
+                // 2. Empaquetar el archivo
+                val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+
+                // 3. Enviar al servidor (Aquí usarán el FamiliasApiService que creaste)
+                // val apiService = FamiliasApiService.create() // Dependiendo de cómo configuren Retrofit
+                // val response = apiService.uploadFoto(body)
+                // if(response.isSuccessful) { println("Foto subida: ${response.body()?.url}") }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
 
 class ActividadesViewModelFactory(
@@ -565,4 +575,3 @@ class ActividadesViewModelFactory(
         )
     }
 }
-

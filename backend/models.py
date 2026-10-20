@@ -1,6 +1,8 @@
-
 from datetime import date, datetime, timezone
 from sqlalchemy import Date
+from datetime import datetime
+from sqlalchemy import String, Text, DateTime, Column, Integer
+from sqlalchemy.orm import Mapped, mapped_column
 
 from sqlalchemy import (
     Boolean,
@@ -107,6 +109,7 @@ class FamilyMember(Base):
 
     family: Mapped["Family"] = relationship(back_populates="members")
 
+
 class Campaign(Base):
     __tablename__ = "campaigns"
 
@@ -155,7 +158,7 @@ class Activity(Base):
         DateTime(timezone=True), nullable=True
     )
     location: Mapped[str] = mapped_column(String(250))
-    
+
     capacity_people: Mapped[int] = mapped_column(
         "capacity_families",
         Integer,
@@ -293,4 +296,70 @@ class Survey(Base):
 
     registration: Mapped["Registration"] = relationship(
         back_populates="survey"
+    )
+
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
+    )
+
+
+class Donation(Base):
+    __tablename__ = "donations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    goal_amount: Mapped[int] = mapped_column(Integer)
+    current_amount: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
+    )
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sender_user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    receiver_user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
+    )
+
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    location: Mapped[str] = mapped_column(String(250))
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
+    )
+
+
+class Workshop(Base):
+    __tablename__ = "workshops"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    location: Mapped[str] = mapped_column(String(250))
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
     )

@@ -1,46 +1,46 @@
 package mx.tec.familias.ui.screens.admin.mensajes
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import mx.tec.familias.ui.components.AdminScreenHeader
-import mx.tec.familias.ui.components.AdminBottomNavigationBar
-import mx.tec.familias.ui.components.AdminDestination
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.tec.familias.R
-import mx.tec.familias.ui.theme.*
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
+import mx.tec.familias.data.remote.SessionManager
+import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.theme.*
+import mx.tec.familias.viewmodel.MessageViewModel
+import mx.tec.familias.viewmodel.MessageViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MensajesAdminScreen(
     onInicioClick: () -> Unit = {},
     onCampaniasClick: () -> Unit = {},
-    onChatClick: (String, Int) -> Unit = { _, _ -> }, // <-- Recibe el título (String) y la imagen (Int)
+    onChatClick: (Int, String, Int) -> Unit = { _, _, _ -> },
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     participantes: List<ParticipanteActividadAdmin> = emptyList(),
@@ -50,8 +50,14 @@ fun MensajesAdminScreen(
     var contenidoMensaje by remember { mutableStateOf("") }
     var mostrarConfirmacion by remember { mutableStateOf(false) }
     var mensajeEnviado by remember { mutableStateOf(false) }
-    var mostrarParticipantes by remember {
-        mutableStateOf(false)
+    var mostrarParticipantes by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val factory = remember { MessageViewModelFactory(SessionManager(context)) }
+    val messageViewModel: MessageViewModel = viewModel(factory = factory)
+
+    LaunchedEffect(Unit) {
+        messageViewModel.cargarUsuarios()
     }
 
     Scaffold(
@@ -64,13 +70,7 @@ fun MensajesAdminScreen(
                         painter = painterResource(id = R.drawable.fotoperfil),
                         contentDescription = "Perfil",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .padding(start = 16.dp)
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                onPerfilClick()
-                            }
+                        modifier = Modifier.padding(start = 16.dp).size(36.dp).clip(CircleShape).clickable { onPerfilClick() }
                     )
                 },
                 actions = {
@@ -94,20 +94,13 @@ fun MensajesAdminScreen(
                     selected = false,
                     onClick = onCampaniasClick
                 )
-
                 NavigationBarItem(
-                    icon = {
-                        Icon(Icons.Default.Chat, contentDescription = "Mensajes")
-                    },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
                     label = { Text("Mensajes") },
                     selected = true,
                     onClick = {},
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = TealPrimary,
-                        indicatorColor = TealLight
-                    )
+                    colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
                 )
-
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                     label = { Text("Configuración") },
@@ -117,105 +110,71 @@ fun MensajesAdminScreen(
             }
         }
     ) { paddingValues ->
-        //AdaptiveContainer {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
-            ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 20.dp),
+            contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
+        ) {
+            item {
+                Button(
+                    onClick = {
+                        mostrarFormulario = true
+                        mensajeEnviado = false
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary)
+                ) {
+                    Icon(imageVector = Icons.Default.Group, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Enviar mensaje a todos", fontWeight = FontWeight.Bold)
+                }
+
+                OutlinedButton(onClick = { mostrarParticipantes = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Contactar individualmente")
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            if (messageViewModel.cargando) {
                 item {
-                    Button(
-                        onClick = {
-                            mostrarFormulario = true
-                            mensajeEnviado = false
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 20.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = BrownPrimary
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Group,
-                            contentDescription = null
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text(
-                            text = "Enviar mensaje a todos",
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            mostrarParticipantes = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Contactar individualmente")
+                    Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-
+            } else if (messageViewModel.error != null) {
                 item {
-                    val titulo1 = "Coleta de útiles esc..."
-                    MensajeCard(
-                        titulo = titulo1,
-                        remitente = "Fundación Aprender Juntos",
-                        mensaje = "¡Hola! No olviden traer las m...",
-                        hora = "10:30",
-                        noLeidos = 1,
-                        esAnuncio = true,
-                        imagenId = R.drawable.utilesescolares,
-                        onClick = { onChatClick(titulo1, R.drawable.utilesescolares) } // <-- CAMBIO 2: Pasamos el título de este chat
+                    Text(
+                        text = messageViewModel.error ?: "No se pudieron cargar los usuarios.",
+                        color = MaterialTheme.colorScheme.error
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                item {
-                    val titulo2 = "Apoyo al comedor comun..."
+            } else {
+                items(
+                    items = messageViewModel.usuarios,
+                    key = { it.id }
+                ) { usuario ->
                     MensajeCard(
-                        titulo = titulo2,
-                        remitente = "Red Solidaria",
-                        mensaje = "Se ha confirmado el punto de encuentro.",
-                        hora = "Ayer",
+                        titulo = usuario.full_name,
+                        remitente = "Familia",
+                        mensaje = "Abrir conversación",
+                        hora = "",
                         noLeidos = 0,
                         esAnuncio = false,
-                        imagenId = R.drawable.comedorcomunitario,
-                        onClick = { onChatClick(titulo2, R.drawable.comedorcomunitario) } // <-- CAMBIO 2: Pasamos el título de este chat
+                        imagenId = R.drawable.icon,
+                        onClick = { onChatClick(usuario.id, usuario.full_name, R.drawable.icon) }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                }
-                item {
-                    val titulo3 = "Jornada familiar de volur..."
-                    MensajeCard(
-                        titulo = titulo3,
-                        remitente = "Asociación EcoVerde",
-                        mensaje = "Gracias por participar en la reforestación.",
-                        hora = "Lunes",
-                        noLeidos = 0,
-                        esAnuncio = false,
-                        imagenId = R.drawable.eco,
-                        onClick = { onChatClick(titulo3, R.drawable.eco) } // <-- CAMBIO 2: Pasamos el título de este chat
-                    )
                 }
             }
         }
+    }
+
     if (mostrarFormulario) {
         AlertDialog(
-            onDismissRequest = {
-                mostrarFormulario = false
-            },
+            onDismissRequest = { mostrarFormulario = false },
             title = {
-                Text(
-                    text = "Mensaje para todos",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                Text(text = "Mensaje para todos", color = TealPrimary, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column {
@@ -252,21 +211,14 @@ fun MensajesAdminScreen(
                         mostrarFormulario = false
                         mostrarConfirmacion = true
                     },
-                    enabled = asuntoMensaje.isNotBlank() &&
-                            contenidoMensaje.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BrownPrimary
-                    )
+                    enabled = asuntoMensaje.isNotBlank() && contenidoMensaje.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary)
                 ) {
                     Text("Revisar envío")
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostrarFormulario = false
-                    }
-                ) {
+                TextButton(onClick = { mostrarFormulario = false }) {
                     Text("Cancelar", color = TextSecondary)
                 }
             },
@@ -276,16 +228,10 @@ fun MensajesAdminScreen(
 
     if (mostrarConfirmacion) {
         AlertDialog(
-            onDismissRequest = {
-                mostrarConfirmacion = false
-            },
+            onDismissRequest = { mostrarConfirmacion = false },
             title = {
                 Text(
-                    text = if (mensajeEnviado) {
-                        "¡Envío simulado!"
-                    } else {
-                        "Confirmar mensaje grupal"
-                    },
+                    text = if (mensajeEnviado) "¡Envío simulado!" else "Confirmar mensaje grupal",
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold
                 )
@@ -303,18 +249,11 @@ fun MensajesAdminScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(
-                        text = asuntoMensaje,
-                        color = TealPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = asuntoMensaje, color = TealPrimary, fontWeight = FontWeight.Bold)
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Text(
-                        text = contenidoMensaje,
-                        color = TextPrimary
-                    )
+                    Text(text = contenidoMensaje, color = TextPrimary)
                 }
             },
             confirmButton = {
@@ -329,13 +268,9 @@ fun MensajesAdminScreen(
                             mensajeEnviado = true
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BrownPrimary
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary)
                 ) {
-                    Text(
-                        if (mensajeEnviado) "Aceptar" else "Confirmar envío"
-                    )
+                    Text(if (mensajeEnviado) "Aceptar" else "Confirmar envío")
                 }
             },
             dismissButton = {
@@ -356,57 +291,34 @@ fun MensajesAdminScreen(
 
     if (mostrarParticipantes) {
         AlertDialog(
-            onDismissRequest = {
-                mostrarParticipantes = false
-            },
-            title = {
-                Text("Contactar participante")
-            },
+            onDismissRequest = { mostrarParticipantes = false },
+            title = { Text("Contactar participante") },
             text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        "Selecciona a quién deseas escribirle:"
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Selecciona a quién deseas escribirle:")
 
-                    val participantes = listOf(
-                        "María González",
-                        "Carlos Ramírez",
-                        "Sofía Martínez"
-                    )
-
-                    participantes.forEach { participante ->
+                    messageViewModel.usuarios.forEach { usuario ->
                         OutlinedButton(
                             onClick = {
                                 mostrarParticipantes = false
-                                onChatClick(
-                                    participante,
-                                    R.drawable.icon
-                                )
+                                onChatClick(usuario.id, usuario.full_name, R.drawable.icon)
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(participante)
+                            Text(usuario.full_name)
                         }
                     }
                 }
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarParticipantes = false
-                    }
-                ) {
+                TextButton(onClick = { mostrarParticipantes = false }) {
                     Text("Cerrar")
                 }
             }
         )
     }
 }
-//}
 
-// Componente reutilizable para cada chat de la lista
 @Composable
 fun MensajeCard(
     titulo: String,
@@ -423,17 +335,12 @@ fun MensajeCard(
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onClick()
-            }
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
         Row(
             modifier = Modifier.padding(18.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Foto del chat
             Image(
                 painter = painterResource(id = imagenId),
                 contentDescription = null,
@@ -443,9 +350,7 @@ fun MensajeCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Contenido de texto
             Column(modifier = Modifier.weight(1f)) {
-                // Fila: Título y Hora
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -460,6 +365,7 @@ fun MensajeCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f).padding(end = 8.dp)
                     )
+
                     Text(
                         text = hora,
                         color = if (noLeidos > 0) TealPrimary else TextSecondary,
@@ -470,7 +376,6 @@ fun MensajeCard(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Remitente
                 Text(
                     text = remitente,
                     color = TextSecondary,
@@ -481,7 +386,6 @@ fun MensajeCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Fila: Mensaje (con megáfono si aplica) y Globo de no leídos
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -489,9 +393,15 @@ fun MensajeCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                         if (esAnuncio) {
-                            Icon(Icons.Default.Campaign, contentDescription = null, tint = BrownPrimary, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Default.Campaign,
+                                contentDescription = null,
+                                tint = BrownPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
                             Spacer(modifier = Modifier.width(4.dp))
                         }
+
                         Text(
                             text = mensaje,
                             color = if (noLeidos > 0) TealPrimary else TextSecondary,
@@ -504,6 +414,7 @@ fun MensajeCard(
 
                     if (noLeidos > 0) {
                         Spacer(modifier = Modifier.width(8.dp))
+
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.size(20.dp).clip(CircleShape).background(BrownPrimary)

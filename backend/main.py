@@ -1,7 +1,7 @@
-
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from admin import router as admin_router
@@ -14,11 +14,26 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from rate_limiter import limiter
 from surveys import router as surveys_router
+from projects import router as projects_router
+from events import router as events_router
+from workshops import router as workshops_router
+from photos import router as photos_router
+from donations import router as donations_router
+from messages import router as messages_router
+
 
 app = FastAPI(
     title="Familias que Suman API",
     version="0.2.0",
     description="Backend de Familias que Suman+",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://familiasquesuman.com"], # Puedes dejarlo así por ahora
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.state.limiter = limiter
@@ -41,6 +56,13 @@ app.include_router(activities_router)
 app.include_router(registrations_router)
 app.include_router(family_members_router)
 app.include_router(surveys_router)
+app.include_router(projects_router)
+app.include_router(events_router)
+app.include_router(workshops_router)
+app.include_router(photos_router)
+app.include_router(donations_router)
+app.include_router(messages_router)
+
 
 @app.get("/")
 def root():
