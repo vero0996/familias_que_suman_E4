@@ -1,5 +1,6 @@
 ﻿from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
+
 import auth
 import dependencies
 import jwt
@@ -19,7 +20,12 @@ class FakeDB:
 
 
 def make_user(role="familia", is_active=True):
-    return SimpleNamespace(id=1, role=role, is_active=is_active)
+    return SimpleNamespace(
+        id=1,
+        role=role,
+        is_active=is_active,
+        token_version=0,
+    )
 
 
 def make_token(user_id="1", expires_delta=timedelta(minutes=10)):
@@ -181,6 +187,7 @@ def test_token_with_malformed_subject_is_rejected(invalid_sub):
     assert error.value.status_code == 401
     assert error.value.detail == "Token inválido o expirado"
 
+
 @pytest.mark.parametrize(
     "secret",
     [None, "", "corto"],
@@ -267,4 +274,3 @@ def test_token_with_modified_signature_is_rejected():
 
     assert error.value.status_code == 401
     assert error.value.detail == "Token inválido o expirado"
-

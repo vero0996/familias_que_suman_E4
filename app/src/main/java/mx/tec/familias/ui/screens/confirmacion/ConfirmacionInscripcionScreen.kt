@@ -13,26 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.data.model.EstadoInscripcion
-import mx.tec.familias.ui.screens.NotificacionLugarAsignado
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
@@ -46,13 +39,6 @@ fun ConfirmacionInscripcionScreen(
     estado: mx.tec.familias.data.model.EstadoInscripcion,
     posicion: Int? = null
 ) {
-    var mostrarNotificacion by remember {
-        mutableStateOf(estado == EstadoInscripcion.CONFIRMADA)
-    }
-
-    var mostrarListaEspera by remember {
-        mutableStateOf(estado == EstadoInscripcion.EN_ESPERA)
-    }
 
     Column(
         modifier = Modifier
@@ -69,8 +55,13 @@ fun ConfirmacionInscripcionScreen(
             colors = CardDefaults.cardColors(
                 containerColor = Surface.copy(alpha = 0.88f)
             ),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            )
         ) {
             Box(
                 modifier = Modifier
@@ -95,13 +86,17 @@ fun ConfirmacionInscripcionScreen(
         // TÍTULO
         Text(
             text = when (estado) {
-                EstadoInscripcion.CONFIRMADA -> "¡Inscripción confirmada!"
-                EstadoInscripcion.EN_ESPERA -> "Estás en lista de espera"
+                EstadoInscripcion.CONFIRMADA ->
+                    "¡Inscripción confirmada!"
+
+                EstadoInscripcion.EN_ESPERA ->
+                    "Estás en lista de espera"
             },
             fontSize = 28.sp,
             lineHeight = 34.sp,
             color = TealPrimary,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            fontWeight =
+                androidx.compose.ui.text.font.FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -119,7 +114,8 @@ fun ConfirmacionInscripcionScreen(
             fontSize = 15.sp,
             lineHeight = 22.sp,
             color = TextSecondary,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign =
+                androidx.compose.ui.text.style.TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -131,15 +127,23 @@ fun ConfirmacionInscripcionScreen(
             colors = CardDefaults.cardColors(
                 containerColor = Surface
             ),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            )
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Column(
+                modifier = Modifier.padding(18.dp)
+            ) {
                 Text(
                     text = actividad.nombre,
                     fontSize = 18.sp,
                     lineHeight = 24.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    fontWeight =
+                        androidx.compose.ui.text.font.FontWeight.Bold,
                     color = TextPrimary
                 )
 
@@ -175,49 +179,9 @@ fun ConfirmacionInscripcionScreen(
             Text(
                 text = "Volver al inicio",
                 fontSize = 16.sp,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                fontWeight =
+                    androidx.compose.ui.text.font.FontWeight.Bold
             )
         }
-    }
-
-    // NOTIFICACIÓN CUANDO HAY LUGAR
-    NotificacionLugarAsignado(
-        mostrarNotificacion = mostrarNotificacion,
-        onCerrarClick = {
-            mostrarNotificacion = false
-        }
-    )
-
-    // NOTIFICACIÓN LISTA DE ESPERA
-    if (mostrarListaEspera) {
-        AlertDialog(
-            onDismissRequest = {
-                mostrarListaEspera = false
-            },
-            title = {
-                Text(
-                    text = "Lista de espera",
-                    color = TealPrimary
-                )
-            },
-            text = {
-                Text(
-                    text = "Tu familia fue agregada a la lista de espera."
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarListaEspera = false
-                    }
-                ) {
-                    Text(
-                        text = "Entendido",
-                        color = TealPrimary
-                    )
-                }
-            },
-            containerColor = Surface
-        )
     }
 }
