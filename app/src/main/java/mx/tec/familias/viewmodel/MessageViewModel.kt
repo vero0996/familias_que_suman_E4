@@ -1,6 +1,7 @@
 package mx.tec.familias.viewmodel
 
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.first
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -44,8 +45,7 @@ class MessageViewModel(
             error = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -70,8 +70,7 @@ class MessageViewModel(
             error = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -105,8 +104,7 @@ class MessageViewModel(
             error = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )

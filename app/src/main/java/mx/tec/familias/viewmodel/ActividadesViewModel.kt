@@ -2,6 +2,7 @@ package mx.tec.familias.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import kotlinx.coroutines.flow.first
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -147,8 +148,7 @@ class ActividadesViewModel(
             errorEncuestas = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Inicia sesión para consultar tus encuestas."
                     )
@@ -230,8 +230,7 @@ class ActividadesViewModel(
                         }
                     )
 
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -369,8 +368,7 @@ class ActividadesViewModel(
             error = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException("Tu sesión expiró. Inicia sesión nuevamente.")
 
                 val activityId = eventoSeleccionadoId.toIntOrNull()
@@ -452,8 +450,7 @@ class ActividadesViewModel(
             errorEncuestas = null
 
             try {
-                val token = sessionManager.token.first()
-                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
