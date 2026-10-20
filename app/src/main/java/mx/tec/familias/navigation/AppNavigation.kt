@@ -340,6 +340,7 @@ fun AppNavigation() {
 
                 onContinuar = { nombre, registrarOtros ->
                     nombreUsuario = nombre
+                    rolUsuario = "familia"
 
                     if (registrarOtros) {
                         navController.navigate(Routes.Integrantes.route)

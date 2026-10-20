@@ -9,18 +9,22 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object ApiClient {
 
-    private const val BASE_URL = "https://congress-means-binary-idaho.trycloudflare.com/"
+    // CAMBIAR URL cada que se levante el backend
+    private const val BASE_URL =
+        "https://nutrition-earn-atmosphere-slideshow.trycloudflare.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true
     }
 
-    // AÑADIDO: Certificate Pinning para ciberseguridad (MITM)
+    // Cambiar el pin cada que cambie el dominio
     private val certificatePinner = CertificatePinner.Builder()
-        .add("congress-means-binary-idaho.trycloudflare.com", "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+        .add(
+            "nutrition-earn-atmosphere-slideshow.trycloudflare.com",
+            "sha256/uXsPjVwaDxO4vIxFBYMc1wgPXF0VN/KExd/HrvBoDwY="
+        )
         .build()
 
-    // AÑADIDO: Inyectar el pinning en OkHttp
     private val okHttpClient = OkHttpClient.Builder()
         .certificatePinner(certificatePinner)
         .build()
@@ -28,7 +32,7 @@ object ApiClient {
     val apiService: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient) // AÑADIDO: decirle a Retrofit que use OkHttp seguro
+            .client(okHttpClient)
             .addConverterFactory(
                 json.asConverterFactory(
                     "application/json".toMediaType()
