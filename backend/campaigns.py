@@ -115,13 +115,6 @@ def update_campaign(
 
         new_status = changes["status"]
 
-        
-        if new_status == campaign.status:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"La campaña ya está en estado '{campaign.status}'",
-            )
-
         allowed = allowed_transitions.get(campaign.status, set())
 
         if new_status not in allowed:

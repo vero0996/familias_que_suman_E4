@@ -47,18 +47,48 @@ class CampaignViewModel(
         }
     }
 
-    fun updateCampaign(campaignId: Int, request: CampaignUpdateRequest, onSuccess: () -> Unit) {
+
+
+    fun updateCampaign(
+        campaignId: Int,
+        request: CampaignUpdateRequest,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null
+            )
+
             try {
-                val token = sessionManager?.getToken() ?: ""
+                val token = sessionManager?.getToken()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException(
+                        "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    )
+
                 repository.updateCampaign(token, campaignId, request)
-                loadCampaigns()
-                onSuccess()
-            } catch (e: Exception) {
+
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "No se pudo actualizar la campaña."
+                    error = null
+                )
+
+                onSuccess()
+
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.e(
+                    "CampaignUpdate",
+                    "Error al actualizar campaña $campaignId",
+                    e
+                )
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message
+                        ?: "No se pudieron guardar los cambios."
                 )
             }
         }
