@@ -13,7 +13,7 @@ object ApiClient {
     // IMPORTANTE: Retrofit exige que la URL base termine obligatoriamente con barra diagonal (/)
     // y no debe incluir "/docs" al final, ya que los endpoints están en la raíz.
     private const val BASE_URL =
-        "https://nirvana-flexibility-dans-acne.trycloudflare.com/"
+        "https://chapters-device-presentation-fotos.trycloudflare.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -22,7 +22,7 @@ object ApiClient {
     // Cambiar el pin cada que cambie el dominio
     private val certificatePinner = CertificatePinner.Builder()
         .add(
-            "nirvana-flexibility-dans-acne.trycloudflare.com",
+            "chapters-device-presentation-fotos.trycloudflare.com",
             "sha256/uXsPjVwaDxO4vIxFBYMc1wgPXF0VN/KExd/HrvBoDwY="
         )
         .build()
