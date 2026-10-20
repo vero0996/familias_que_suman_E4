@@ -20,7 +20,7 @@ object ApiClient {
     // Cambiar el pin cada que cambie el dominio
     private val certificatePinner = CertificatePinner.Builder()
         .add(
-            "nutrition-earn-atmosphere-slideshow.trycloudflare.com",
+            "*.trycloudflare.com",
             "sha256/uXsPjVwaDxO4vIxFBYMc1wgPXF0VN/KExd/HrvBoDwY="
         )
         .build()
