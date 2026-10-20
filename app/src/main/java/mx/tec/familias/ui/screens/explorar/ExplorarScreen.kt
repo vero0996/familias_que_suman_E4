@@ -2,8 +2,10 @@ package mx.tec.familias.ui.screens.explorar
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,12 +15,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Search
@@ -29,9 +34,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
 import mx.tec.familias.data.remote.CampaignResponse
+import mx.tec.familias.ui.components.BottomNavigationBar
+import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.theme.*
 
 @Composable
@@ -59,6 +69,7 @@ fun ExplorarScreen(
     onPerfilClick: () -> Unit = {},
     onCampaniaClick: (String) -> Unit = {},
     onActividadClick: (String) -> Unit = {},
+    onBackClick: () -> Unit = {},
     estadoActividades: mx.tec.familias.data.model.EstadoActividades? = null,
     campaigns: List<CampaignResponse> = emptyList(),
     mostrarMensajes: Boolean = false,
@@ -102,162 +113,233 @@ fun ExplorarScreen(
 
     val hayResultados = matchingCampaigns.isNotEmpty() || matchingEvents.isNotEmpty()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(TealLight.copy(alpha = 0.12f))
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 20.dp, end = 20.dp)
-        ) {
-            item {
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
+    Scaffold(
+        containerColor = Background,
+        topBar = {
+            Surface(
+                color = Surface,
+                shadowElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    placeholder = { Text(text = "Buscar causas, asociaciones...") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Buscar",
-                            tint = TealPrimary
-                        )
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(28.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Surface,
-                        unfocusedContainerColor = Surface,
-                        focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
-                        unfocusedBorderColor = Color.Transparent
-                    )
-                )
+                        .statusBarsPadding()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBackClick) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(TealLight.copy(alpha = 0.45f))
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Regresar",
+                                tint = TealPrimary
+                            )
+                        }
+                    }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                ExplorarFilters(
-                    filtroActual = filtroActual,
-                    onFiltroChange = { filtroActual = it }
-                )
-                Spacer(modifier = Modifier.height(28.dp))
-            }
-
-            if (cargandoActividades) {
-                item {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        color = TealPrimary
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "Cargando actividades...",
-                        modifier = Modifier.padding(top = 8.dp),
-                        fontSize = 14.sp,
-                        color = TextSecondary
+                        text = "Explorar",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TealPrimary,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Image(
+                        painter = painterResource(id = R.drawable.icon),
+                        contentDescription = "Perfil",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable { onPerfilClick() }
                     )
                 }
             }
-
-            if (!errorActividades.isNullOrBlank()) {
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = errorActividades,
-                        fontSize = 14.sp,
-                        color = BrownPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = onReintentarActividades,
-                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
-                    ) {
-                        Text("Reintentar")
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                currentDestination = FamilyDestination.EXPLORAR,
+                mostrarMensajes = mostrarMensajes,
+                onDestinationSelected = { destination ->
+                    when (destination) {
+                        FamilyDestination.INICIO -> onInicioClick()
+                        FamilyDestination.EXPLORAR -> Unit
+                        FamilyDestination.ACTIVIDADES -> onActividadesClick()
+                        FamilyDestination.MENSAJES -> onMensajesClick()
+                        FamilyDestination.PERFIL -> onPerfilClick()
                     }
                 }
-            }
-
-            if (matchingCampaigns.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Campañas",
-                        fontSize = 22.sp,
-                        lineHeight = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                items(matchingCampaigns.size) { index ->
-                    val campania = matchingCampaigns[index]
-
-                    CampaignCard(
-                        tag = campania.status.uppercase(),
-                        tagColor = TealDark,
-                        title = campania.title,
-                        organization = campania.organization_name,
-                        description = campania.description,
-                        progress = 0.75f,
-                        progressText = "75%",
-                        buttonText = "Ver campaña",
-                        onClick = { onCampaniaClick(campania.id.toString()) }
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-            }
-
-            if (matchingEvents.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Actividades",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                items(matchingEvents.size) { index ->
-                    val evento = matchingEvents[index]
-                    val cupos = evento.capacidadPersonas
-                    val ocupados = estadoActividades?.ocupados(evento.id) ?: 0
-                    val disponibles = estadoActividades?.disponibles(evento.id) ?: cupos
-
-                    ActivityCard(
-                        title = evento.nombre,
-                        organization = evento.organizacion,
-                        participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
-                        date = evento.fecha,
-                        onClick = { onActividadClick(evento.id) }
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-            }
-
-            if (
-                !hayResultados &&
-                !cargandoActividades &&
-                errorActividades.isNullOrBlank()
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(TealLight.copy(alpha = 0.12f))
+                .padding(paddingValues)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 20.dp, bottom = 32.dp, start = 20.dp, end = 20.dp)
             ) {
                 item {
-                    Text(
-                        text = "No encontramos resultados",
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { searchText = it },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextSecondary
+                            .height(56.dp),
+                        placeholder = { Text(text = "Buscar causas, asociaciones...") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Buscar",
+                                tint = TealPrimary
+                            )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(28.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Surface,
+                            unfocusedContainerColor = Surface,
+                            focusedBorderColor = TealPrimary.copy(alpha = 0.35f),
+                            unfocusedBorderColor = Color.Transparent
+                        )
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    ExplorarFilters(
+                        filtroActual = filtroActual,
+                        onFiltroChange = { filtroActual = it }
+                    )
+                    Spacer(modifier = Modifier.height(28.dp))
+                }
+
+                if (cargandoActividades) {
+                    item {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            color = TealPrimary
+                        )
+
+                        Text(
+                            text = "Cargando actividades...",
+                            modifier = Modifier.padding(top = 8.dp),
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+
+                if (!errorActividades.isNullOrBlank()) {
+                    item {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = errorActividades,
+                            fontSize = 14.sp,
+                            color = BrownPrimary
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = onReintentarActividades,
+                            colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+                        ) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
+
+                if (matchingCampaigns.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Campañas",
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    items(matchingCampaigns.size) { index ->
+                        val campania = matchingCampaigns[index]
+
+                        CampaignCard(
+                            tag = campania.status.uppercase(),
+                            tagColor = TealDark,
+                            title = campania.title,
+                            organization = campania.organization_name,
+                            description = campania.description,
+                            progress = 0.75f,
+                            progressText = "75%",
+                            buttonText = "Ver campaña",
+                            onClick = { onCampaniaClick(campania.id.toString()) }
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+
+                if (matchingEvents.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Actividades",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    items(matchingEvents.size) { index ->
+                        val evento = matchingEvents[index]
+                        val cupos = evento.capacidadPersonas
+                        val ocupados = estadoActividades?.ocupados(evento.id) ?: 0
+                        val disponibles = estadoActividades?.disponibles(evento.id) ?: cupos
+
+                        ActivityCard(
+                            title = evento.nombre,
+                            organization = evento.organizacion,
+                            participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
+                            date = evento.fecha,
+                            onClick = { onActividadClick(evento.id) }
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+
+                if (
+                    !hayResultados &&
+                    !cargandoActividades &&
+                    errorActividades.isNullOrBlank()
+                ) {
+                    item {
+                        Text(
+                            text = "No encontramos resultados",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextSecondary
+                        )
+                    }
                 }
             }
         }
