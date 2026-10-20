@@ -127,4 +127,9 @@ interface ApiService {
         @Header("Authorization") authorization: String,
         @Body request: MessageCreateRequest
     ): MessageResponse
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): RecoveryResponse
 }

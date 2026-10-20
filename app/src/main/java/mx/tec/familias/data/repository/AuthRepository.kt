@@ -5,6 +5,8 @@ import mx.tec.familias.data.remote.CurrentUserResponse
 import mx.tec.familias.data.remote.LoginRequest
 import mx.tec.familias.data.remote.RegisterRequest
 import mx.tec.familias.data.remote.TokenResponse
+import mx.tec.familias.data.remote.ForgotPasswordRequest
+import mx.tec.familias.data.remote.RecoveryResponse
 
 class AuthRepository {
 
@@ -42,6 +44,14 @@ class AuthRepository {
     ): CurrentUserResponse {
         return ApiClient.apiService.getCurrentUser(
             authorization = "Bearer $token"
+        )
+    }
+
+    suspend fun forgotPassword(email: String): RecoveryResponse {
+        return ApiClient.apiService.forgotPassword(
+            ForgotPasswordRequest(
+                email = email.trim()
+            )
         )
     }
 }
