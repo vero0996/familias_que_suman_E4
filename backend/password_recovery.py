@@ -179,6 +179,7 @@ def reset_password(
         raise HTTPException(status_code=400, detail=invalid_link)
 
     user.password_hash = password_hash.hash(payload.new_password)
+    user.token_version += 1
 
     # Invalida todos los enlaces pendientes de esta cuenta.
     db.execute(
