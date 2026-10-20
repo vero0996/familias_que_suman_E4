@@ -204,6 +204,34 @@ def test_draft_campaign_is_not_public(security_sandbox):
 
     assert response.status_code == 404
 
+def test_organization_cannot_list_all_admin_campaigns(security_sandbox):
+    client, _, _, _ = security_sandbox
+
+    response = client.get("/campaigns/admin")
+
+    assert response.status_code == 403
+
+
+def test_admin_can_list_campaigns_in_all_statuses(security_sandbox):
+    client, identity, ids, _ = security_sandbox
+    identity.update(id=ids["admin"], role="admin")
+
+    response = client.get("/campaigns/admin")
+
+    assert response.status_code == 200, response.text
+
+    campaigns = response.json()
+    campaign_ids = {campaign["id"] for campaign in campaigns}
+
+    assert campaign_ids == {
+        ids["campaign_a"],
+        ids["campaign_b"],
+        ids["campaign_draft"],
+    }
+
+    statuses = {campaign["status"] for campaign in campaigns}
+    assert "publicada" in statuses
+    assert "borrador" in statuses
 
 def test_organization_cannot_update_foreign_activity(security_sandbox):
     client, _, ids, _ = security_sandbox

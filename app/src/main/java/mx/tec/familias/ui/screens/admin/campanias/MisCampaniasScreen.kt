@@ -35,14 +35,17 @@ import mx.tec.familias.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisCampaniasScreen(
+    campaigns: List<mx.tec.familias.data.remote.CampaignResponse> = emptyList(),
+    isLoading: Boolean = false,
+    error: String? = null,
     mostrarActividad: Boolean = true,
     onInicioClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
     onNuevaCampaniaClick: () -> Unit = {},
-    onGestionCampaniaClick: () -> Unit = {}, // Botón del medio (Mensajes de campaña)
-    onEditarCampaniaClick: () -> Unit = {},   // Botón lápiz (Editar)
-    onReutilizarCampaniaClick: () -> Unit = {} // Botón flecha (Reutilizar)
+    onGestionCampaniaClick: () -> Unit = {},
+    onEditarCampaniaClick: (Int) -> Unit = {},
+    onReutilizarCampaniaClick: () -> Unit = {}
 ) {
     Scaffold(
         containerColor = TealLight.copy(alpha = 0.12f),
@@ -76,33 +79,57 @@ fun MisCampaniasScreen(
                 .verticalScroll(rememberScrollState()).padding(horizontal = 18.dp)
         ) {
             Spacer(modifier = Modifier.height(18.dp))
-            if (mostrarActividad) {
+
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = TealPrimary)
+                }
+            } else if (!error.isNullOrBlank()) {
+                Text(text = error, color = BrownPrimary, fontSize = 14.sp)
+            } else if (campaigns.isNotEmpty()) {
+                campaigns.forEach { campaign ->
+                    CampaignManagementCard(
+                        titulo = campaign.title,
+                        fecha = campaign.created_at.take(10),
+                        hora = campaign.organization_name,
+                        cuposOcupados = 20,
+                        cuposTotales = 30,
+                        estado = campaign.status.replaceFirstChar { it.uppercase() },
+                        imagenId = R.drawable.reforestacionurbana,
+                        onEditarClick = { onEditarCampaniaClick(campaign.id) },
+                        onMensajesClick = onGestionCampaniaClick,
+                        onReutilizarClick = onReutilizarCampaniaClick
+                    )
+                }
+            } else {
+                if (mostrarActividad) {
+                    CampaignManagementCard(
+                        titulo = "Colecta de Invierno 2026",
+                        fecha = "15 de Octubre, 2026",
+                        hora = "10:00 AM - 4:00 PM",
+                        cuposOcupados = 35,
+                        cuposTotales = 50,
+                        estado = "Activa",
+                        imagenId = R.drawable.recorridainvierno,
+                        onEditarClick = { onEditarCampaniaClick(0) },
+                        onMensajesClick = onGestionCampaniaClick,
+                        onReutilizarClick = onReutilizarCampaniaClick
+                    )
+                }
                 CampaignManagementCard(
-                    titulo = "Colecta de Invierno 2026",
-                    fecha = "15 de Octubre, 2026",
-                    hora = "10:00 AM - 4:00 PM",
-                    cuposOcupados = 35,
-                    cuposTotales = 50,
-                    estado = "Activa",
-                    imagenId = R.drawable.recorridainvierno,
-                    onEditarClick = onEditarCampaniaClick,
+                    titulo = "Reforestación Comunitaria",
+                    fecha = "22 de Octubre, 2026",
+                    hora = "9:00 AM - 1:00 PM",
+                    cuposOcupados = 20,
+                    cuposTotales = 30,
+                    estado = "Próxima",
+                    imagenId = R.drawable.reforestacionurbana,
+                    onEditarClick = { onEditarCampaniaClick(0) },
                     onMensajesClick = onGestionCampaniaClick,
                     onReutilizarClick = onReutilizarCampaniaClick
                 )
             }
-            CampaignManagementCard(
-                titulo = "Reforestación Comunitaria",
-                fecha = "22 de Octubre, 2026",
-                hora = "9:00 AM - 1:00 PM",
-                cuposOcupados = 20,
-                cuposTotales = 30,
-                estado = "Próxima",
-                imagenId = R.drawable.reforestacionurbana,
-                onEditarClick = onEditarCampaniaClick,
-                onMensajesClick = onGestionCampaniaClick,
-                onReutilizarClick = onReutilizarCampaniaClick
-            )
-            // Espacio para que el botón flotante no cubra las acciones de la última tarjeta.
+
             Spacer(modifier = Modifier.height(88.dp))
         }
     }
@@ -131,7 +158,6 @@ fun CampaignManagementCard(
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            // Imagen personalizada de la campaña
             Image(
                 painter = painterResource(id = imagenId),
                 contentDescription = "Portada de campaña",
@@ -205,12 +231,10 @@ fun CampaignManagementCard(
 
                 Divider(modifier = Modifier.padding(vertical = 16.dp), color = Divider)
 
-                // Botones de acción interactivos
                 Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Botón Editar (Lápiz)
                     IconButton(
                         onClick = onEditarClick,
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(TealLight.copy(alpha = 0.60f))
@@ -219,7 +243,6 @@ fun CampaignManagementCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Botón Participantes / Mensajes (Del medio)
                     IconButton(
                         onClick = onMensajesClick,
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(TealLight.copy(alpha = 0.60f))
@@ -228,7 +251,6 @@ fun CampaignManagementCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Botón Reutilizar (Flecha circular)
                     IconButton(
                         onClick = onReutilizarClick,
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(18.dp)).background(TealLight.copy(alpha = 0.60f))

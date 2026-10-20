@@ -21,6 +21,14 @@ def list_campaigns(db: Session = Depends(get_db)):
     )
     return db.scalars(statement).all()
 
+@router.get("/admin", response_model=list[CampaignResponse])
+def list_all_campaigns_for_admin(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    """Lista todas las campañas para la administración."""
+    statement = select(Campaign).order_by(Campaign.created_at.desc())
+    return db.scalars(statement).all()
 
 @router.get("/{campaign_id}", response_model=CampaignResponse)
 def get_campaign(campaign_id: int, db: Session = Depends(get_db)):

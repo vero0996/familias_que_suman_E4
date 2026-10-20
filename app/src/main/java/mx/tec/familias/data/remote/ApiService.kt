@@ -25,6 +25,13 @@ interface ApiService {
     @GET("campaigns")
     suspend fun getCampaigns(): List<CampaignResponse>
 
+    @PATCH("campaigns/{campaign_id}")
+    suspend fun updateCampaign(
+        @Header("Authorization") authorization: String,
+        @Path("campaign_id") campaignId: Int,
+        @Body request: CampaignUpdateRequest
+    ): CampaignResponse
+
     @POST("auth/login")
     suspend fun login(
         @Body request: LoginRequest

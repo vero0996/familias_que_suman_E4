@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import mx.tec.familias.data.remote.CampaignResponse
+import mx.tec.familias.data.remote.CampaignUpdateRequest
+import mx.tec.familias.data.remote.SessionManager
 import mx.tec.familias.data.repository.CampaignRepository
 
 data class CampaignUiState(
@@ -15,7 +17,9 @@ data class CampaignUiState(
     val error: String? = null
 )
 
-class CampaignViewModel : ViewModel() {
+class CampaignViewModel(
+    private val sessionManager: SessionManager? = null
+) : ViewModel() {
 
     private val repository = CampaignRepository()
 
@@ -38,6 +42,23 @@ class CampaignViewModel : ViewModel() {
             } catch (e: Exception) {
                 _uiState.value = CampaignUiState(
                     error = e.message ?: "No se pudieron cargar las campañas."
+                )
+            }
+        }
+    }
+
+    fun updateCampaign(campaignId: Int, request: CampaignUpdateRequest, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                val token = sessionManager?.getToken() ?: ""
+                repository.updateCampaign(token, campaignId, request)
+                loadCampaigns()
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "No se pudo actualizar la campaña."
                 )
             }
         }

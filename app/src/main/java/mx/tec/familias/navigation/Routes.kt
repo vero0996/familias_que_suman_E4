@@ -45,6 +45,9 @@ sealed class Routes(val route: String) {
     data object ReutilizarCampania : Routes("reutilizarCampania")
 
     data object VistaPreviaCampania : Routes("vistaPreviaCampania")
+    data object EditarCampania : Routes("editarCampania") {
+        fun createRoute(campaignId: Int) = "editarCampania/$campaignId"
+    }
 
     data object Mensajes : Routes("mensajes")
 

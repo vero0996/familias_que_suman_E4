@@ -29,6 +29,8 @@ import mx.tec.familias.ui.screens.confirmacion.ConfirmacionCampaniaScreen
 import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
+import mx.tec.familias.ui.screens.admin.campanias.EditarCampaniaScreen
+import mx.tec.familias.viewmodel.CampaignViewModel
 import androidx.activity.compose.BackHandler
 import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
 import mx.tec.familias.ui.screens.admin.campanias.CrearCampaniaColaborativaScreen
@@ -1000,7 +1002,15 @@ fun AppNavigation() {
                 tieneAcceso = tieneAccesoAdmin,
                 navController = navController
             ) {
+                val context = LocalContext.current
+                val sessionManager = remember { SessionManager(context) }
+                val campaignViewModel = remember { CampaignViewModel(sessionManager) }
+                val uiState by campaignViewModel.uiState.collectAsState()
+
                 MisCampaniasScreen(
+                    campaigns = uiState.campaigns,
+                    isLoading = uiState.isLoading,
+                    error = uiState.error,
                     mostrarActividad = actividadExiste,
 
                     onInicioClick = {
@@ -1037,9 +1047,9 @@ fun AppNavigation() {
                         )
                     },
 
-                    onEditarCampaniaClick = {
+                    onEditarCampaniaClick = { campaignId ->
                         navController.navigate(
-                            Routes.CrearCampaniaColaborativa.route
+                            Routes.EditarCampania.createRoute(campaignId)
                         )
                     },
 
@@ -1047,6 +1057,33 @@ fun AppNavigation() {
                         navController.navigate(
                             Routes.ReutilizarCampania.route
                         )
+                    }
+                )
+            }
+        }
+
+        composable(Routes.EditarCampania.route + "/{campaignId}") { backStackEntry ->
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                val campaignIdStr = backStackEntry.arguments?.getString("campaignId") ?: "0"
+                val campaignId = campaignIdStr.toIntOrNull() ?: 0
+                val context = LocalContext.current
+                val sessionManager = remember { SessionManager(context) }
+                val campaignViewModel = remember { CampaignViewModel(sessionManager) }
+                val uiState by campaignViewModel.uiState.collectAsState()
+
+                EditarCampaniaScreen(
+                    campaignId = campaignId,
+                    campaigns = uiState.campaigns,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onSave = { id, request ->
+                        campaignViewModel.updateCampaign(id, request) {
+                            navController.popBackStack()
+                        }
                     }
                 )
             }
