@@ -11,6 +11,11 @@ import retrofit2.http.PATCH
 
 interface ApiService {
 
+    @POST("auth/register")
+    suspend fun register(
+        @Body request: RegisterRequest
+    ): CurrentUserResponse
+
     @GET("health")
     suspend fun getHealth(): HealthResponse
 
