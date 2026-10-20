@@ -1,8 +1,11 @@
 
+
 services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env}
@@ -16,6 +19,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
 
   api:
     build:
