@@ -19,6 +19,9 @@ from mailer import send_email
 from models import PasswordResetToken, User
 from rate_limiter import limiter
 
+from pathlib import Path
+from fastapi.responses import FileResponse
+
 
 router = APIRouter(
     prefix="/auth",
@@ -104,7 +107,7 @@ def forgot_password(
         )
         db.commit()
 
-        link = f"{reset_url}?{urlencode({'token': token})}"
+        link = f"{reset_url}#{urlencode({'token': token})}"
 
         background_tasks.add_task(
             send_recovery_email,
@@ -193,4 +196,25 @@ def reset_password(
 
     return RecoveryResponse(
         message="Contraseña actualizada. Ya puedes iniciar sesión."
+    )
+
+@router.get("/reset-password", include_in_schema=False)
+def reset_password_page():
+    return FileResponse(
+        Path(__file__).resolve().parent / "templates" / "reset_password.html",
+        media_type="text/html",
+        headers={
+            "Cache-Control": "no-store",
+            "Referrer-Policy": "no-referrer",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": (
+                "default-src 'none'; "
+                "script-src 'unsafe-inline'; "
+                "style-src 'unsafe-inline'; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none'; "
+                "base-uri 'none'; "
+                "form-action 'self'"
+            ),
+        },
     )
