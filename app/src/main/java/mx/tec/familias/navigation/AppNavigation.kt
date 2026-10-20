@@ -1077,6 +1077,8 @@ fun AppNavigation() {
                 EditarCampaniaScreen(
                     campaignId = campaignId,
                     campaigns = uiState.campaigns,
+                    isSaving = uiState.isLoading,
+                    error = uiState.error,
                     onBackClick = {
                         navController.popBackStack()
                     },

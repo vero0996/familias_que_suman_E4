@@ -22,6 +22,8 @@ import mx.tec.familias.ui.theme.*
 fun EditarCampaniaScreen(
     campaignId: Int,
     campaigns: List<CampaignResponse>,
+    isSaving: Boolean = false,
+    error: String? = null,
     onBackClick: () -> Unit = {},
     onSave: (Int, CampaignUpdateRequest) -> Unit = { _, _ -> }
 ) {
@@ -123,28 +125,49 @@ fun EditarCampaniaScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                if (!error.isNullOrBlank()) {
+                    Text(
+                        text = error,
+                        color = BrownPrimary,
+                        fontSize = 14.sp
+                    )
+                }
+
                 Button(
                     onClick = {
                         val request = CampaignUpdateRequest(
                             title = title.ifBlank { null },
                             description = description.ifBlank { null },
                             organization_name = organizationName.ifBlank { null },
-                            status = status.ifBlank { null }
+                            status = status
+                                .takeIf { it != campaign.status }
+                                ?.ifBlank { null }
                         )
                         onSave(campaignId, request)
                     },
+                    enabled = !isSaving,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
                 ) {
-                    Text(
-                        "Guardar Cambios",
-                        color = TextOnPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Surface,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Guardando...", color = TextOnPrimary)
+                    } else {
+                        Text(
+                            "Guardar Cambios",
+                            color = TextOnPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }

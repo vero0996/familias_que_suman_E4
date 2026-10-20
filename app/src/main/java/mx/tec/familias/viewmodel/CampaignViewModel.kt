@@ -85,10 +85,29 @@ class CampaignViewModel(
                     e
                 )
 
+                val errorMessage = if (e is retrofit2.HttpException) {
+                    val errorDetail = try {
+                        val errorJson = e.response()?.errorBody()?.string()
+                        if (!errorJson.isNullOrBlank()) {
+                            org.json.JSONObject(errorJson)
+                                .optString("detail")
+                                .takeIf { it.isNotBlank() }
+                        } else {
+                            null
+                        }
+                    } catch (_: Exception) {
+                        null
+                    }
+
+                    errorDetail
+                        ?: "No se pudieron guardar los cambios (Error ${e.code()})."
+                } else {
+                    e.message ?: "No se pudieron guardar los cambios."
+                }
+
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message
-                        ?: "No se pudieron guardar los cambios."
+                    error = errorMessage
                 )
             }
         }
