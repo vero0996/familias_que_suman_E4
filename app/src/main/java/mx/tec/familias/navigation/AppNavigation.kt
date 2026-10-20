@@ -205,9 +205,6 @@ fun AppNavigation() {
             PublicoScreen(
                 onIniciarSesionClick = {
                     navController.navigate(Routes.Login.route)
-                },
-                onAdminClick = {
-                    navController.navigate(Routes.DashboardAdmin.route)
                 }
             )
         }
@@ -374,6 +371,9 @@ fun AppNavigation() {
                 errorActividades = actividadesViewModel.error,
                 onReintentarActividades = {
                     actividadesViewModel.cargarActividades()
+                },
+                onBackClick = {
+                    navController.popBackStack()
                 },
                 onInicioClick = {
                     navController.navigate(Routes.Inicio.route) {

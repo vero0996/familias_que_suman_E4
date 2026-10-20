@@ -28,8 +28,7 @@ import mx.tec.familias.viewmodel.CampaignViewModel
 
 @Composable
 fun PublicoScreen(
-    onIniciarSesionClick: () -> Unit,
-    onAdminClick: () -> Unit
+    onIniciarSesionClick: () -> Unit
 ) {
     var mostrarDialogoDonacion by remember { mutableStateOf(false) }
     var tituloCampaniaSeleccionada by remember { mutableStateOf("") }
@@ -64,17 +63,9 @@ fun PublicoScreen(
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .height(56.dp)
-                                .weight(1f),
+                                .fillMaxWidth(),
                             alignment = Alignment.CenterStart
                         )
-
-                        TextButton(onClick = onAdminClick) {
-                            Text(
-                                "Admin",
-                                fontSize = 14.sp,
-                                color = TextSecondary
-                            )
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
