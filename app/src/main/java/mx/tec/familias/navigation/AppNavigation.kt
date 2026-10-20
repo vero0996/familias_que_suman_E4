@@ -373,7 +373,7 @@ fun AppNavigation() {
             LaunchedEffect(Unit) {
                 actividadesViewModel.cargarActividades()
             }
-
+            
             ExplorarScreen(
                 estadoActividades = estadoActividades,
                 campaigns = campaignState.campaigns,

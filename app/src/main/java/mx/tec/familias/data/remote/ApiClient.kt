@@ -11,7 +11,7 @@ object ApiClient {
 
     // CAMBIAR URL cada que se levante el backend
     private const val BASE_URL =
-        "https://nutrition-earn-atmosphere-slideshow.trycloudflare.com/"
+        "https://incentive-duncan-result-oils.trycloudflare.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true
