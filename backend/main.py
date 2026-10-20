@@ -1,6 +1,7 @@
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from admin import router as admin_router
@@ -25,6 +26,14 @@ app = FastAPI(
     title="Familias que Suman API",
     version="0.2.0",
     description="Backend de Familias que Suman+",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://familiasquesuman.com"], # Puedes dejarlo así por ahora
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.state.limiter = limiter
