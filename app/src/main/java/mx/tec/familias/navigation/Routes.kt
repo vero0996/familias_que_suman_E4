@@ -56,4 +56,6 @@ sealed class Routes(val route: String) {
     data object Publico : Routes("publico")
     data object Login : Routes("login")
 
+    data object ForgotPassword : Routes("forgotPassword")
+
 }

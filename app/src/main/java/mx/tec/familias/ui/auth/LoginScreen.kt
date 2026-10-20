@@ -37,7 +37,8 @@ import mx.tec.familias.data.remote.SessionManager
 @Composable
 fun LoginScreen(
     onLoginSuccess: (TokenResponse, CurrentUserResponse) -> Unit,
-    onRegistroClick: () -> Unit = {}
+    onRegistroClick: () -> Unit = {},
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
@@ -166,6 +167,14 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         TextButton(
+            onClick = onForgotPasswordClick,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !cargando
+        ) {
+            Text("Olvidé mi contraseña")
+        }
+
+        TextButton(
             onClick = onRegistroClick,
             modifier = Modifier.fillMaxWidth(),
             enabled = !cargando
@@ -174,3 +183,4 @@ fun LoginScreen(
         }
     }
 }
+
