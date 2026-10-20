@@ -23,15 +23,31 @@ class ActividadesRepository(
         }
         require(eventos.all {
             it.capacidadPersonas > 0 &&
-                    it.ocupacionInicial in 0..it.capacidadPersonas
+                    it.personasConfirmadas >= 0
         }) {
             "Revisa la capacidad y la ocupación inicial de las actividades."
         }
     }
 
     @Synchronized
-    fun consultar(): EstadoActividades =
-        EstadoActividades(eventos.toList(), inscripciones.toList())
+    fun consultar(): EstadoActividades {
+        val ocupacionLocal = inscripciones
+            .asSequence()
+            .filter { it.estado == EstadoInscripcion.CONFIRMADA }
+            .groupBy { it.eventoId }
+            .mapValues { (_, inscripciones) ->
+                inscripciones.sumOf { it.participantesIds.size }
+            }
+
+        val eventosConOcupacion = eventos.map { evento ->
+            evento.copy(
+                personasConfirmadas = evento.personasConfirmadas +
+                        ocupacionLocal.getOrDefault(evento.id, 0)
+            )
+        }
+
+        return EstadoActividades(eventosConOcupacion, inscripciones.toList())
+    }
 
     @Synchronized
     fun inscribir(
@@ -121,25 +137,26 @@ class ActividadesRepository(
         val evento = eventos.first { it.id == actual.eventoId }
 
         if (reloj() < evento.cierreInscripciones) {
-            val disponibles = consultar().disponibles(evento.id)
+            var disponibles = consultar().disponibles(evento.id)
 
-            val siguiente = inscripciones
-                .filter {
-                    it.eventoId == evento.id &&
-                            it.estado == EstadoInscripcion.EN_ESPERA &&
-                            it.participantesIds.size <= disponibles
+            while (disponibles > 0) {
+                val siguienteCompatible = inscripciones
+                    .filter {
+                        it.eventoId == evento.id &&
+                                it.estado == EstadoInscripcion.EN_ESPERA &&
+                                it.participantesIds.size <= disponibles
+                    }
+                    .minByOrNull { it.ordenEspera ?: Long.MAX_VALUE }
+                    ?: break
+
+                val siguienteIndice = inscripciones.indexOfFirst {
+                    it.id == siguienteCompatible.id
                 }
-                .minByOrNull { it.ordenEspera ?: Long.MAX_VALUE }
-
-            if (siguiente != null) {
-                val posicion = inscripciones.indexOfFirst {
-                    it.id == siguiente.id
-                }
-
-                inscripciones[posicion] = siguiente.copy(
+                inscripciones[siguienteIndice] = siguienteCompatible.copy(
                     estado = EstadoInscripcion.CONFIRMADA,
                     ordenEspera = null
                 )
+                disponibles -= siguienteCompatible.participantesIds.size
             }
         }
 
@@ -160,7 +177,7 @@ class ActividadesRepository(
                         lugar = "Bahía de La Paz 223, San Gilberto, Santa Catarina, N.L.",
                         capacidadPersonas = 25,
                         cierreInscripciones = 1792855800000L,
-                        ocupacionInicial = 1,
+                        personasConfirmadas = 1,
                         url = "https://familiasquesuman.com/actividades/6ac5552deaa491db4aeb8e66",
                         puntoEncuentro = "Parroquia Cristo Resucitado, Santa Catarina",
                         tipoAportacion = "Sin aportación económica",
@@ -177,7 +194,7 @@ class ActividadesRepository(
                         lugar = "Av. San Rafael No. 450, Guadalupe, N.L.",
                         capacidadPersonas = 10,
                         cierreInscripciones = 1794066300000L,
-                        ocupacionInicial = 0,
+                        personasConfirmadas = 0,
                         url = "https://familiasquesuman.com/actividades/6ac5535fb4def8b6f73e4887",
                         puntoEncuentro = "Explanada del Hospital Materno Infantil",
                         tipoAportacion = "En especie",
@@ -194,7 +211,7 @@ class ActividadesRepository(
                         lugar = "Bahía de La Paz 223, San Gilberto, Santa Catarina, N.L.",
                         capacidadPersonas = 25,
                         cierreInscripciones = 1795879800000L,
-                        ocupacionInicial = 0,
+                        personasConfirmadas = 0,
                         url = "https://familiasquesuman.com/actividades/6ac5559b684c93540ba08c06",
                         puntoEncuentro = "Parroquia Cristo Resucitado, Santa Catarina",
                         tipoAportacion = "Sin aportación económica",
@@ -211,7 +228,7 @@ class ActividadesRepository(
                         lugar = "San Ildefonso S/N, Colonia Sendero, Santa Catarina, N.L.",
                         capacidadPersonas = 15,
                         cierreInscripciones = 1795879800000L,
-                        ocupacionInicial = 7,
+                        personasConfirmadas = 7,
                         url = "https://familiasquesuman.com/actividades/6a70cbdea94b0c514b35db0e",
                         puntoEncuentro = "Centro Comunitario",
                         tipoAportacion = "En especie",
@@ -228,7 +245,7 @@ class ActividadesRepository(
                         lugar = "Bahía de La Paz 223, San Gilberto, Santa Catarina, N.L.",
                         capacidadPersonas = 25,
                         cierreInscripciones = 1797694200000L,
-                        ocupacionInicial = 0,
+                        personasConfirmadas = 0,
                         url = "https://familiasquesuman.com/actividades/6ac5559b684c93540ba08c06",
                         puntoEncuentro = "Parroquia Cristo Resucitado, Santa Catarina",
                         tipoAportacion = "Sin aportación económica",

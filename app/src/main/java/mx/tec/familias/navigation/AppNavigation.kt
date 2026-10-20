@@ -79,6 +79,9 @@ fun AppNavigation() {
     val estadoActividades = actividadesViewModel.estado
     val campaignState by campaignViewModel.uiState.collectAsState()
     val actividadSeleccionada = estadoActividades.evento(actividadesViewModel.eventoSeleccionadoId)
+    val actividadRemotaSeleccionada = estadoActividades.eventoOrNull(
+        actividadesViewModel.eventoSeleccionadoId
+    ) ?: estadoActividades.eventos.firstOrNull()
 
     var nombreUsuario by remember { mutableStateOf("") }
     var rutaDespuesDeRegistro by remember { mutableStateOf(Routes.Inicio.route) }
@@ -947,9 +950,15 @@ fun AppNavigation() {
                 }
             } else {
                 DashboardAdminScreen(
-                    tituloActividad = actividadAdmin.titulo,
-                    participantesActividad = actividadAdmin.participantes,
-                    cuposTotalesActividad = actividadAdmin.cuposTotales,
+                    tituloActividad = actividadRemotaSeleccionada?.nombre
+                        ?: "Sin actividades publicadas",
+                    participantesActividad = actividadRemotaSeleccionada?.personasConfirmadas ?: 0,
+                    cuposTotalesActividad = actividadRemotaSeleccionada?.capacidadPersonas ?: 0,
+                    fechaActividad = actividadRemotaSeleccionada?.fecha.orEmpty(),
+                    horaActividad = actividadRemotaSeleccionada?.hora.orEmpty(),
+                    actividadSecundaria = estadoActividades.eventos.firstOrNull {
+                        it.id != actividadRemotaSeleccionada?.id
+                    },
 
                     onCampaniasClick = {
                         navController.navigate(Routes.MisCampanias.route) {

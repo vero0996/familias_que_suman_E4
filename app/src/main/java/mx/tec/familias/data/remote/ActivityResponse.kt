@@ -16,5 +16,5 @@ data class ActivityResponse(
     val status: String,
     val created_by_user_id: Int?,
     val created_at: String,
-    val confirmed_people: Int = 0
+    val confirmed_people: Int
 )

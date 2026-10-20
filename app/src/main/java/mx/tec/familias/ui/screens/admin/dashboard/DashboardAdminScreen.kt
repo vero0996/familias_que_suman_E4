@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
+import mx.tec.familias.data.model.Activity
 import mx.tec.familias.ui.components.AdminScreenHeader
 import mx.tec.familias.ui.components.AdminBottomNavigationBar
 import mx.tec.familias.ui.components.AdminDestination
@@ -47,6 +48,9 @@ fun DashboardAdminScreen(
     tituloActividad: String,
     participantesActividad: Int,
     cuposTotalesActividad: Int,
+    fechaActividad: String = "",
+    horaActividad: String = "",
+    actividadSecundaria: Activity? = null,
     onCampaniasClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
@@ -93,6 +97,22 @@ fun DashboardAdminScreen(
 
     val porcentajeCuposTexto =
         "${(porcentajeCupos * 100).toInt()}%"
+    val fechaHoraActividad = listOf(fechaActividad, horaActividad)
+        .filter { it.isNotBlank() }
+        .joinToString(" • ")
+        .ifBlank { "Fecha por confirmar" }
+
+    val cuposDisponiblesSecundaria = actividadSecundaria?.let {
+        (it.capacidadPersonas - it.personasConfirmadas).coerceAtLeast(0)
+    } ?: 0
+    val porcentajeCuposSecundaria = actividadSecundaria?.let {
+        if (it.capacidadPersonas > 0) {
+            (it.personasConfirmadas.toFloat() / it.capacidadPersonas)
+                .coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+    } ?: 0f
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -510,7 +530,7 @@ fun DashboardAdminScreen(
                         )
 
                         Text(
-                            text = "$participantesActividad de $cuposTotalesActividad cupos ocupados",
+                            text = "$participantesActividad personas confirmadas de $cuposTotalesActividad lugares",
                             color = TextSecondary,
                             fontSize = 13.sp
                         )
@@ -673,54 +693,45 @@ fun DashboardAdminScreen(
                             )
                         }
 
-                        Spacer(
-                            modifier = Modifier.height(18.dp)
-                        )
-
-                        // Segunda actividad
-                        Text(
-                            text = "Taller de Sensibilización Escolar",
-                            color = TextPrimary,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(8.dp)
-                        )
-
-                        LinearProgressIndicator(
-                            progress = {
-                                0.8f
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(12.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            color = BrownPrimary,
-                            trackColor = TealLight.copy(alpha = 0.35f)
-                        )
-
-                        Spacer(
-                            modifier = Modifier.height(6.dp)
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-
+                        actividadSecundaria?.let { actividad ->
+                            Spacer(modifier = Modifier.height(18.dp))
                             Text(
-                                text = "12 participantes",
-                                color = TextSecondary,
-                                fontSize = 12.sp
+                                text = actividad.nombre,
+                                color = TextPrimary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
                             )
 
-                            Text(
-                                text = "15 cupos",
-                                color = TextSecondary,
-                                fontSize = 12.sp
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            LinearProgressIndicator(
+                                progress = { porcentajeCuposSecundaria },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(12.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                color = BrownPrimary,
+                                trackColor = TealLight.copy(alpha = 0.35f)
                             )
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "${actividad.personasConfirmadas} personas",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
+
+                                Text(
+                                    text = "${actividad.capacidadPersonas} lugares",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -773,13 +784,17 @@ fun DashboardAdminScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.CalendarToday, contentDescription = "Fecha", modifier = Modifier.size(12.dp), tint = TextSecondary)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Sáb, 15 Nov • 10:00 AM", fontSize = 12.sp, color = TextSecondary)
+                                Text(
+                                    fechaHoraActividad,
+                                    fontSize = 12.sp,
+                                    color = TextSecondary
+                                )
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                 Text("Lugares disponibles", fontSize = 12.sp, color = TextSecondary)
                                 Text(
-                                    "$participantesActividad/$cuposTotalesActividad cupos",
+                                    "$cuposDisponibles disponibles",
                                     fontSize = 12.sp,
                                     color = Error,
                                     fontWeight = FontWeight.Bold
@@ -804,35 +819,72 @@ fun DashboardAdminScreen(
                     }
                 }
 
-                // Tarjeta Actividad 2 (Borde Teal)
-                Card(
-                    shape = RoundedCornerShape(28.dp),
-                    border = BorderStroke(1.dp, Color.White),
-                    colors = CardDefaults.cardColors(containerColor = Surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                        .clickable {
-                            onActividadClick()
-                        }
-                ) {
-                    Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-                        Box(modifier = Modifier.width(8.dp).fillMaxHeight().background(TealLight))
-                        Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-                            Text("Taller de Sensibilización Escolar", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CalendarToday, contentDescription = "Fecha", modifier = Modifier.size(12.dp), tint = TextSecondary)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Mar, 19 Nov • 09:30 AM", fontSize = 12.sp, color = TextSecondary)
+                actividadSecundaria?.let { actividad ->
+                    Card(
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, Color.White),
+                        colors = CardDefaults.cardColors(containerColor = Surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clickable {
+                                onActividadClick()
                             }
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text("Lugares disponibles", fontSize = 12.sp, color = TextSecondary)
-                                Text("12/15 cupos", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    ) {
+                        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                            Box(
+                                modifier = Modifier
+                                    .width(8.dp)
+                                    .fillMaxHeight()
+                                    .background(TealLight)
+                            )
+                            Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                                Text(
+                                    actividad.nombre,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.CalendarToday,
+                                        contentDescription = "Fecha",
+                                        modifier = Modifier.size(12.dp),
+                                        tint = TextSecondary
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        "${actividad.fecha} • ${actividad.hora}",
+                                        fontSize = 12.sp,
+                                        color = TextSecondary
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        "Lugares disponibles",
+                                        fontSize = 12.sp,
+                                        color = TextSecondary
+                                    )
+                                    Text(
+                                        "$cuposDisponiblesSecundaria disponibles",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                LinearProgressIndicator(
+                                    progress = { porcentajeCuposSecundaria },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp),
+                                    color = TealLight,
+                                    trackColor = TealLight.copy(alpha = 0.35f)
+                                )
                             }
-                            LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), color = TealLight, trackColor = TealLight.copy(alpha = 0.35f))
                         }
                     }
                 }

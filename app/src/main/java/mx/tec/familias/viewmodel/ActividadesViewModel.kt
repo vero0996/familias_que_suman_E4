@@ -19,7 +19,6 @@ import mx.tec.familias.data.remote.RegistrationRequest
 import mx.tec.familias.data.remote.SessionManager
 import mx.tec.familias.data.remote.SurveyCreateRequest
 import mx.tec.familias.data.remote.SurveyResponse
-import mx.tec.familias.data.repository.ActividadesRepository
 import mx.tec.familias.data.repository.ActivityRemoteRepository
 import mx.tec.familias.data.repository.CampaignRepository
 import mx.tec.familias.data.repository.RegistrationRemoteRepository
@@ -47,9 +46,7 @@ class ActividadesViewModel(
     var ultimaInscripcionEstado by mutableStateOf<String?>(null)
         private set
 
-    private var repositorio = ActividadesRepository.prototipo()
-
-    var estado by mutableStateOf(repositorio.consultar())
+    var estado by mutableStateOf(EstadoActividades(emptyList(), emptyList()))
         private set
 
     var eventoSeleccionadoId by mutableStateOf("")
@@ -82,63 +79,64 @@ class ActividadesViewModel(
             error = null
 
             try {
-                // Las campañas aportan el nombre de la organización.
-                val campanias = runCatching {
-                    campaignRepository.getCampaigns()
-                }.getOrDefault(emptyList())
-
-                val actividadesRemotas = repositorioRemoto.getActivities()
-
-                val organizaciones = campanias.associate {
-                    it.id to it.organization_name
-                }
-
-                val actividades = actividadesRemotas.map { remote ->
-                    val fechaInicio = parseDateTime(remote.starts_at)
-
-                    Activity(
-                        id = remote.id.toString(),
-                        nombre = remote.title,
-                        organizacion = remote.campaign_id
-                            ?.let { organizaciones[it] }
-                            ?: "Organización",
-                        descripcion = remote.description,
-                        fecha = fechaInicio?.format(
-                            DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                        ) ?: "",
-                        hora = fechaInicio?.format(
-                            DateTimeFormatter.ofPattern("HH:mm")
-                        ) ?: "",
-                        lugar = remote.location,
-                        capacidadPersonas = remote.capacity_people,
-                        cierreInscripciones = parseEpochMillis(
-                            remote.registration_deadline
-                        ),
-                        ocupacionInicial = remote.confirmed_people,
-                        url = "",
-                        puntoEncuentro = remote.location,
-                        tipoAportacion = "",
-                        requisitos = "",
-                        contacto = "",
-                        endsAtEpochMillis = remote.ends_at?.let {
-                            parseEpochMillis(it)
-                        }
-                    )
-                }
-
-                // Se reemplazan los datos de prueba por las actividades reales.
-                repositorio = ActividadesRepository(actividades)
-                estado = repositorio.consultar()
-
-                if (actividades.none { it.id == eventoSeleccionadoId }) {
-                    eventoSeleccionadoId = actividades.firstOrNull()?.id.orEmpty()
-                }
+                actualizarActividadesDesdeServidor()
             } catch (e: Exception) {
                 error = e.message
                     ?: "No se pudieron cargar las actividades del servidor."
             } finally {
                 cargando = false
             }
+        }
+    }
+
+    private suspend fun actualizarActividadesDesdeServidor() {
+        val campanias = runCatching {
+            campaignRepository.getCampaigns()
+        }.getOrDefault(emptyList())
+        val organizaciones = campanias.associate {
+            it.id to it.organization_name
+        }
+        val actividades = repositorioRemoto.getActivities().map { remote ->
+            val fechaInicio = parseDateTime(remote.starts_at)
+
+            Activity(
+                id = remote.id.toString(),
+                nombre = remote.title,
+                organizacion = remote.campaign_id
+                    ?.let { organizaciones[it] }
+                    ?: "Organización",
+                descripcion = remote.description,
+                fecha = fechaInicio?.format(
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                ) ?: "",
+                hora = fechaInicio?.format(
+                    DateTimeFormatter.ofPattern("HH:mm")
+                ) ?: "",
+                lugar = remote.location,
+                capacidadPersonas = remote.capacity_people,
+                cierreInscripciones = parseEpochMillis(
+                    remote.registration_deadline
+                ),
+                personasConfirmadas = remote.confirmed_people,
+                url = "",
+                puntoEncuentro = remote.location,
+                tipoAportacion = "",
+                requisitos = "",
+                contacto = "",
+                endsAtEpochMillis = remote.ends_at?.let {
+                    parseEpochMillis(it)
+                }
+            )
+        }
+
+        val idsActividad = actividades.mapTo(mutableSetOf()) { it.id }
+        estado = EstadoActividades(
+            eventos = actividades,
+            inscripciones = estado.inscripciones.filter { it.eventoId in idsActividad }
+        )
+
+        if (idsActividad.none { it == eventoSeleccionadoId }) {
+            eventoSeleccionadoId = actividades.firstOrNull()?.id.orEmpty()
         }
     }
 
@@ -331,6 +329,16 @@ class ActividadesViewModel(
 
                 ultimaInscripcionId = response.id.toString()
                 ultimaInscripcionEstado = response.status
+                try {
+                    actualizarActividadesDesdeServidor()
+                } catch (refreshError: Exception) {
+                    Log.e(
+                        "ActivityOccupancy",
+                        "La inscripción $activityId se guardó, pero no se pudo actualizar la ocupación.",
+                        refreshError
+                    )
+                    error = "La inscripción se guardó, pero no se pudieron actualizar los cupos. Intenta actualizar la lista."
+                }
 
                 onResult(true, response.status)
             } catch (e: retrofit2.HttpException) {
@@ -387,6 +395,17 @@ class ActividadesViewModel(
                     registrationId = registrationId,
                     reason = "Cancelada por la familia"
                 )
+
+                try {
+                    actualizarActividadesDesdeServidor()
+                } catch (refreshError: Exception) {
+                    Log.e(
+                        "ActivityOccupancy",
+                        "La cancelación $registrationId se confirmó, pero no se pudo actualizar la ocupación.",
+                        refreshError
+                    )
+                    error = "La cancelación se confirmó, pero no se pudieron actualizar los cupos. Intenta actualizar la lista."
+                }
 
                 cargarMisInscripcionesYEncuestas(familiaId)
 

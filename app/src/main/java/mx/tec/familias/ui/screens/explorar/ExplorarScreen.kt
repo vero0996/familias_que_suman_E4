@@ -234,7 +234,7 @@ fun ExplorarScreen(
                     ActivityCard(
                         title = evento.nombre,
                         organization = evento.organizacion,
-                        participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
+                        participants = "$ocupados/$cupos personas · $disponibles lugares disponibles",
                         date = evento.fecha,
                         onClick = { onActividadClick(evento.id) }
                     )
