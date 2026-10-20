@@ -20,6 +20,7 @@ from workshops import router as workshops_router
 from photos import router as photos_router
 from donations import router as donations_router
 from messages import router as messages_router
+from notifications import router as notifications_router
 
 
 app = FastAPI(
@@ -30,7 +31,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://familiasquesuman.com"], # Puedes dejarlo así por ahora
+    allow_origins=["https://familiasquesuman.com"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
@@ -62,6 +63,7 @@ app.include_router(workshops_router)
 app.include_router(photos_router)
 app.include_router(donations_router)
 app.include_router(messages_router)
+app.include_router(notifications_router)
 
 
 @app.get("/")

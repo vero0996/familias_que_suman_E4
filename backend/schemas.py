@@ -380,6 +380,18 @@ class MessageResponse(BaseModel):
     created_at: datetime
 
 
+class NotificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    title: str
+    message: str
+    notification_type: str
+    is_read: bool
+    created_at: datetime
+
+
 class EventCreate(BaseModel):
     title: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=1, max_length=5000)

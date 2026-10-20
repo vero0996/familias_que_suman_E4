@@ -16,6 +16,7 @@ from sqlalchemy import (
     Table,
     Column,
 )
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -334,6 +335,22 @@ class Message(Base):
         ForeignKey("users.id", ondelete="RESTRICT")
     )
     text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    title: Mapped[str] = mapped_column(String(200))
+    message: Mapped[str] = mapped_column(Text)
+    notification_type: Mapped[str] = mapped_column(String(50))
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now
     )

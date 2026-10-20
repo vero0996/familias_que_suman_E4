@@ -1,4 +1,3 @@
-
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,6 +12,7 @@ from models import (
     Campaign,
     Family,
     FamilyMember,
+    Notification,
     Registration,
     RegistrationEvent,
     User,
@@ -23,6 +23,7 @@ from schemas import (
     RegistrationResponse,
 )
 
+
 router = APIRouter(prefix="/registrations", tags=["Inscripciones"])
 
 
@@ -30,11 +31,13 @@ def get_family_or_409(db: Session, user_id: int) -> Family:
     family = db.scalar(
         select(Family).where(Family.owner_user_id == user_id)
     )
+
     if family is None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Tu cuenta no tiene una familia configurada",
         )
+
     return family
 
 
@@ -45,6 +48,7 @@ def utc_now() -> datetime:
 def ensure_utc(value: datetime) -> datetime:
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
+
     return value.astimezone(timezone.utc)
 
 
@@ -53,11 +57,13 @@ def get_registration_or_404(
     registration_id: int,
 ) -> Registration:
     registration = db.get(Registration, registration_id)
+
     if registration is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Inscripción no encontrada",
         )
+
     return registration
 
 
@@ -77,6 +83,23 @@ def add_event(
             to_status=registration.status,
             actor_user_id=actor_user_id,
             details=details,
+        )
+    )
+
+
+def add_notification(
+    db: Session,
+    user_id: int,
+    title: str,
+    message: str,
+    notification_type: str,
+) -> None:
+    db.add(
+        Notification(
+            user_id=user_id,
+            title=title,
+            message=message,
+            notification_type=notification_type,
         )
     )
 
@@ -132,8 +155,6 @@ def get_available_activity(
     return activity
 
 
-
-
 def count_confirmed_people(db: Session, activity_id: int) -> int:
     """Cuenta titulares y acompañantes de las inscripciones confirmadas."""
 
@@ -157,7 +178,6 @@ def count_confirmed_people(db: Session, activity_id: int) -> int:
     ) or 0
 
     return titulares + acompanantes
-
 
 
 @router.post(
@@ -202,8 +222,6 @@ def create_registration(
             detail="Tu familia ya tiene una inscripción activa para esta actividad",
         )
 
-    
-    
     confirmed_people = count_confirmed_people(db, activity.id)
 
     # El titular de la familia también ocupa un lugar.
@@ -216,8 +234,6 @@ def create_registration(
         else "lista_espera"
     )
 
-
-
     try:
         if existing is None:
             registration = Registration(
@@ -226,6 +242,7 @@ def create_registration(
                 status=new_status,
                 notes=data.notes,
             )
+
             db.add(registration)
             db.flush()
 
@@ -239,6 +256,7 @@ def create_registration(
                 from_status=None,
                 details=f"Estado inicial: {new_status}",
             )
+
         else:
             old_status = existing.status
             existing.status = new_status
@@ -257,12 +275,23 @@ def create_registration(
                 details=f"Nuevo estado: {new_status}",
             )
 
+        if new_status == "confirmada":
+            add_notification(
+                db,
+                current_user.id,
+                "Confirmación de inscripción",
+                f"Tu inscripción a {activity.title} fue confirmada.",
+                "registration_confirmed",
+            )
+
         db.commit()
         db.refresh(registration)
+
         return registration
 
     except IntegrityError:
         db.rollback()
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="No se pudo completar la inscripción. Intenta de nuevo.",
@@ -308,7 +337,6 @@ def get_my_registration(
     "/{registration_id}/cancel",
     response_model=RegistrationResponse,
 )
-
 def cancel_registration(
     registration_id: int,
     data: RegistrationCancelRequest | None = None,
@@ -380,6 +408,7 @@ def cancel_registration(
     registration.updated_at = now
 
     reason = data.reason if data else None
+
     add_event(
         db,
         registration,
@@ -389,15 +418,23 @@ def cancel_registration(
         details=reason,
     )
 
+    add_notification(
+        db,
+        current_user.id,
+        "Cancelación",
+        f"Tu inscripción a {activity.title} fue cancelada.",
+        "registration_cancelled",
+    )
+
     # Promote the oldest waiting family if a confirmed seat is freed
     # and the activity has not started.
-    
     if (
         old_status == "confirmada"
         and activity is not None
         and ensure_utc(activity.starts_at) > utc_now()
     ):
         confirmed_people = count_confirmed_people(db, activity_id)
+
         available_people = max(
             0,
             activity.capacity_people - confirmed_people,
@@ -416,14 +453,12 @@ def cancel_registration(
             .with_for_update()
         ).all()
 
-        
         for waiting in waiting_registrations:
             # Cada familia incluye al titular y a sus acompañantes.
             people_count = 1 + len(waiting.participants)
 
             if people_count > available_people:
                 continue
-
 
             previous_status = waiting.status
             waiting.status = "confirmada"
@@ -438,8 +473,20 @@ def cancel_registration(
                 details="Cupo liberado por una cancelación",
             )
 
+            waiting_family = db.get(Family, waiting.family_id)
+
+            if waiting_family is not None:
+                add_notification(
+                    db,
+                    waiting_family.owner_user_id,
+                    "Confirmación de inscripción",
+                    f"Tu inscripción a {activity.title} fue confirmada.",
+                    "registration_confirmed",
+                )
+
             available_people -= people_count
 
     db.commit()
     db.refresh(registration)
+
     return registration

@@ -127,4 +127,15 @@ interface ApiService {
         @Header("Authorization") authorization: String,
         @Body request: MessageCreateRequest
     ): MessageResponse
+
+    @GET("api/notificaciones")
+    suspend fun getNotifications(
+        @Header("Authorization") authorization: String
+    ): List<NotificationResponse>
+
+    @PATCH("api/notificaciones/{notification_id}/leer")
+    suspend fun readNotification(
+        @Header("Authorization") authorization: String,
+        @Path("notification_id") notificationId: Int
+    ): NotificationResponse
 }
