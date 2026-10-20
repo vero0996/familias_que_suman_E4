@@ -58,6 +58,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255))
+    token_version: Mapped[int] = mapped_column(
+    Integer,
+    default=0,
+    server_default="0",
+    nullable=False,
+)
     role: Mapped[str] = mapped_column(String(20), default="familia")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -379,4 +385,34 @@ class Workshop(Base):
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now
+    )
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+    )
+
+    token_hash: Mapped[str] = mapped_column(
+        String(64),
+        unique=True,
+        index=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utc_now,
+    )
+
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+    )
+
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )

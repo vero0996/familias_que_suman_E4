@@ -128,6 +128,7 @@ interface ApiService {
         @Body request: MessageCreateRequest
     ): MessageResponse
 
+
     @GET("api/notificaciones")
     suspend fun getNotifications(
         @Header("Authorization") authorization: String
@@ -138,4 +139,11 @@ interface ApiService {
         @Header("Authorization") authorization: String,
         @Path("notification_id") notificationId: Int
     ): NotificationResponse
+
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(
+        @Body request: ForgotPasswordRequest
+    ): RecoveryResponse
 }
+

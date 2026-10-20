@@ -21,6 +21,7 @@ from photos import router as photos_router
 from donations import router as donations_router
 from messages import router as messages_router
 from notifications import router as notifications_router
+from password_recovery import router as password_recovery_router
 
 
 app = FastAPI(
@@ -64,6 +65,8 @@ app.include_router(photos_router)
 app.include_router(donations_router)
 app.include_router(messages_router)
 app.include_router(notifications_router)
+app.include_router(password_recovery_router)
+
 
 
 @app.get("/")

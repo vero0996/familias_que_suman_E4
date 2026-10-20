@@ -31,6 +31,7 @@ def create_access_token(user: User) -> str:
     payload = {
         "sub": str(user.id),
         "role": user.role,
+        "token_version": user.token_version,
         "iat": now,
         "exp": now + timedelta(minutes=ACCESS_TOKEN_MINUTES),
     }
