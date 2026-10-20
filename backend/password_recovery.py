@@ -6,10 +6,13 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
-from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import select
+from fastapi import (
+    APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+)
+from pydantic import BaseModel, Field, field_validator, model_validator
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
+from auth import password_hash
 
 from database import get_db
 from mailer import send_email
@@ -110,3 +113,84 @@ def forgot_password(
         )
 
     return RecoveryResponse(message=RECOVERY_MESSAGE)
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=43, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128, repr=False)
+    confirm_password: str = Field(min_length=8, max_length=128, repr=False)
+
+    @model_validator(mode="after")
+    def passwords_match(self):
+        if self.new_password != self.confirm_password:
+            raise ValueError("Las contraseñas no coinciden")
+        return self
+
+
+@router.post(
+    "/reset-password",
+    response_model=RecoveryResponse,
+)
+@limiter.limit("5/minute")
+def reset_password(
+    request: Request,
+    payload: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    invalid_link = "El enlace no es válido o ya venció. Solicita uno nuevo."
+
+    token_hash = hashlib.sha256(
+        payload.token.encode("utf-8")
+    ).hexdigest()
+
+    user_id = db.scalar(
+        select(PasswordResetToken.user_id).where(
+            PasswordResetToken.token_hash == token_hash
+        )
+    )
+
+    if user_id is None:
+        raise HTTPException(status_code=400, detail=invalid_link)
+
+    # Serializa los cambios de contraseña para esta cuenta.
+    user = db.scalar(
+        select(User)
+        .where(User.id == user_id, User.is_active.is_(True))
+        .with_for_update()
+    )
+
+    if user is None:
+        raise HTTPException(status_code=400, detail=invalid_link)
+
+    now = datetime.now(timezone.utc)
+
+    reset_token = db.scalar(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token_hash == token_hash,
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.used_at.is_(None),
+            PasswordResetToken.expires_at > now,
+        )
+    )
+
+    if reset_token is None:
+        raise HTTPException(status_code=400, detail=invalid_link)
+
+    user.password_hash = password_hash.hash(payload.new_password)
+
+    # Invalida todos los enlaces pendientes de esta cuenta.
+    db.execute(
+        update(PasswordResetToken)
+        .where(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.used_at.is_(None),
+        )
+        .values(used_at=now)
+        .execution_options(synchronize_session=False)
+    )
+
+    # Guarda la contraseña y el uso de los tokens juntos.
+    db.commit()
+
+    return RecoveryResponse(
+        message="Contraseña actualizada. Ya puedes iniciar sesión."
+    )
