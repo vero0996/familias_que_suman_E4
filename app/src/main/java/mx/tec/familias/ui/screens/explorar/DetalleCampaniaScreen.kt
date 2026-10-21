@@ -3,6 +3,7 @@ package mx.tec.familias.ui.screens.explorar
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -180,7 +181,19 @@ fun DetalleCampaniaScreen(
                 )
 
                 // BOTÓN COMPARTIR
-                IconButton(onClick = { mostrarDialogoCompartir = true }) {
+                IconButton(onClick = {
+                    // ¡AQUÍ ESTÁ EL CAMBIO PARA EL DEEP LINK!
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "¡Únete a la campaña \"$tituloCampania\" en Familias que Suman +!\n\nhttps://familiasquesuman.com/campania/$campaniaId"
+                        )
+                    }
+                    context.startActivity(
+                        Intent.createChooser(intent, "Compartir campaña")
+                    )
+                }) {
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)

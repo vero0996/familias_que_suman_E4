@@ -11,6 +11,7 @@ import androidx.navigation.compose.*
 import mx.tec.familias.R
 import mx.tec.familias.data.model.EstadoParticipante
 import mx.tec.familias.data.model.Evento
+import androidx.navigation.navDeepLink
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
 import mx.tec.familias.data.model.Taller
 import mx.tec.familias.data.remote.ApiClient
@@ -295,8 +296,17 @@ fun AppNavigation() {
             )
         }
 
-        composable(Routes.DetalleCampania.route) {
-            val campaniaId = navController.previousBackStackEntry?.savedStateHandle?.get<String>("campaniaId") ?: "utiles_escolares"
+        composable(
+            route = Routes.DetalleCampania.route + "?campaniaId={campaniaId}",
+            // ¡AQUÍ ESTÁ EL DEEP LINK!
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "https://familiasquesuman.com/campania/{campaniaId}" }
+            )
+        ) { backStackEntry ->
+            // Intentamos sacar el ID primero del enlace de WhatsApp, y si no hay, del historial de navegación
+            val campaniaId = backStackEntry.arguments?.getString("campaniaId")
+                ?: navController.previousBackStackEntry?.savedStateHandle?.get<String>("campaniaId")
+                ?: "utiles_escolares"
 
             DetalleCampaniaScreen(
                 campaniaId = campaniaId,
