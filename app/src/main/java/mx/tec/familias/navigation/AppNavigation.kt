@@ -763,6 +763,10 @@ fun AppNavigation() {
                 MisActividadesScreen(
                     actividadesViewModel = actividadesViewModel,
                     familiaId = familyViewModel.familiaId,
+                    onActividadClick = { eventoId ->
+                        actividadesViewModel.seleccionarEvento(eventoId)
+                        navController.navigate(Routes.DetalleActividad.route)
+                    },
 
                     onInicioClick = {
                         navController.navigate(Routes.Inicio.route) {

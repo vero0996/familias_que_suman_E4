@@ -222,6 +222,10 @@ class Registration(Base):
     canceled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    waitlisted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     activity: Mapped["Activity"] = relationship(
         back_populates="registrations"

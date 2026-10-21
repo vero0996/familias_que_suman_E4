@@ -14,7 +14,7 @@ object ApiClient {
     // y no debe incluir "/docs" al final, ya que los endpoints están en la raíz.
 
     private const val BASE_URL =
-        "https://chapters-device-presentation-fotos.trycloudflare.com/"
+        "https://undo-excluding-county-weekend.trycloudflare.com/"
 
 
     private val json = Json {
@@ -24,7 +24,7 @@ object ApiClient {
     // Cambiar el pin cada que cambie el dominio
     private val certificatePinner = CertificatePinner.Builder()
         .add(
-            "chapters-device-presentation-fotos.trycloudflare.com",
+            "undo-excluding-county-weekend.trycloudflare.com",
             "sha256/uXsPjVwaDxO4vIxFBYMc1wgPXF0VN/KExd/HrvBoDwY="
         )
         .build()

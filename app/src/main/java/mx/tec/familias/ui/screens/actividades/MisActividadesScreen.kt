@@ -58,6 +58,7 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import androidx.compose.foundation.clickable
 
 data class ActividadInscrita(
     val id: String,
@@ -76,7 +77,8 @@ fun MisActividadesScreen(
     onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCalendarioClick: () -> Unit = {},
-    mostrarMensajes: Boolean = true
+    mostrarMensajes: Boolean = true,
+    onActividadClick: (String) -> Unit = {}
 ) {
 
     val estado = actividadesViewModel.estado
@@ -85,10 +87,16 @@ fun MisActividadesScreen(
         actividadesViewModel.cargarMisInscripcionesYEncuestas(familiaId)
     }
 
-    val propias = estado.inscripciones
+    val propias = estado.inscripciones.filter {
+        it.familiaId == familiaId
+    }
 
     val confirmadas = propias.filter {
         it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
+    }
+
+    val enEspera = propias.filter {
+        it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
     }
 
     var actividadEncuesta by remember {
@@ -227,9 +235,7 @@ fun MisActividadesScreen(
                 confirmadas,
                 key = { "confirmada:${it.id}" }
             ) { solicitud ->
-
                 val evento = estado.evento(solicitud.eventoId)
-
                 val registroId = solicitud.id.toIntOrNull()
 
                 val encuestaCompletada =
@@ -239,35 +245,28 @@ fun MisActividadesScreen(
                             }
 
                 val actividadTerminada =
-                    evento.endsAtEpochMillis
-                        ?.let {
-                            it > 0L &&
-                                    it <= System.currentTimeMillis()
-                        }
-                        ?: false
+                    evento.endsAtEpochMillis?.let {
+                        it > 0L && it <= System.currentTimeMillis()
+                    } ?: false
+
+                val actividad = ActividadInscrita(
+                    id = solicitud.id,
+                    nombre = evento.nombre,
+                    fecha = evento.fecha,
+                    hora = evento.hora,
+                    lugar = evento.lugar
+                )
 
                 ActividadInscritaCard(
-                    actividad = ActividadInscrita(
-                        id = solicitud.id,
-                        nombre = evento.nombre,
-                        fecha = evento.fecha,
-                        hora = evento.hora,
-                        lugar = evento.lugar
-                    ),
+                    onClick = {
+                        onActividadClick(solicitud.eventoId)
+                    },
+                    actividad = actividad,
                     mostrarBotonEncuesta =
-                        actividadTerminada &&
-                                !encuestaCompletada,
+                        actividadTerminada && !encuestaCompletada,
                     encuestaCompletada = encuestaCompletada,
                     onContestarEncuesta = {
-                        actividadEncuesta =
-                            ActividadInscrita(
-                                id = solicitud.id,
-                                nombre = evento.nombre,
-                                fecha = evento.fecha,
-                                hora = evento.hora,
-                                lugar = evento.lugar
-                            )
-
+                        actividadEncuesta = actividad
                         calificacionCampania = 5
                         calificacionOrganizacion = 5
                         calificacionComunicacion = 5
@@ -275,6 +274,44 @@ fun MisActividadesScreen(
                         comentarioEncuesta = ""
                         mensajeEncuesta = null
                     }
+                )
+            }
+
+            item {
+                SectionHeader(
+                    "Lista de espera",
+                    "Solicitudes pendientes de un lugar para tu familia."
+                )
+            }
+
+            if (enEspera.isEmpty()) {
+                item {
+                    EmptyActivitiesCard(
+                        Icons.Default.Schedule,
+                        "No estás en ninguna lista de espera",
+                        "Aquí aparecerán tus solicitudes cuando no haya cupo suficiente."
+                    )
+                }
+            }
+
+            items(
+                enEspera,
+                key = { "espera:${it.id}" }
+            ) { solicitud ->
+                val evento = estado.evento(solicitud.eventoId)
+
+                ActividadInscritaCard(
+                    onClick = {
+                        onActividadClick(solicitud.eventoId)
+                    },
+                    actividad = ActividadInscrita(
+                        id = solicitud.id,
+                        nombre = evento.nombre,
+                        fecha = evento.fecha,
+                        hora = evento.hora,
+                        lugar = evento.lugar
+                    ),
+                    enEspera = true
                 )
             }
         }
@@ -293,6 +330,7 @@ fun MisActividadesScreen(
             }
         )
     }
+
 
     actividadEncuesta?.let { actividad ->
         AlertDialog(
@@ -518,10 +556,14 @@ private fun ActividadInscritaCard(
     actividad: ActividadInscrita,
     mostrarBotonEncuesta: Boolean = false,
     encuestaCompletada: Boolean = false,
-    onContestarEncuesta: () -> Unit = {}
+    enEspera: Boolean = false,
+    onContestarEncuesta: () -> Unit = {},
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),
@@ -559,10 +601,26 @@ private fun ActividadInscritaCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 StatusBadge(
-                    text = "INSCRITO",
-                    backgroundColor = OrangePrimary.copy(alpha = 0.45f),
-                    textColor = BrownPrimary
+                    text = if (enEspera) "EN ESPERA" else "INSCRITO",
+                    backgroundColor = if (enEspera) {
+                        TealLight
+                    } else {
+                        OrangePrimary.copy(alpha = 0.45f)
+                    },
+                    textColor = if (enEspera) TealPrimary else BrownPrimary
                 )
+
+                if (enEspera) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Tu inscripción se confirmará automáticamente " +
+                                "si se liberan lugares suficientes para tu familia " +
+                                "y corresponde tu turno.",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
