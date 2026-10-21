@@ -334,23 +334,26 @@ class ActividadesViewModel(
                 onResult(true, response.status)
             } catch (e: retrofit2.HttpException) {
                 val errorDetail = try {
-                    val errorJson = e.response()?.errorBody()?.string()
-                    if (!errorJson.isNullOrBlank()) {
-                        val jsonObject = org.json.JSONObject(errorJson)
-                        if (jsonObject.has("detail")) jsonObject.getString("detail") else null
-                    } else null
+                    val body = e.response()?.errorBody()?.string()
+                    if (body.isNullOrBlank()) {
+                        null
+                    } else {
+                        val detail = org.json.JSONObject(body).opt("detail")
+                        (detail as? String)?.takeIf { it.isNotBlank() }
+                    }
                 } catch (_: Exception) {
                     null
                 }
 
-                error = errorDetail ?: when (e.code()) {
-                    409 -> "Tu familia ya está inscrita en esta actividad o la actividad ya no está disponible."
-                    else -> "No se pudo completar la inscripción (Error ${e.code()})."
+                error = when (e.code()) {
+                    422 -> "Revisa los acompañantes seleccionados y las observaciones."
+                    401 -> "Tu sesión expiró. Inicia sesión nuevamente."
+                    403 -> "No tienes permiso para realizar esta inscripción."
+                    409 -> errorDetail
+                        ?: "Tu familia ya está inscrita o la actividad no está disponible."
+                    else -> "No se pudo completar la inscripción. Intenta nuevamente."
                 }
-                onResult(false, null)
-            } catch (e: Exception) {
-                error = e.message
-                    ?: "No se pudo completar la inscripción."
+
                 onResult(false, null)
             } finally {
                 cargando = false

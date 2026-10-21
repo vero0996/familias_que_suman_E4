@@ -23,18 +23,19 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,8 +58,7 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.clickable
 
 data class ActividadInscrita(
     val id: String,
@@ -66,15 +66,6 @@ data class ActividadInscrita(
     val fecha: String,
     val hora: String,
     val lugar: String
-)
-
-data class ActividadListaEspera(
-    val id: String,
-    val nombre: String,
-    val fecha: String,
-    val hora: String,
-    val lugar: String,
-    val posicion: Int
 )
 
 @Composable
@@ -86,28 +77,27 @@ fun MisActividadesScreen(
     onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCalendarioClick: () -> Unit = {},
-    mostrarMensajes: Boolean = true
+    mostrarMensajes: Boolean = true,
+    onActividadClick: (String) -> Unit = {}
 ) {
 
     val estado = actividadesViewModel.estado
+
     LaunchedEffect(familiaId) {
         actividadesViewModel.cargarMisInscripcionesYEncuestas(familiaId)
     }
-    val propias = estado.inscripciones
+
+    val propias = estado.inscripciones.filter {
+        it.familiaId == familiaId
+    }
 
     val confirmadas = propias.filter {
         it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
     }
 
-    val espera = propias.filter {
+    val enEspera = propias.filter {
         it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
     }
-
-    // PARA PROBAR LAS NOTIFICACIONES
-    // Deja solo una en true cada vez
-    var mostrarRecordatorio by remember { mutableStateOf(true) }
-    var mostrarActualizacion by remember { mutableStateOf(false) }
-    var mostrarCancelacion by remember { mutableStateOf(false) }
 
     var actividadEncuesta by remember {
         mutableStateOf<ActividadInscrita?>(null)
@@ -147,8 +137,13 @@ fun MisActividadesScreen(
                     colors = CardDefaults.cardColors(
                         containerColor = Surface
                     ),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                    border = BorderStroke(
+                        1.dp,
+                        Color.White.copy(alpha = 0.90f)
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 3.dp
+                    )
                 ) {
                     Column {
                         TopBar(
@@ -182,7 +177,7 @@ fun MisActividadesScreen(
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
                                     containerColor = Surface.copy(alpha = 0.84f),
-                                    labelColor = mx.tec.familias.ui.theme.TextPrimary
+                                    labelColor = TextPrimary
                                 ),
                                 shape = RoundedCornerShape(22.dp)
                             )
@@ -201,7 +196,7 @@ fun MisActividadesScreen(
                                     selectedContainerColor = TealPrimary,
                                     selectedLabelColor = Surface,
                                     containerColor = Surface.copy(alpha = 0.84f),
-                                    labelColor = mx.tec.familias.ui.theme.TextPrimary
+                                    labelColor = TextPrimary
                                 ),
                                 shape = RoundedCornerShape(22.dp)
                             )
@@ -236,39 +231,42 @@ fun MisActividadesScreen(
                 }
             }
 
-            items(confirmadas, key = { "confirmada:${it.id}" }) { solicitud ->
+            items(
+                confirmadas,
+                key = { "confirmada:${it.id}" }
+            ) { solicitud ->
                 val evento = estado.evento(solicitud.eventoId)
-
                 val registroId = solicitud.id.toIntOrNull()
 
-                val encuestaCompletada = registroId != null &&
-                        actividadesViewModel.encuestasEnviadas.any {
-                            it.registration_id == registroId
-                        }
+                val encuestaCompletada =
+                    registroId != null &&
+                            actividadesViewModel.encuestasEnviadas.any {
+                                it.registration_id == registroId
+                            }
 
-                val actividadTerminada = evento.endsAtEpochMillis
-                    ?.let { it > 0L && it <= System.currentTimeMillis() }
-                    ?: false
+                val actividadTerminada =
+                    evento.endsAtEpochMillis?.let {
+                        it > 0L && it <= System.currentTimeMillis()
+                    } ?: false
+
+                val actividad = ActividadInscrita(
+                    id = solicitud.id,
+                    nombre = evento.nombre,
+                    fecha = evento.fecha,
+                    hora = evento.hora,
+                    lugar = evento.lugar
+                )
 
                 ActividadInscritaCard(
-                    actividad = ActividadInscrita(
-                        id = solicitud.id,
-                        nombre = evento.nombre,
-                        fecha = evento.fecha,
-                        hora = evento.hora,
-                        lugar = evento.lugar
-                    ),
-                    mostrarBotonEncuesta = actividadTerminada && !encuestaCompletada,
+                    onClick = {
+                        onActividadClick(solicitud.eventoId)
+                    },
+                    actividad = actividad,
+                    mostrarBotonEncuesta =
+                        actividadTerminada && !encuestaCompletada,
                     encuestaCompletada = encuestaCompletada,
                     onContestarEncuesta = {
-                        actividadEncuesta = ActividadInscrita(
-                            id = solicitud.id,
-                            nombre = evento.nombre,
-                            fecha = evento.fecha,
-                            hora = evento.hora,
-                            lugar = evento.lugar
-                        )
-
+                        actividadEncuesta = actividad
                         calificacionCampania = 5
                         calificacionOrganizacion = 5
                         calificacionComunicacion = 5
@@ -282,32 +280,38 @@ fun MisActividadesScreen(
             item {
                 SectionHeader(
                     "Lista de espera",
-                    "Respetamos el orden de llegada de las familias."
+                    "Solicitudes pendientes de un lugar para tu familia."
                 )
             }
 
-            if (espera.isEmpty()) {
+            if (enEspera.isEmpty()) {
                 item {
                     EmptyActivitiesCard(
-                        Icons.Default.CheckCircle,
+                        Icons.Default.Schedule,
                         "No estás en ninguna lista de espera",
-                        "Cuando una actividad esté llena podrás solicitar un lugar desde su detalle."
+                        "Aquí aparecerán tus solicitudes cuando no haya cupo suficiente."
                     )
                 }
             }
 
-            items(espera, key = { "espera:${it.id}" }) { solicitud ->
+            items(
+                enEspera,
+                key = { "espera:${it.id}" }
+            ) { solicitud ->
                 val evento = estado.evento(solicitud.eventoId)
 
-                ActividadListaEsperaCard(
-                    ActividadListaEspera(
-                        solicitud.id,
-                        evento.nombre,
-                        evento.fecha,
-                        evento.hora,
-                        evento.lugar,
-                        estado.posicion(solicitud)
-                    )
+                ActividadInscritaCard(
+                    onClick = {
+                        onActividadClick(solicitud.eventoId)
+                    },
+                    actividad = ActividadInscrita(
+                        id = solicitud.id,
+                        nombre = evento.nombre,
+                        fecha = evento.fecha,
+                        hora = evento.hora,
+                        lugar = evento.lugar
+                    ),
+                    enEspera = true
                 )
             }
         }
@@ -327,166 +331,6 @@ fun MisActividadesScreen(
         )
     }
 
-    // RECORDATORIO DE ACTIVIDAD
-    if (mostrarRecordatorio && confirmadas.isNotEmpty()) {
-        val solicitud = confirmadas.first()
-        val actividad = estado.evento(solicitud.eventoId)
-
-        AlertDialog(
-            onDismissRequest = {
-                mostrarRecordatorio = false
-            },
-            title = {
-                Text(
-                    text = "Recordatorio de actividad",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = actividad.nombre,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "${actividad.fecha} · ${actividad.hora}",
-                        color = TextSecondary
-                    )
-
-                    Text(
-                        text = actividad.lugar,
-                        color = TextSecondary
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarRecordatorio = false
-                    }
-                ) {
-                    Text(
-                        text = "Entendido",
-                        color = TealPrimary
-                    )
-                }
-            },
-            containerColor = Surface
-        )
-    }
-
-    // ACTIVIDAD ACTUALIZADA
-    if (mostrarActualizacion && confirmadas.isNotEmpty()) {
-        val solicitud = confirmadas.first()
-        val actividad = estado.evento(solicitud.eventoId)
-
-        AlertDialog(
-            onDismissRequest = {
-                mostrarActualizacion = false
-            },
-            title = {
-                Text(
-                    text = "Actividad actualizada",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = actividad.nombre,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "La información de esta actividad fue actualizada.",
-                        color = TextSecondary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "${actividad.fecha} · ${actividad.hora}",
-                        color = TextSecondary
-                    )
-
-                    Text(
-                        text = actividad.lugar,
-                        color = TextSecondary
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarActualizacion = false
-                    }
-                ) {
-                    Text(
-                        text = "Entendido",
-                        color = TealPrimary
-                    )
-                }
-            },
-            containerColor = Surface
-        )
-    }
-
-    // ACTIVIDAD CANCELADA
-    if (mostrarCancelacion && confirmadas.isNotEmpty()) {
-        val solicitud = confirmadas.first()
-        val actividad = estado.evento(solicitud.eventoId)
-
-        AlertDialog(
-            onDismissRequest = {
-                mostrarCancelacion = false
-            },
-            title = {
-                Text(
-                    text = "Actividad cancelada",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = actividad.nombre,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "La actividad fue cancelada. Ya no es necesario asistir.",
-                        color = TextSecondary
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        mostrarCancelacion = false
-                    }
-                ) {
-                    Text(
-                        text = "Entendido",
-                        color = TealPrimary
-                    )
-                }
-            },
-            containerColor = Surface
-        )
-    }
 
     actividadEncuesta?.let { actividad ->
         AlertDialog(
@@ -522,32 +366,44 @@ fun MisActividadesScreen(
                     CalificacionEncuesta(
                         titulo = "La campaña",
                         valor = calificacionCampania,
-                        onSeleccionar = { calificacionCampania = it }
+                        onSeleccionar = {
+                            calificacionCampania = it
+                        }
                     )
 
                     CalificacionEncuesta(
                         titulo = "La organización",
                         valor = calificacionOrganizacion,
-                        onSeleccionar = { calificacionOrganizacion = it }
+                        onSeleccionar = {
+                            calificacionOrganizacion = it
+                        }
                     )
 
                     CalificacionEncuesta(
                         titulo = "La comunicación",
                         valor = calificacionComunicacion,
-                        onSeleccionar = { calificacionComunicacion = it }
+                        onSeleccionar = {
+                            calificacionComunicacion = it
+                        }
                     )
 
                     CalificacionEncuesta(
                         titulo = "Experiencia general",
                         valor = calificacionGeneral,
-                        onSeleccionar = { calificacionGeneral = it }
+                        onSeleccionar = {
+                            calificacionGeneral = it
+                        }
                     )
 
                     OutlinedTextField(
                         value = comentarioEncuesta,
-                        onValueChange = { comentarioEncuesta = it },
+                        onValueChange = {
+                            comentarioEncuesta = it
+                        },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Comentario (opcional)") },
+                        label = {
+                            Text("Comentario (opcional)")
+                        },
                         placeholder = {
                             Text("¿Qué te gustó o qué mejorarías?")
                         },
@@ -559,11 +415,14 @@ fun MisActividadesScreen(
                     mensajeEncuesta?.let { mensaje ->
                         Text(
                             text = mensaje,
-                            color = if (mensaje.startsWith("¡Gracias")) {
-                                TealPrimary
-                            } else {
-                                androidx.compose.material3.MaterialTheme.colorScheme.error
-                            },
+                            color =
+                                if (mensaje.startsWith("¡Gracias")) {
+                                    TealPrimary
+                                } else {
+                                    androidx.compose.material3.MaterialTheme
+                                        .colorScheme
+                                        .error
+                                },
                             fontSize = 13.sp
                         )
                     }
@@ -571,8 +430,10 @@ fun MisActividadesScreen(
             },
             confirmButton = {
                 TextButton(
-                    enabled = !actividadesViewModel.cargandoEncuestas &&
-                            mensajeEncuesta?.startsWith("¡Gracias") != true,
+                    enabled =
+                        !actividadesViewModel.cargandoEncuestas &&
+                                mensajeEncuesta
+                                    ?.startsWith("¡Gracias") != true,
                     onClick = {
                         actividadesViewModel.enviarEncuesta(
                             registrationId = actividad.id,
@@ -582,6 +443,7 @@ fun MisActividadesScreen(
                             overallRating = calificacionGeneral,
                             comment = comentarioEncuesta
                         ) { exito, mensaje ->
+
                             mensajeEncuesta = mensaje
 
                             if (exito) {
@@ -607,7 +469,10 @@ fun MisActividadesScreen(
                         actividadEncuesta = null
                     }
                 ) {
-                    Text("Cancelar", color = TextSecondary)
+                    Text(
+                        "Cancelar",
+                        color = TextSecondary
+                    )
                 }
             },
             containerColor = Surface
@@ -636,15 +501,23 @@ private fun CalificacionEncuesta(
         ) {
             (1..5).forEach { calificacion ->
                 TextButton(
-                    onClick = { onSeleccionar(calificacion) }
+                    onClick = {
+                        onSeleccionar(calificacion)
+                    }
                 ) {
                     Text(
-                        text = if (calificacion <= valor) "★" else "☆",
-                        color = if (calificacion <= valor) {
-                            OrangePrimary
-                        } else {
-                            TextSecondary
-                        },
+                        text =
+                            if (calificacion <= valor) {
+                                "★"
+                            } else {
+                                "☆"
+                            },
+                        color =
+                            if (calificacion <= valor) {
+                                OrangePrimary
+                            } else {
+                                TextSecondary
+                            },
                         fontSize = 25.sp
                     )
                 }
@@ -683,19 +556,30 @@ private fun ActividadInscritaCard(
     actividad: ActividadInscrita,
     mostrarBotonEncuesta: Boolean = false,
     encuestaCompletada: Boolean = false,
-    onContestarEncuesta: () -> Unit = {}
+    enEspera: Boolean = false,
+    onContestarEncuesta: () -> Unit = {},
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
             verticalAlignment = Alignment.Top
         ) {
             DateBox(
@@ -718,10 +602,26 @@ private fun ActividadInscritaCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 StatusBadge(
-                    text = "INSCRITO",
-                    backgroundColor = OrangePrimary.copy(alpha = 0.45f),
-                    textColor = BrownPrimary
+                    text = if (enEspera) "EN ESPERA" else "INSCRITO",
+                    backgroundColor = if (enEspera) {
+                        TealLight
+                    } else {
+                        OrangePrimary.copy(alpha = 0.45f)
+                    },
+                    textColor = if (enEspera) TealPrimary else BrownPrimary
                 )
+
+                if (enEspera) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Tu inscripción se confirmará automáticamente " +
+                                "si se liberan lugares suficientes para tu familia " +
+                                "y corresponde tu turno.",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -734,7 +634,9 @@ private fun ActividadInscritaCard(
 
                 when {
                     encuestaCompletada -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
@@ -775,114 +677,6 @@ private fun ActividadInscritaCard(
 }
 
 @Composable
-private fun ActividadListaEsperaCard(
-    actividad: ActividadListaEspera
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Surface
-        ),
-        shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Row(verticalAlignment = Alignment.Top) {
-                DateBox(
-                    fecha = actividad.fecha,
-                    backgroundColor = TealLight
-                )
-
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = actividad.nombre,
-                        fontSize = 16.sp,
-                        lineHeight = 21.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    StatusBadge(
-                        text = "EN LISTA DE ESPERA",
-                        backgroundColor = TealLight.copy(alpha = 0.65f),
-                        textColor = TealPrimary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = TealLight.copy(alpha = 0.25f)
-                ),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(TealLight.copy(alpha = 0.65f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = TealPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column {
-                        Text(
-                            text = "Tu posición",
-                            fontSize = 12.sp,
-                            color = TextSecondary
-                        )
-
-                        Text(
-                            text = "#${actividad.posicion}",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TealPrimary
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            InfoRow(
-                icon = Icons.Default.Schedule,
-                text = "${actividad.fecha} · ${actividad.hora}"
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            InfoRow(
-                icon = Icons.Default.LocationOn,
-                text = actividad.lugar
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-        }
-    }
-}
-
-@Composable
 private fun DateBox(
     fecha: String,
     backgroundColor: Color,
@@ -892,7 +686,9 @@ private fun DateBox(
         modifier = Modifier
             .size(58.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(backgroundColor.copy(alpha = 0.65f)),
+            .background(
+                backgroundColor.copy(alpha = 0.65f)
+            ),
         contentAlignment = Alignment.Center
     ) {
         if (showCheck) {
@@ -932,7 +728,10 @@ private fun StatusBadge(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(backgroundColor)
-            .padding(horizontal = 10.dp, vertical = 4.dp)
+            .padding(
+                horizontal = 10.dp,
+                vertical = 4.dp
+            )
     ) {
         Text(
             text = text,
@@ -948,12 +747,16 @@ private fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(TealLight.copy(alpha = 0.50f)),
+                .background(
+                    TealLight.copy(alpha = 0.50f)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -986,18 +789,27 @@ private fun EmptyActivitiesCard(
             containerColor = Surface
         ),
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        )
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(TealLight.copy(alpha = 0.65f)),
+                    .background(
+                        TealLight.copy(alpha = 0.65f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

@@ -254,7 +254,6 @@ class RegistrationCreate(BaseModel):
     activity_id: int = Field(gt=0)
     participant_ids: list[int] = Field(
         default_factory=list,
-        min_length=1,
         max_length=20,
     )
     notes: str | None = Field(default=None, max_length=2000)
@@ -396,6 +395,18 @@ class MessageResponse(BaseModel):
     sender_user_id: int
     receiver_user_id: int
     text: str
+    created_at: datetime
+
+
+class NotificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    title: str
+    message: str
+    notification_type: str
+    is_read: bool
     created_at: datetime
 
 

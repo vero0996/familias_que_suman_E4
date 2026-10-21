@@ -28,6 +28,10 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Define JWT_SECRET_KEY in .env}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_FROM: "Familias que Suman <no-reply@familias.test>"
+      PASSWORD_RESET_URL: "https://undo-excluding-county-weekend.trycloudflare.com/auth/reset-password"
     ports:
       - "8000:8000"
     volumes:
@@ -44,6 +48,17 @@ services:
     depends_on:
       - api
 
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit_data:/data
+    ports:
+      - "127.0.0.1:8025:8025"
+
 volumes:
   postgres_data:
   uploads_data:
+  mailpit_data:

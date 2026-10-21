@@ -22,3 +22,13 @@ data class TokenResponse(
     val access_token: String,
     val token_type: String = "bearer"
 )
+
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String
+)
+
+@Serializable
+data class RecoveryResponse(
+    val message: String
+)

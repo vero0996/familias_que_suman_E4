@@ -59,6 +59,7 @@ import androidx.compose.runtime.LaunchedEffect
 import android.widget.Toast
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.currentBackStackEntryAsState
+import mx.tec.familias.ui.auth.ForgotPasswordScreen
 
 @Composable
 fun AppNavigation() {
@@ -289,6 +290,17 @@ fun AppNavigation() {
 
                 onRegistroClick = {
                     navController.navigate(Routes.Registro.route)
+                },
+                onForgotPasswordClick = {
+                    navController.navigate(Routes.ForgotPassword.route)
+                }
+            )
+        }
+
+        composable(Routes.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -661,6 +673,10 @@ fun AppNavigation() {
                 MisActividadesScreen(
                     actividadesViewModel = actividadesViewModel,
                     familiaId = familyViewModel.familiaId,
+                    onActividadClick = { eventoId ->
+                        actividadesViewModel.seleccionarEvento(eventoId)
+                        navController.navigate(Routes.DetalleActividad.route)
+                    },
 
                     onInicioClick = {
                         navController.navigate(Routes.Inicio.route) {
