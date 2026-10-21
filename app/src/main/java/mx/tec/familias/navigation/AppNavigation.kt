@@ -1180,14 +1180,28 @@ fun AppNavigation() {
                         adminPublicationsViewModel.loadActivityRegistrations(activityId)
                     }
                 }
+                val activityCapacity = activityId
+                    ?.let { adminPublicationsState.find(PublicationKind.ACTIVITY, it) }
+                    ?.capacityPeople
+                    ?.toIntOrNull()
+                    ?: 0
                 GestionarParticipantesScreen(
                     registrations = adminPublicationsState.activityRegistrations,
+                    capacityPeople = activityCapacity,
                     isLoading = adminPublicationsState.isLoadingRegistrations,
                     error = adminPublicationsState.activityManagementError,
                     onBackClick = { navController.popBackStack() },
                     onCancelRegistration = { registrationId ->
                         activityId?.let {
                             adminPublicationsViewModel.cancelActivityRegistration(
+                                it,
+                                registrationId
+                            )
+                        }
+                    },
+                    onAcceptRegistration = { registrationId ->
+                        activityId?.let {
+                            adminPublicationsViewModel.acceptActivityRegistration(
                                 it,
                                 registrationId
                             )

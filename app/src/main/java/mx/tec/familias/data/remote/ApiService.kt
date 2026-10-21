@@ -86,6 +86,13 @@ interface ApiService {
         @Path("registration_id") registrationId: Int
     ): List<ManagedActivityRegistrationResponse>
 
+    @retrofit2.http.PATCH("activities/admin/{activity_id}/registrations/{registration_id}/accept")
+    suspend fun acceptManagedActivityRegistration(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Path("registration_id") registrationId: Int
+    ): List<ManagedActivityRegistrationResponse>
+
     @DELETE("activities/{activity_id}")
     suspend fun cancelActivity(
         @Header("Authorization") authorization: String,

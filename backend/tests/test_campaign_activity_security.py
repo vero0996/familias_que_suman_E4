@@ -349,7 +349,7 @@ def test_organization_can_list_activity_registrations(security_sandbox):
     ]
 
 
-def test_organization_can_cancel_registration_and_promote_waitlist(
+def test_organization_can_cancel_then_accept_waitlisted_registration(
     security_sandbox,
 ):
     client, _, ids, TestSession = security_sandbox
@@ -389,8 +389,78 @@ def test_organization_can_cancel_registration_and_promote_waitlist(
     statuses = {row["id"]: row["status"] for row in response.json()}
     assert statuses == {
         confirmed_id: "cancelada",
+        waiting_id: "lista_espera",
+    }
+
+    response = client.patch(
+        f"/activities/admin/{ids['activity_a']}/registrations/{waiting_id}/accept"
+    )
+
+    assert response.status_code == 200, response.text
+    statuses = {row["id"]: row["status"] for row in response.json()}
+    assert statuses == {
+        confirmed_id: "cancelada",
         waiting_id: "confirmada",
     }
+
+
+def test_organization_cannot_accept_waitlisted_family_without_enough_places(
+    security_sandbox,
+):
+    client, _, ids, TestSession = security_sandbox
+    with TestSession() as db:
+        activity = db.get(Activity, ids["activity_a"])
+        activity.capacity_people = 2
+
+        family_users = [
+            User(
+                full_name=f"Contacto {index}",
+                email=f"capacity-family{index}@example.com",
+                password_hash="test-hash-family",
+                role="familia",
+                is_active=True,
+            )
+            for index in (1, 2)
+        ]
+        db.add_all(family_users)
+        db.flush()
+        families = [
+            Family(name=f"Familia {index}", owner_user_id=user.id)
+            for index, user in enumerate(family_users, start=1)
+        ]
+        db.add_all(families)
+        db.flush()
+        participant = FamilyMember(
+            family_id=families[1].id,
+            full_name="Acompañante",
+            age=12,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(participant)
+        confirmed = Registration(
+            activity_id=activity.id,
+            family_id=families[0].id,
+            status="confirmada",
+        )
+        waiting = Registration(
+            activity_id=activity.id,
+            family_id=families[1].id,
+            status="lista_espera",
+            participants=[participant],
+        )
+        db.add_all([confirmed, waiting])
+        db.commit()
+        waiting_id = waiting.id
+
+    response = client.patch(
+        f"/activities/admin/{ids['activity_a']}/registrations/{waiting_id}/accept"
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == (
+        "No hay suficientes lugares disponibles para esta familia"
+    )
 
 
 def test_organization_cannot_manage_foreign_activity_registrations(

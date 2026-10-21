@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -39,14 +40,23 @@ import mx.tec.familias.data.remote.ManagedActivityRegistrationResponse
 @Composable
 fun GestionarParticipantesScreen(
     registrations: List<ManagedActivityRegistrationResponse>,
+    capacityPeople: Int,
     isLoading: Boolean,
     error: String?,
     onBackClick: () -> Unit,
-    onCancelRegistration: (Int) -> Unit
+    onCancelRegistration: (Int) -> Unit,
+    onAcceptRegistration: (Int) -> Unit
 ) {
     var registrationToCancel by remember {
         mutableStateOf<ManagedActivityRegistrationResponse?>(null)
     }
+    var registrationToAccept by remember {
+        mutableStateOf<ManagedActivityRegistrationResponse?>(null)
+    }
+    val occupiedPeople = registrations
+        .filter { it.status.equals("confirmada", ignoreCase = true) }
+        .sumOf { it.people_count }
+    val availablePlaces = (capacityPeople - occupiedPeople).coerceAtLeast(0)
 
     registrationToCancel?.let { registration ->
         AlertDialog(
@@ -67,6 +77,35 @@ fun GestionarParticipantesScreen(
             },
             dismissButton = {
                 TextButton(onClick = { registrationToCancel = null }) {
+                    Text("Volver")
+                }
+            }
+        )
+    }
+
+    registrationToAccept?.let { registration ->
+        AlertDialog(
+            onDismissRequest = { registrationToAccept = null },
+            title = { Text("Aceptar inscripción") },
+            text = {
+                Text(
+                    "¿Quieres confirmar a ${registration.family_name}? " +
+                        "Se ocuparán ${registration.people_count} lugares."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        registrationToAccept = null
+                        onAcceptRegistration(registration.id)
+                    },
+                    enabled = !isLoading
+                ) {
+                    Text("Aceptar familia")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { registrationToAccept = null }) {
                     Text("Volver")
                 }
             }
@@ -96,7 +135,7 @@ fun GestionarParticipantesScreen(
                 CircularProgressIndicator()
             }
 
-            !error.isNullOrBlank() -> Column(
+            !error.isNullOrBlank() && registrations.isEmpty() -> Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -132,6 +171,17 @@ fun GestionarParticipantesScreen(
                         "Inscripciones: ${registrations.size}",
                         style = MaterialTheme.typography.titleMedium
                     )
+                    Text(
+                        "Lugares disponibles: $availablePlaces de $capacityPeople",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    if (!error.isNullOrBlank()) {
+                        Text(
+                            error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                 }
                 items(registrations, key = { it.id }) { registration ->
                     Card(modifier = Modifier.fillMaxWidth()) {
@@ -155,22 +205,42 @@ fun GestionarParticipantesScreen(
                                     "Integrantes: ${registration.participant_names.joinToString()}"
                                 )
                             }
-                            Spacer(Modifier.height(2.dp))
+                            if (registration.status.equals("lista_espera", ignoreCase = true)) {
+                                val hasEnoughPlaces =
+                                    availablePlaces >= registration.people_count
+                                if (hasEnoughPlaces) {
+                                    Button(
+                                        onClick = { registrationToAccept = registration },
+                                        enabled = !isLoading,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(
+                                            Icons.Default.CheckCircle,
+                                            contentDescription = null
+                                        )
+                                        Text("  Aceptar familia")
+                                    }
+                                } else {
+                                    Text(
+                                        "Faltan ${registration.people_count - availablePlaces} " +
+                                            "lugares para aceptar a esta familia.",
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 TextButton(
                                     onClick = { registrationToCancel = registration },
-                                    enabled = !registration.status.equals(
+                                    enabled = !isLoading && !registration.status.equals(
                                         "cancelada",
                                         ignoreCase = true
                                     )
                                 ) {
-                                    Icon(
-                                        Icons.Default.PersonRemove,
-                                        contentDescription = null
-                                    )
+                                    Icon(Icons.Default.PersonRemove, contentDescription = null)
                                     Text("  Cancelar inscripción")
                                 }
                             }

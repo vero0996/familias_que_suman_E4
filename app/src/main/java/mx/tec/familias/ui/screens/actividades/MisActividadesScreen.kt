@@ -700,7 +700,8 @@ private fun ActividadInscritaCard(
         ) {
             DateBox(
                 fecha = actividad.fecha,
-                backgroundColor = OrangePrimary
+                backgroundColor = OrangePrimary,
+                showCheck = true
             )
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -884,7 +885,8 @@ private fun ActividadListaEsperaCard(
 @Composable
 private fun DateBox(
     fecha: String,
-    backgroundColor: Color
+    backgroundColor: Color,
+    showCheck: Boolean = false
 ) {
     Box(
         modifier = Modifier
@@ -893,20 +895,29 @@ private fun DateBox(
             .background(backgroundColor.copy(alpha = 0.65f)),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = fecha.substringBefore(" "),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = TealPrimary
+        if (showCheck) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "Inscripción confirmada",
+                tint = TealPrimary,
+                modifier = Modifier.size(30.dp)
             )
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = fecha.substringBefore(" "),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
+                )
 
-            Text(
-                text = fecha.substringAfter(" "),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = TealPrimary
-            )
+                Text(
+                    text = fecha.substringAfter(" "),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TealPrimary
+                )
+            }
         }
     }
 }

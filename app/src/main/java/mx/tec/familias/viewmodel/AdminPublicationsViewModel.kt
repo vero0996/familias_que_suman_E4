@@ -198,6 +198,46 @@ class AdminPublicationsViewModel(
         }
     }
 
+    fun acceptActivityRegistration(activityId: Int, registrationId: Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoadingRegistrations = true,
+                activityManagementError = null
+            )
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf(String::isNotBlank)
+                    ?: throw IllegalStateException(
+                        "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    )
+                val registrations = activityRepository.acceptRegistration(
+                    token,
+                    activityId,
+                    registrationId
+                )
+                _uiState.value = _uiState.value.copy(
+                    activityRegistrations = registrations,
+                    isLoadingRegistrations = false,
+                    activityManagementError = null
+                )
+                loadActivities()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(
+                    "AdminPublications",
+                    "Error al aceptar inscripción $registrationId",
+                    e
+                )
+                _uiState.value = _uiState.value.copy(
+                    isLoadingRegistrations = false,
+                    activityManagementError =
+                        e.userMessage("No se pudo aceptar la inscripción.")
+                )
+            }
+        }
+    }
+
     fun cancelActivity(activityId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)

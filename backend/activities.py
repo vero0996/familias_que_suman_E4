@@ -299,52 +299,88 @@ def cancel_activity_registration(
         )
     )
 
-    if (
-        previous_status == "confirmada"
-        and ensure_utc(activity.starts_at) > datetime.now(timezone.utc)
-    ):
-        current_confirmed = db.scalars(
-            select(Registration)
-            .where(
-                Registration.activity_id == activity.id,
-                Registration.status == "confirmada",
-                Registration.id != registration.id,
-            )
-            .options(selectinload(Registration.participants))
-        ).all()
-        available_people = max(
-            0,
-            activity.capacity_people
-            - sum(1 + len(item.participants) for item in current_confirmed),
-        )
-        waiting = db.scalars(
-            select(Registration)
-            .where(
-                Registration.activity_id == activity.id,
-                Registration.status == "lista_espera",
-            )
-            .order_by(Registration.created_at, Registration.id)
-            .with_for_update()
-            .options(selectinload(Registration.participants))
-        ).all()
-        for waiting_registration in waiting:
-            places = 1 + len(waiting_registration.participants)
-            if places > available_people:
-                continue
-            waiting_registration.status = "confirmada"
-            waiting_registration.updated_at = registration.updated_at
-            db.add(
-                RegistrationEvent(
-                    registration_id=waiting_registration.id,
-                    event_type="lista_espera_promovida",
-                    from_status="lista_espera",
-                    to_status="confirmada",
-                    actor_user_id=current_user.id,
-                    details="Cupo liberado por una cancelación",
-                )
-            )
-            available_people -= places
+    db.commit()
+    return list_activity_registrations(activity_id, db, current_user)
 
+
+@router.patch(
+    "/admin/{activity_id}/registrations/{registration_id}/accept",
+    response_model=list[ManagedActivityRegistrationResponse],
+)
+def accept_waitlisted_registration(
+    activity_id: int,
+    registration_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("organizacion", "admin")),
+):
+    get_managed_activity_or_404(db, activity_id, current_user)
+    activity = db.scalar(
+        select(Activity)
+        .where(Activity.id == activity_id)
+        .with_for_update()
+    )
+    if activity is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Actividad no encontrada",
+        )
+    if ensure_utc(activity.starts_at) <= datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No se puede confirmar una inscripción después del inicio de la actividad",
+        )
+
+    registration = db.scalar(
+        select(Registration)
+        .where(
+            Registration.id == registration_id,
+            Registration.activity_id == activity.id,
+        )
+        .with_for_update()
+        .options(selectinload(Registration.participants))
+    )
+    if registration is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inscripción no encontrada para esta actividad",
+        )
+    if registration.status != "lista_espera":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="La inscripción ya no está en lista de espera",
+        )
+
+    confirmed = db.scalars(
+        select(Registration)
+        .where(
+            Registration.activity_id == activity.id,
+            Registration.status == "confirmada",
+        )
+        .options(selectinload(Registration.participants))
+    ).all()
+    occupied_people = sum(
+        1 + len(item.participants)
+        for item in confirmed
+    )
+    required_people = 1 + len(registration.participants)
+    if occupied_people + required_people > activity.capacity_people:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No hay suficientes lugares disponibles para esta familia",
+        )
+
+    registration.status = "confirmada"
+    registration.updated_at = datetime.now(timezone.utc)
+    db.add(
+        RegistrationEvent(
+            registration_id=registration.id,
+            event_type="lista_espera_aceptada",
+            from_status="lista_espera",
+            to_status="confirmada",
+            actor_user_id=current_user.id,
+            details="Confirmada manualmente por la organización",
+        )
+    )
     db.commit()
     return list_activity_registrations(activity_id, db, current_user)
 
