@@ -911,3 +911,94 @@ def test_waitlist_promotes_oldest_family_that_fits(
         assert cancellation is not None
         assert cancellation.from_status == "confirmada"
         assert cancellation.to_status == "cancelada"
+
+def test_reactivated_family_returns_to_end_of_waitlist(
+    registration_sandbox,
+):
+    (
+        client, engine, own_id, foreign_id, activity_id,
+        own_member_id, foreign_member_id, _,
+    ) = registration_sandbox
+
+    with Session(engine) as db:
+        now = datetime.now(timezone.utc)
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = 2
+
+        returning = db.get(Registration, own_id)
+        returning.activity_id = activity_id
+        returning.status = "cancelada"
+        returning.created_at = now - timedelta(days=3)
+        returning.canceled_at = now - timedelta(days=2)
+
+        waiting = db.get(Registration, foreign_id)
+        waiting.status = "lista_espera"
+        waiting.created_at = now - timedelta(days=1)
+        waiting.participants = [db.get(FamilyMember, foreign_member_id)]
+
+        holder_user = User(
+            full_name="Familia con lugares",
+            email="familia-con-lugares@test.invalid",
+            password_hash="test-only-hash",
+            role="familia",
+            is_active=True,
+        )
+        db.add(holder_user)
+        db.flush()
+
+        holder_family = Family(
+            name="Familia con lugares",
+            owner_user_id=holder_user.id,
+        )
+        db.add(holder_family)
+        db.flush()
+
+        holder_member = FamilyMember(
+            family_id=holder_family.id,
+            full_name="Acompañante",
+            age=10,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(holder_member)
+        db.flush()
+
+        holder = Registration(
+            activity_id=activity_id,
+            family_id=holder_family.id,
+            status="confirmada",
+            participants=[holder_member],
+        )
+        db.add(holder)
+        db.commit()
+
+        holder_id = holder.id
+        holder_user_id = holder_user.id
+
+    # La familia que canceló vuelve a inscribirse cuando el cupo está lleno.
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["id"] == own_id
+    assert response.json()["status"] == "lista_espera"
+
+    # Cambiar al usuario que tiene los lugares para que cancele su inscripción.
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=holder_user_id,
+        role="familia",
+        is_active=True,
+    )
+
+    response = client.patch(f"/registrations/{holder_id}/cancel")
+    assert response.status_code == 200, response.text
+
+    with Session(engine) as db:
+        # Debe avanzar quien ya estaba esperando, no quien se reinscribió.
+        assert db.get(Registration, foreign_id).status == "confirmada"
+        assert db.get(Registration, own_id).status == "lista_espera"
