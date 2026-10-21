@@ -58,6 +58,7 @@ import mx.tec.familias.ui.theme.TealLight
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
+import androidx.compose.foundation.clickable
 
 data class ActividadInscrita(
     val id: String,
@@ -76,7 +77,8 @@ fun MisActividadesScreen(
     onMensajesClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCalendarioClick: () -> Unit = {},
-    mostrarMensajes: Boolean = true
+    mostrarMensajes: Boolean = true,
+    onActividadClick: (String) -> Unit = {}
 ) {
 
     val estado = actividadesViewModel.estado
@@ -256,6 +258,9 @@ fun MisActividadesScreen(
                 )
 
                 ActividadInscritaCard(
+                    onClick = {
+                        onActividadClick(solicitud.eventoId)
+                    },
                     actividad = actividad,
                     mostrarBotonEncuesta =
                         actividadTerminada && !encuestaCompletada,
@@ -296,6 +301,9 @@ fun MisActividadesScreen(
                 val evento = estado.evento(solicitud.eventoId)
 
                 ActividadInscritaCard(
+                    onClick = {
+                        onActividadClick(solicitud.eventoId)
+                    },
                     actividad = ActividadInscrita(
                         id = solicitud.id,
                         nombre = evento.nombre,
@@ -549,10 +557,13 @@ private fun ActividadInscritaCard(
     mostrarBotonEncuesta: Boolean = false,
     encuestaCompletada: Boolean = false,
     enEspera: Boolean = false,
-    onContestarEncuesta: () -> Unit = {}
+    onContestarEncuesta: () -> Unit = {},
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = Surface
         ),
