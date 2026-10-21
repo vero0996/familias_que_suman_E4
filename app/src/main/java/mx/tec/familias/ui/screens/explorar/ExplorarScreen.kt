@@ -4,19 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -26,26 +14,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
+import mx.tec.familias.data.model.EstadoActividades
+import mx.tec.familias.data.model.Evento
+import mx.tec.familias.data.model.Taller
 import mx.tec.familias.data.remote.CampaignResponse
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
@@ -69,9 +44,13 @@ fun ExplorarScreen(
     onPerfilClick: () -> Unit = {},
     onCampaniaClick: (String) -> Unit = {},
     onActividadClick: (String) -> Unit = {},
+    onEventoClick: (Int) -> Unit = {},
+    onTallerClick: (Int) -> Unit = {},
     onBackClick: () -> Unit = {},
-    estadoActividades: mx.tec.familias.data.model.EstadoActividades? = null,
+    estadoActividades: EstadoActividades? = null,
     campaigns: List<CampaignResponse> = emptyList(),
+    eventos: List<Evento> = emptyList(),
+    talleres: List<Taller> = emptyList(),
     mostrarMensajes: Boolean = false,
     cargandoActividades: Boolean = false,
     errorActividades: String? = null,
@@ -82,69 +61,62 @@ fun ExplorarScreen(
 
     val busqueda = searchText.trim().lowercase()
 
-    val mostrarCampanias =
-        filtroActual == "Todos" ||
-            filtroActual == "Donaciones" ||
-            filtroActual == "Campañas"
-
-    val mostrarActividadesFiltro =
-        filtroActual == "Todos" ||
-            filtroActual == "Voluntariado" ||
-            filtroActual == "Eventos" ||
-            filtroActual == "Talleres"
+    val mostrarCampanias = filtroActual == "Todos" || filtroActual == "Donaciones" || filtroActual == "Campañas"
+    val mostrarActividades = filtroActual == "Todos" || filtroActual == "Voluntariado"
+    val mostrarEventos = filtroActual == "Todos" || filtroActual == "Eventos"
+    val mostrarTalleres = filtroActual == "Todos" || filtroActual == "Talleres"
 
     val matchingCampaigns = campaigns.filter {
-        mostrarCampanias && (
-            busqueda.isBlank() ||
+        mostrarCampanias && (busqueda.isBlank() ||
                 it.title.lowercase().contains(busqueda) ||
                 it.description.lowercase().contains(busqueda) ||
-                it.organization_name.lowercase().contains(busqueda)
-            )
+                it.organization_name.lowercase().contains(busqueda))
     }
 
-    val matchingEvents = (estadoActividades?.eventos ?: emptyList()).filter {
-        mostrarActividadesFiltro && (
-            busqueda.isBlank() ||
+    val matchingActivities = (estadoActividades?.eventos ?: emptyList()).filter {
+        mostrarActividades && (busqueda.isBlank() ||
                 it.nombre.lowercase().contains(busqueda) ||
                 it.descripcion.lowercase().contains(busqueda) ||
-                it.lugar.lowercase().contains(busqueda)
-            )
+                it.lugar.lowercase().contains(busqueda))
     }
 
-    val hayResultados = matchingCampaigns.isNotEmpty() || matchingEvents.isNotEmpty()
+    val matchingEventos = eventos.filter {
+        mostrarEventos && (busqueda.isBlank() ||
+                it.title.lowercase().contains(busqueda) ||
+                it.description.lowercase().contains(busqueda) ||
+                it.location.lowercase().contains(busqueda))
+    }
+
+    val matchingTalleres = talleres.filter {
+        mostrarTalleres && (busqueda.isBlank() ||
+                it.title.lowercase().contains(busqueda) ||
+                it.description.lowercase().contains(busqueda) ||
+                it.location.lowercase().contains(busqueda))
+    }
+
+    val hayResultados = matchingCampaigns.isNotEmpty() ||
+            matchingActivities.isNotEmpty() ||
+            matchingEventos.isNotEmpty() ||
+            matchingTalleres.isNotEmpty()
 
     Scaffold(
         containerColor = Background,
         topBar = {
-            Surface(
-                color = Surface,
-                shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Surface(color = Surface, shadowElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBackClick) {
                         Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(TealLight.copy(alpha = 0.45f))
-                                .padding(8.dp),
+                            modifier = Modifier.clip(CircleShape).background(TealLight.copy(alpha = 0.45f)).padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Regresar",
-                                tint = TealPrimary
-                            )
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Regresar", tint = TealPrimary)
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(Modifier.width(8.dp))
 
                     Text(
                         text = "Explorar",
@@ -155,13 +127,10 @@ fun ExplorarScreen(
                     )
 
                     Image(
-                        painter = painterResource(id = R.drawable.icon),
+                        painter = painterResource(R.drawable.icon),
                         contentDescription = "Perfil",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .clickable { onPerfilClick() }
+                        modifier = Modifier.size(36.dp).clip(CircleShape).clickable { onPerfilClick() }
                     )
                 }
             }
@@ -183,10 +152,7 @@ fun ExplorarScreen(
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(TealLight.copy(alpha = 0.12f))
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize().background(TealLight.copy(alpha = 0.12f)).padding(paddingValues)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -196,17 +162,9 @@ fun ExplorarScreen(
                     OutlinedTextField(
                         value = searchText,
                         onValueChange = { searchText = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        placeholder = { Text(text = "Buscar causas, asociaciones...") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar",
-                                tint = TealPrimary
-                            )
-                        },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        placeholder = { Text("Buscar causas, asociaciones...") },
+                        leadingIcon = { Icon(Icons.Default.Search, "Buscar", tint = TealPrimary) },
                         singleLine = true,
                         shape = RoundedCornerShape(28.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -217,25 +175,19 @@ fun ExplorarScreen(
                         )
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    ExplorarFilters(
-                        filtroActual = filtroActual,
-                        onFiltroChange = { filtroActual = it }
-                    )
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(Modifier.height(16.dp))
+                    ExplorarFilters(filtroActual) { filtroActual = it }
+                    Spacer(Modifier.height(28.dp))
                 }
 
                 if (cargandoActividades) {
                     item {
                         LinearProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                             color = TealPrimary
                         )
-
                         Text(
-                            text = "Cargando actividades...",
+                            "Cargando actividades...",
                             modifier = Modifier.padding(top = 8.dp),
                             fontSize = 14.sp,
                             color = TextSecondary
@@ -245,40 +197,22 @@ fun ExplorarScreen(
 
                 if (!errorActividades.isNullOrBlank()) {
                     item {
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = errorActividades,
-                            fontSize = 14.sp,
-                            color = BrownPrimary
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
+                        Spacer(Modifier.height(12.dp))
+                        Text(errorActividades, fontSize = 14.sp, color = BrownPrimary)
+                        Spacer(Modifier.height(8.dp))
                         Button(
                             onClick = onReintentarActividades,
                             colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
-                        ) {
-                            Text("Reintentar")
-                        }
+                        ) { Text("Reintentar") }
                     }
                 }
 
                 if (matchingCampaigns.isNotEmpty()) {
                     item {
-                        Text(
-                            text = "Campañas",
-                            fontSize = 22.sp,
-                            lineHeight = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        SectionTitle("Campañas")
                     }
 
-                    items(matchingCampaigns.size) { index ->
-                        val campania = matchingCampaigns[index]
-
+                    items(matchingCampaigns) { campania ->
                         CampaignCard(
                             tag = campania.status.uppercase(),
                             tagColor = TealDark,
@@ -290,51 +224,70 @@ fun ExplorarScreen(
                             buttonText = "Ver campaña",
                             onClick = { onCampaniaClick(campania.id.toString()) }
                         )
-
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(Modifier.height(20.dp))
                     }
                 }
 
-                if (matchingEvents.isNotEmpty()) {
+                if (matchingActivities.isNotEmpty()) {
                     item {
-                        Text(
-                            text = "Actividades",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        SectionTitle("Actividades")
                     }
 
-                    items(matchingEvents.size) { index ->
-                        val evento = matchingEvents[index]
-                        val cupos = evento.capacidadPersonas
-                        val ocupados = estadoActividades?.ocupados(evento.id) ?: 0
-                        val disponibles = estadoActividades?.disponibles(evento.id) ?: cupos
+                    items(matchingActivities) { actividad ->
+                        val cupos = actividad.capacidadPersonas
+                        val ocupados = estadoActividades?.ocupados(actividad.id) ?: 0
+                        val disponibles = estadoActividades?.disponibles(actividad.id) ?: cupos
 
                         ActivityCard(
-                            title = evento.nombre,
-                            organization = evento.organizacion,
+                            title = actividad.nombre,
+                            organization = actividad.organizacion,
                             participants = "$ocupados/$cupos familias · $disponibles lugares disponibles",
-                            date = evento.fecha,
-                            onClick = { onActividadClick(evento.id) }
+                            date = actividad.fecha,
+                            onClick = { onActividadClick(actividad.id) }
                         )
-
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(Modifier.height(20.dp))
                     }
                 }
 
-                if (
-                    !hayResultados &&
-                    !cargandoActividades &&
-                    errorActividades.isNullOrBlank()
-                ) {
+                if (matchingEventos.isNotEmpty()) {
+                    item {
+                        SectionTitle("Eventos")
+                    }
+
+                    items(matchingEventos) { evento ->
+                        EventCard(
+                            title = evento.title,
+                            description = evento.description,
+                            location = evento.location,
+                            date = evento.starts_at,
+                            onClick = { onEventoClick(evento.id) }
+                        )
+                        Spacer(Modifier.height(20.dp))
+                    }
+                }
+
+                if (matchingTalleres.isNotEmpty()) {
+                    item {
+                        SectionTitle("Talleres")
+                    }
+
+                    items(matchingTalleres) { taller ->
+                        WorkshopCard(
+                            title = taller.title,
+                            description = taller.description,
+                            location = taller.location,
+                            date = taller.starts_at,
+                            onClick = { onTallerClick(taller.id) }
+                        )
+                        Spacer(Modifier.height(20.dp))
+                    }
+                }
+
+                if (!hayResultados && !cargandoActividades && errorActividades.isNullOrBlank()) {
                     item {
                         Text(
-                            text = "No encontramos resultados",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 24.dp),
+                            "No encontramos resultados",
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextSecondary
@@ -347,14 +300,21 @@ fun ExplorarScreen(
 }
 
 @Composable
-private fun ExplorarFilters(filtroActual: String, onFiltroChange: (String) -> Unit) {
+private fun SectionTitle(text: String) {
+    Text(text, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+    Spacer(Modifier.height(16.dp))
+}
+
+@Composable
+private fun ExplorarFilters(
+    filtroActual: String,
+    onFiltroChange: (String) -> Unit
+) {
     val scrollState = rememberScrollState()
     val opciones = listOf("Todos", "Voluntariado", "Donaciones", "Campañas", "Eventos", "Talleres")
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState),
+        modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         opciones.forEach { opcion ->
@@ -363,7 +323,7 @@ private fun ExplorarFilters(filtroActual: String, onFiltroChange: (String) -> Un
                 onClick = { onFiltroChange(opcion) },
                 label = {
                     Text(
-                        text = opcion,
+                        opcion,
                         fontWeight = if (filtroActual == opcion) FontWeight.Bold else FontWeight.Normal
                     )
                 },
@@ -396,45 +356,43 @@ private fun CampaignCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        Column(Modifier.fillMaxWidth().padding(8.dp)) {
             Image(
-                painter = painterResource(id = R.drawable.reforestacionurbana),
+                painter = painterResource(R.drawable.reforestacionurbana),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(22.dp))
+                modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(22.dp))
             )
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(text = tag, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = tagColor)
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(text = organization, fontSize = 14.sp, color = TealDark)
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(text = description, fontSize = 14.sp, color = TextSecondary)
-                Spacer(modifier = Modifier.height(18.dp))
+
+            Column(Modifier.padding(12.dp)) {
+                Text(tag, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = tagColor)
+                Spacer(Modifier.height(6.dp))
+                Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(Modifier.height(5.dp))
+                Text(organization, fontSize = 14.sp, color = TealDark)
+                Spacer(Modifier.height(10.dp))
+                Text(description, fontSize = 14.sp, color = TextSecondary)
+                Spacer(Modifier.height(18.dp))
+
                 LinearProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(7.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                    modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)),
                     color = TealPrimary,
                     trackColor = TealLight.copy(alpha = 0.35f)
                 )
-                Spacer(modifier = Modifier.height(18.dp))
+
+                Spacer(Modifier.height(6.dp))
+                Text(progressText, fontSize = 12.sp, color = TextSecondary)
+                Spacer(Modifier.height(18.dp))
+
                 Button(
                     onClick = onClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
                 ) {
-                    Text(text = buttonText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(buttonText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -453,54 +411,127 @@ private fun ActivityCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        Column(Modifier.fillMaxWidth().padding(8.dp)) {
             Image(
-                painter = painterResource(id = R.drawable.utilesescolares),
+                painter = painterResource(R.drawable.utilesescolares),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(170.dp)
-                    .clip(RoundedCornerShape(22.dp))
+                modifier = Modifier.fillMaxWidth().height(170.dp).clip(RoundedCornerShape(22.dp))
             )
-            Column(modifier = Modifier.padding(12.dp)) {
+
+            Column(Modifier.padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = TealPrimary,
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = date, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrownPrimary)
+                    Icon(Icons.Default.CalendarToday, null, tint = TealPrimary, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(date, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrownPrimary)
                 }
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(text = organization, fontSize = 14.sp, color = TealDark)
-                Spacer(modifier = Modifier.height(14.dp))
+
+                Spacer(Modifier.height(10.dp))
+                Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(Modifier.height(5.dp))
+                Text(organization, fontSize = 14.sp, color = TealDark)
+                Spacer(Modifier.height(14.dp))
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Groups,
-                        contentDescription = null,
-                        tint = TealPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = participants, fontSize = 14.sp, color = TextSecondary)
+                    Icon(Icons.Default.Groups, null, tint = TealPrimary, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(participants, fontSize = 14.sp, color = TextSecondary)
                 }
-                Spacer(modifier = Modifier.height(18.dp))
+
+                Spacer(Modifier.height(18.dp))
+
                 Button(
                     onClick = onClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
                 ) {
-                    Text(text = "Ver actividad", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Ver actividad", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventCard(
+    title: String,
+    description: String,
+    location: String,
+    date: String,
+    onClick: () -> Unit
+) {
+    SimpleItemCard(
+        title = title,
+        description = description,
+        location = location,
+        date = date,
+        buttonText = "Ver evento",
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun WorkshopCard(
+    title: String,
+    description: String,
+    location: String,
+    date: String,
+    onClick: () -> Unit
+) {
+    SimpleItemCard(
+        title = title,
+        description = description,
+        location = location,
+        date = date,
+        buttonText = "Ver taller",
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun SimpleItemCard(
+    title: String,
+    description: String,
+    location: String,
+    date: String,
+    buttonText: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CalendarToday, null, tint = TealPrimary, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(date.replace("T", " ").take(16), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrownPrimary)
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            Text(description, fontSize = 14.sp, color = TextSecondary)
+            Spacer(Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.LocationOn, null, tint = TealPrimary, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(location, fontSize = 14.sp, color = TextSecondary)
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+            ) {
+                Text(buttonText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

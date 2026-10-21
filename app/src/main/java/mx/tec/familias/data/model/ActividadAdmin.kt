@@ -1,6 +1,7 @@
 package mx.tec.familias.data.model
 
 data class ActividadAdmin(
+    val id: Int? = null,
     val titulo: String,
     val descripcion: String,
     val fecha: String,

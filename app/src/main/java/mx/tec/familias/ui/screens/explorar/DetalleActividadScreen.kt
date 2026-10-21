@@ -64,11 +64,13 @@ import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 
+
 @Composable
 fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onInscribirseClick: () -> Unit = {},
     onConsultarCalendarioClick: () -> Unit = {},
+    onMensajesActividadClick: () -> Unit = {},
     actividad: Activity,
     ocupados: Int,
     disponibles: Int,
@@ -78,8 +80,13 @@ fun DetalleActividadScreen(
     error: String? = null,
     onCancelarInscripcionClick: (onResult: (Boolean, String?) -> Unit) -> Unit
 ) {
-    var mostrarDialogoCancelar by remember(actividad.id) { mutableStateOf(false) }
-    var mostrarDialogoCompartir by remember(actividad.id) { mutableStateOf(false) }
+    var mostrarDialogoCancelar by remember(actividad.id) {
+        mutableStateOf(false)
+    }
+
+    var mostrarDialogoCompartir by remember(actividad.id) {
+        mutableStateOf(false)
+    }
 
     var cancelandoInscripcion by remember(actividad.id) {
         mutableStateOf(false)
@@ -99,7 +106,8 @@ fun DetalleActividadScreen(
                 (100..999).random().toString()
     }
 
-    val urlActividad = "https://familiasquesuman.app/actividad/$codigoActividad"
+    val urlActividad =
+        "https://familiasquesuman.app/actividad/$codigoActividad"
 
     Column(
         modifier = Modifier
@@ -114,23 +122,41 @@ fun DetalleActividadScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 18.dp, end = 18.dp, top = 48.dp),
+                .padding(
+                    start = 18.dp,
+                    end = 18.dp,
+                    top = 48.dp
+                ),
             shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.cardColors(containerColor = Surface),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = Surface
+            ),
+            border = BorderStroke(
+                1.dp,
+                Color.White.copy(alpha = 0.90f)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 3.dp
+            )
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = 5.dp
+                    ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(
+                    onClick = onBackClick
+                ) {
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(TealLight.copy(alpha = 0.45f))
+                            .background(
+                                TealLight.copy(alpha = 0.45f)
+                            )
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -151,12 +177,16 @@ fun DetalleActividadScreen(
                 )
 
                 IconButton(
-                    onClick = { mostrarDialogoCompartir = true }
+                    onClick = {
+                        mostrarDialogoCompartir = true
+                    }
                 ) {
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(TealLight.copy(alpha = 0.45f))
+                            .background(
+                                TealLight.copy(alpha = 0.45f)
+                            )
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -182,7 +212,9 @@ fun DetalleActividadScreen(
                 .padding(horizontal = 18.dp)
         ) {
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(
+                modifier = Modifier.height(22.dp)
+            )
 
             // --------------------------------------------------
             // IMAGEN
@@ -191,23 +223,36 @@ fun DetalleActividadScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                )
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.recorridainvierno),
+                    painter = painterResource(
+                        id = R.drawable.recorridainvierno
+                    ),
                     contentDescription = "Imagen de la actividad",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(210.dp)
                         .padding(8.dp)
-                        .clip(RoundedCornerShape(22.dp))
+                        .clip(
+                            RoundedCornerShape(22.dp)
+                        )
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
 
             // --------------------------------------------------
             // CATEGORÍA
@@ -220,7 +265,9 @@ fun DetalleActividadScreen(
                 color = BrownPrimary
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(
+                modifier = Modifier.height(6.dp)
+            )
 
             // --------------------------------------------------
             // TÍTULO
@@ -234,7 +281,9 @@ fun DetalleActividadScreen(
                 color = TextPrimary
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(
+                modifier = Modifier.height(6.dp)
+            )
 
             // --------------------------------------------------
             // ORGANIZACIÓN
@@ -247,7 +296,9 @@ fun DetalleActividadScreen(
                 color = TealDark
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
 
             // --------------------------------------------------
             // DESCRIPCIÓN
@@ -256,11 +307,20 @@ fun DetalleActividadScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Surface),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = Surface
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 3.dp
+                )
             ) {
-                Column(modifier = Modifier.padding(18.dp)) {
+                Column(
+                    modifier = Modifier.padding(18.dp)
+                ) {
                     Text(
                         text = "Sobre esta actividad",
                         fontSize = 22.sp,
@@ -269,7 +329,9 @@ fun DetalleActividadScreen(
                         color = TextPrimary
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
 
                     Text(
                         text = actividad.descripcion,
@@ -280,7 +342,9 @@ fun DetalleActividadScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
 
             // --------------------------------------------------
             // INFORMACIÓN
@@ -294,7 +358,9 @@ fun DetalleActividadScreen(
                 color = TextPrimary
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(
+                modifier = Modifier.height(14.dp)
+            )
 
             ActivityInfoCard(
                 icon = {
@@ -308,7 +374,9 @@ fun DetalleActividadScreen(
                 value = "${actividad.fecha} · ${actividad.hora}"
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(
+                modifier = Modifier.height(10.dp)
+            )
 
             ActivityInfoCard(
                 icon = {
@@ -322,7 +390,9 @@ fun DetalleActividadScreen(
                 value = actividad.lugar
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(
+                modifier = Modifier.height(10.dp)
+            )
 
             ActivityInfoCard(
                 icon = {
@@ -333,38 +403,50 @@ fun DetalleActividadScreen(
                     )
                 },
                 title = "Participación",
-                value = "$ocupados/${actividad.capacidadPersonas} familias · $disponibles lugares libres"
+                value =
+                    "$ocupados/${actividad.capacidadPersonas} familias · " +
+                            "$disponibles lugares libres"
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(
+                modifier = Modifier.height(28.dp)
+            )
         }
 
         // --------------------------------------------------
-        // BOTÓN INFERIOR
+        // BOTONES INFERIORES
         // --------------------------------------------------
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 18.dp, vertical = 10.dp)
+                .padding(
+                    horizontal = 18.dp,
+                    vertical = 10.dp
+                )
         ) {
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
+
                 if (error != null) {
                     Text(
                         text = error,
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        color =
+                            androidx.compose.material3.MaterialTheme
+                                .colorScheme
+                                .error,
+                        modifier = Modifier.padding(
+                            bottom = 8.dp
+                        )
                     )
                 }
 
-
-
                 if (inscripcionActiva) {
 
-                    // Solo las inscripciones confirmadas tienen acceso al calendario.
+                    // Solo las inscripciones confirmadas
+                    // tienen acceso al calendario.
                     if (inscripcionConfirmada) {
                         Button(
                             onClick = onConsultarCalendarioClick,
@@ -377,9 +459,12 @@ fun DetalleActividadScreen(
                             )
                         ) {
                             Icon(
-                                imageVector = Icons.Default.CalendarToday,
+                                imageVector =
+                                    Icons.Default.CalendarToday,
                                 contentDescription = null,
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier.padding(
+                                    end = 8.dp
+                                )
                             )
 
                             Text(
@@ -388,28 +473,58 @@ fun DetalleActividadScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
+
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
                     } else {
                         Text(
-                            text = "Tu familia está en lista de espera.",
+                            text =
+                                "Tu familia está en lista de espera.",
                             color = TealPrimary,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier.padding(
+                                bottom = 8.dp
+                            )
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = onMensajesActividadClick,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(22.dp)
+                    ) {
+                        Text(
+                            text = "Mensajes de la actividad",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TealPrimary
+                        )
+                    }
+
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
 
                     OutlinedButton(
-                        onClick = { mostrarDialogoCancelar = true },
+                        onClick = {
+                            mostrarDialogoCancelar = true
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(44.dp),
                         shape = RoundedCornerShape(22.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.Red
-                        )
+                        colors =
+                            ButtonDefaults
+                                .outlinedButtonColors(
+                                    contentColor = Color.Red
+                                )
                     ) {
-                        Text("Cancelar inscripción a la actividad")
+                        Text(
+                            "Cancelar inscripción a la actividad"
+                        )
                     }
 
                 } else {
@@ -427,24 +542,34 @@ fun DetalleActividadScreen(
                     ) {
                         Text(
                             text = when {
-                                inscripcionesCerradas -> "Inscripciones cerradas"
-                                disponibles == 0 -> "Unirme a lista de espera"
-                                else -> "Inscribirme como Familia"
+                                inscripcionesCerradas ->
+                                    "Inscripciones cerradas"
+
+                                disponibles == 0 ->
+                                    "Unirme a lista de espera"
+
+                                else ->
+                                    "Inscribirme como Familia"
                             },
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
-
             }
         }
     }
 
+    // --------------------------------------------------
+    // DIÁLOGO DE CANCELACIÓN
+    // --------------------------------------------------
+
     if (mostrarDialogoCancelar) {
         AlertDialog(
             onDismissRequest = {
-                if (!cancelandoInscripcion) mostrarDialogoCancelar = false
+                if (!cancelandoInscripcion) {
+                    mostrarDialogoCancelar = false
+                }
             },
             containerColor = Surface,
             title = {
@@ -457,14 +582,25 @@ fun DetalleActividadScreen(
             text = {
                 Column {
                     Text(
-                        "Se cancelará la inscripción de tu familia a ${actividad.nombre}. " +
-                                "Si hay familias en espera y las inscripciones siguen abiertas, el lugar se asignará a la primera."
+                        "Se cancelará la inscripción de tu familia a " +
+                                "${actividad.nombre}. " +
+                                "Si hay familias en espera y las " +
+                                "inscripciones siguen abiertas, " +
+                                "el lugar se asignará a la primera."
                     )
+
                     if (errorCancelacion != null) {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(
+                            modifier = Modifier.height(12.dp)
+                        )
+
                         Text(
                             text = errorCancelacion!!,
-                            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                            color =
+                                androidx.compose.material3
+                                    .MaterialTheme
+                                    .colorScheme
+                                    .error
                         )
                     }
                 }
@@ -476,25 +612,36 @@ fun DetalleActividadScreen(
                         cancelandoInscripcion = true
                         errorCancelacion = null
 
-                        onCancelarInscripcionClick { exito, mensaje ->
+                        onCancelarInscripcionClick {
+                                exito,
+                                mensaje ->
+
                             cancelandoInscripcion = false
 
                             if (exito) {
                                 mostrarDialogoCancelar = false
+
                                 Toast.makeText(
                                     context,
-                                    mensaje ?: "Inscripción cancelada.",
+                                    mensaje
+                                        ?: "Inscripción cancelada.",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
-                                errorCancelacion = mensaje
-                                    ?: "No se pudo cancelar la inscripción."
+                                errorCancelacion =
+                                    mensaje
+                                        ?: "No se pudo cancelar la inscripción."
                             }
                         }
                     }
                 ) {
                     Text(
-                        text = if (cancelandoInscripcion) "Cancelando..." else "Sí, cancelar",
+                        text =
+                            if (cancelandoInscripcion) {
+                                "Cancelando..."
+                            } else {
+                                "Sí, cancelar"
+                            },
                         color = Color.Red
                     )
                 }
@@ -502,9 +649,13 @@ fun DetalleActividadScreen(
             dismissButton = {
                 TextButton(
                     enabled = !cancelandoInscripcion,
-                    onClick = { mostrarDialogoCancelar = false }
+                    onClick = {
+                        mostrarDialogoCancelar = false
+                    }
                 ) {
-                    Text("Volver")
+                    Text(
+                        "Volver"
+                    )
                 }
             }
         )
@@ -516,7 +667,9 @@ fun DetalleActividadScreen(
 
     if (mostrarDialogoCompartir) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogoCompartir = false },
+            onDismissRequest = {
+                mostrarDialogoCompartir = false
+            },
             containerColor = Surface,
             title = {
                 Text(
@@ -528,18 +681,25 @@ fun DetalleActividadScreen(
             text = {
                 Column {
                     Text(
-                        text = "Comparte esta actividad con otras familias:",
+                        text =
+                            "Comparte esta actividad con otras familias:",
                         fontSize = 14.sp,
                         color = TextSecondary
                     )
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(
+                        modifier = Modifier.height(14.dp)
+                    )
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(TealLight.copy(alpha = 0.25f))
+                            .clip(
+                                RoundedCornerShape(16.dp)
+                            )
+                            .background(
+                                TealLight.copy(alpha = 0.25f)
+                            )
                             .padding(12.dp)
                     ) {
                         Text(
@@ -553,7 +713,9 @@ fun DetalleActividadScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(urlActividad))
+                        clipboardManager.setText(
+                            AnnotatedString(urlActividad)
+                        )
 
                         Toast.makeText(
                             context,
@@ -563,12 +725,15 @@ fun DetalleActividadScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ContentCopy,
+                        imageVector =
+                            Icons.Default.ContentCopy,
                         contentDescription = null,
                         tint = TealPrimary
                     )
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(
+                        modifier = Modifier.width(6.dp)
+                    )
 
                     Text(
                         text = "Copiar",
@@ -580,16 +745,20 @@ fun DetalleActividadScreen(
                 Row {
                     TextButton(
                         onClick = {
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
+                            val shareIntent =
+                                Intent(
+                                    Intent.ACTION_SEND
+                                ).apply {
+                                    type = "text/plain"
 
-                                putExtra(
-                                    Intent.EXTRA_TEXT,
-                                    "¡Mira esta actividad en Familias que Suman!\n\n" +
-                                            "${actividad.nombre}\n\n" +
-                                            urlActividad
-                                )
-                            }
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "¡Mira esta actividad en " +
+                                                "Familias que Suman!\n\n" +
+                                                "${actividad.nombre}\n\n" +
+                                                urlActividad
+                                    )
+                                }
 
                             context.startActivity(
                                 Intent.createChooser(
@@ -600,12 +769,15 @@ fun DetalleActividadScreen(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Share,
+                            imageVector =
+                                Icons.Default.Share,
                             contentDescription = null,
                             tint = TealPrimary
                         )
 
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(
+                            modifier = Modifier.width(6.dp)
+                        )
 
                         Text(
                             text = "Compartir",
@@ -614,7 +786,9 @@ fun DetalleActividadScreen(
                     }
 
                     TextButton(
-                        onClick = { mostrarDialogoCompartir = false }
+                        onClick = {
+                            mostrarDialogoCompartir = false
+                        }
                     ) {
                         Text(
                             text = "Cerrar",
@@ -626,6 +800,7 @@ fun DetalleActividadScreen(
         )
     }
 }
+
 
 // --------------------------------------------------
 // TARJETA DE INFORMACIÓN
@@ -640,9 +815,16 @@ private fun ActivityInfoCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Surface
+        ),
+        border = BorderStroke(
+            1.dp,
+            Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
         Row(
             modifier = Modifier
@@ -652,15 +834,21 @@ private fun ActivityInfoCard(
         ) {
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(TealLight.copy(alpha = 0.60f))
+                    .clip(
+                        RoundedCornerShape(14.dp)
+                    )
+                    .background(
+                        TealLight.copy(alpha = 0.60f)
+                    )
                     .padding(10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 icon()
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(
+                modifier = Modifier.width(14.dp)
+            )
 
             Column(
                 modifier = Modifier.weight(1f)
@@ -672,7 +860,9 @@ private fun ActivityInfoCard(
                     color = TextSecondary
                 )
 
-                Spacer(modifier = Modifier.height(3.dp))
+                Spacer(
+                    modifier = Modifier.height(3.dp)
+                )
 
                 Text(
                     text = value,

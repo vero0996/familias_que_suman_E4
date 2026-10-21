@@ -28,7 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.tec.familias.R
+import mx.tec.familias.data.model.Evento
 import mx.tec.familias.data.model.ParticipanteActividadAdmin
+import mx.tec.familias.data.model.Taller
+import mx.tec.familias.data.remote.ApiClient
 import mx.tec.familias.data.remote.SessionManager
 import mx.tec.familias.ui.components.AdminScreenHeader
 import mx.tec.familias.ui.theme.*
@@ -40,10 +43,13 @@ import mx.tec.familias.viewmodel.MessageViewModelFactory
 fun MensajesAdminScreen(
     onInicioClick: () -> Unit = {},
     onCampaniasClick: () -> Unit = {},
-    onChatClick: (Int, String, Int) -> Unit = { _, _, _ -> },
+    onChatClick: (Int, String, Int, Int?, Int?, Int?) -> Unit = { _, _, _, _, _, _ -> },
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     participantes: List<ParticipanteActividadAdmin> = emptyList(),
+    activityId: Int? = null,
+    eventIdInicial: Int? = null,
+    workshopIdInicial: Int? = null
 ) {
     var mostrarFormulario by remember { mutableStateOf(false) }
     var asuntoMensaje by remember { mutableStateOf("") }
@@ -52,34 +58,78 @@ fun MensajesAdminScreen(
     var mensajeEnviado by remember { mutableStateOf(false) }
     var mostrarParticipantes by remember { mutableStateOf(false) }
 
+    var contextoSeleccionado by remember {
+        mutableStateOf(
+            when {
+                activityId != null -> "Actividad"
+                eventIdInicial != null -> "Evento"
+                workshopIdInicial != null -> "Taller"
+                else -> "General"
+            }
+        )
+    }
+
+    var eventos by remember { mutableStateOf<List<Evento>>(emptyList()) }
+    var talleres by remember { mutableStateOf<List<Taller>>(emptyList()) }
+
+    var eventIdSeleccionado by remember { mutableStateOf(eventIdInicial) }
+    var workshopIdSeleccionado by remember { mutableStateOf(workshopIdInicial) }
+
     val context = LocalContext.current
     val factory = remember { MessageViewModelFactory(SessionManager(context)) }
     val messageViewModel: MessageViewModel = viewModel(factory = factory)
 
     LaunchedEffect(Unit) {
         messageViewModel.cargarUsuarios()
+
+        try {
+            val response = ApiClient.apiService.getEventos()
+            if (response.isSuccessful) eventos = response.body().orEmpty()
+        } catch (_: Exception) {
+        }
+
+        try {
+            val response = ApiClient.apiService.getTalleres()
+            if (response.isSuccessful) talleres = response.body().orEmpty()
+        } catch (_: Exception) {
+        }
     }
 
     Scaffold(
         containerColor = TealLight.copy(alpha = 0.12f),
+
         topBar = {
             AdminScreenHeader(
                 title = "Mensajes",
+
                 navigationIcon = {
                     Image(
                         painter = painterResource(id = R.drawable.fotoperfil),
                         contentDescription = "Perfil",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.padding(start = 16.dp).size(36.dp).clip(CircleShape).clickable { onPerfilClick() }
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable { onPerfilClick() }
                     )
                 },
+
                 actions = {
-                    IconButton(onClick = { }, modifier = Modifier.padding(end = 8.dp)) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones", tint = TealPrimary)
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Notifications,
+                            contentDescription = "Notificaciones",
+                            tint = TealPrimary
+                        )
                     }
                 }
             )
         },
+
         bottomBar = {
             NavigationBar(containerColor = Surface) {
                 NavigationBarItem(
@@ -88,19 +138,25 @@ fun MensajesAdminScreen(
                     selected = false,
                     onClick = onInicioClick
                 )
+
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Event, contentDescription = "Campañas") },
                     label = { Text("Campañas") },
                     selected = false,
                     onClick = onCampaniasClick
                 )
+
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Mensajes") },
                     label = { Text("Mensajes") },
                     selected = true,
                     onClick = {},
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = TealPrimary, indicatorColor = TealLight)
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = TealPrimary,
+                        indicatorColor = TealLight
+                    )
                 )
+
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Configuración") },
                     label = { Text("Configuración") },
@@ -110,26 +166,190 @@ fun MensajesAdminScreen(
             }
         }
     ) { paddingValues ->
+
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 20.dp),
-            contentPadding = PaddingValues(top = 50.dp, bottom = 32.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp),
+            contentPadding = PaddingValues(top = 30.dp, bottom = 32.dp)
         ) {
+
             item {
+                Text(
+                    text = "Tipo de conversación",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = contextoSeleccionado == "General",
+                        onClick = {
+                            contextoSeleccionado = "General"
+                            eventIdSeleccionado = null
+                            workshopIdSeleccionado = null
+                        },
+                        label = { Text("General") }
+                    )
+
+                    FilterChip(
+                        selected = contextoSeleccionado == "Evento",
+                        onClick = {
+                            contextoSeleccionado = "Evento"
+                            workshopIdSeleccionado = null
+
+                            if (eventIdSeleccionado == null) {
+                                eventIdSeleccionado = eventos.firstOrNull()?.id
+                            }
+                        },
+                        label = { Text("Eventos") }
+                    )
+
+                    FilterChip(
+                        selected = contextoSeleccionado == "Taller",
+                        onClick = {
+                            contextoSeleccionado = "Taller"
+                            eventIdSeleccionado = null
+
+                            if (workshopIdSeleccionado == null) {
+                                workshopIdSeleccionado = talleres.firstOrNull()?.id
+                            }
+                        },
+                        label = { Text("Talleres") }
+                    )
+                }
+
+                if (activityId != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    FilterChip(
+                        selected = contextoSeleccionado == "Actividad",
+                        onClick = {
+                            contextoSeleccionado = "Actividad"
+                            eventIdSeleccionado = null
+                            workshopIdSeleccionado = null
+                        },
+                        label = { Text("Actividad") }
+                    )
+                }
+
+                if (contextoSeleccionado == "Evento") {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (eventos.isEmpty()) {
+                        Text(
+                            text = "No hay eventos disponibles.",
+                            color = TextSecondary,
+                            fontSize = 13.sp
+                        )
+                    } else {
+                        Text(
+                            text = "Selecciona un evento",
+                            color = TextSecondary,
+                            fontSize = 13.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        eventos.forEach { evento ->
+                            OutlinedButton(
+                                onClick = { eventIdSeleccionado = evento.id },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (eventIdSeleccionado == evento.id) {
+                                        TealLight
+                                    } else {
+                                        Color.Transparent
+                                    }
+                                )
+                            ) {
+                                Text(
+                                    text = evento.title,
+                                    color = TealPrimary,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (contextoSeleccionado == "Taller") {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (talleres.isEmpty()) {
+                        Text(
+                            text = "No hay talleres disponibles.",
+                            color = TextSecondary,
+                            fontSize = 13.sp
+                        )
+                    } else {
+                        Text(
+                            text = "Selecciona un taller",
+                            color = TextSecondary,
+                            fontSize = 13.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        talleres.forEach { taller ->
+                            OutlinedButton(
+                                onClick = { workshopIdSeleccionado = taller.id },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (workshopIdSeleccionado == taller.id) {
+                                        TealLight
+                                    } else {
+                                        Color.Transparent
+                                    }
+                                )
+                            ) {
+                                Text(
+                                    text = taller.title,
+                                    color = TealPrimary,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
                 Button(
                     onClick = {
                         mostrarFormulario = true
                         mensajeEnviado = false
                     },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary)
                 ) {
-                    Icon(imageVector = Icons.Default.Group, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.Default.Group,
+                        contentDescription = null
+                    )
+
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Enviar mensaje a todos", fontWeight = FontWeight.Bold)
+
+                    Text(
+                        text = "Enviar mensaje a todos",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
 
-                OutlinedButton(onClick = { mostrarParticipantes = true }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { mostrarParticipantes = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text("Contactar individualmente")
                 }
 
@@ -138,7 +358,12 @@ fun MensajesAdminScreen(
 
             if (messageViewModel.cargando) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
                     }
                 }
@@ -154,16 +379,42 @@ fun MensajesAdminScreen(
                     items = messageViewModel.usuarios,
                     key = { it.id }
                 ) { usuario ->
+
                     MensajeCard(
                         titulo = usuario.full_name,
-                        remitente = "Familia",
+                        remitente = when (contextoSeleccionado) {
+                            "Actividad" -> "Chat de actividad"
+                            "Evento" -> "Chat de evento"
+                            "Taller" -> "Chat de taller"
+                            else -> "Familia"
+                        },
                         mensaje = "Abrir conversación",
                         hora = "",
                         noLeidos = 0,
                         esAnuncio = false,
                         imagenId = R.drawable.icon,
-                        onClick = { onChatClick(usuario.id, usuario.full_name, R.drawable.icon) }
+
+                        onClick = {
+                            val activityIdEnviar =
+                                if (contextoSeleccionado == "Actividad") activityId else null
+
+                            val eventIdEnviar =
+                                if (contextoSeleccionado == "Evento") eventIdSeleccionado else null
+
+                            val workshopIdEnviar =
+                                if (contextoSeleccionado == "Taller") workshopIdSeleccionado else null
+
+                            onChatClick(
+                                usuario.id,
+                                usuario.full_name,
+                                R.drawable.icon,
+                                activityIdEnviar,
+                                eventIdEnviar,
+                                workshopIdEnviar
+                            )
+                        }
                     )
+
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -173,9 +424,15 @@ fun MensajesAdminScreen(
     if (mostrarFormulario) {
         AlertDialog(
             onDismissRequest = { mostrarFormulario = false },
+
             title = {
-                Text(text = "Mensaje para todos", color = TealPrimary, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Mensaje para todos",
+                    color = TealPrimary,
+                    fontWeight = FontWeight.Bold
+                )
             },
+
             text = {
                 Column {
                     Text(
@@ -205,6 +462,7 @@ fun MensajesAdminScreen(
                     )
                 }
             },
+
             confirmButton = {
                 Button(
                     onClick = {
@@ -217,11 +475,16 @@ fun MensajesAdminScreen(
                     Text("Revisar envío")
                 }
             },
+
             dismissButton = {
                 TextButton(onClick = { mostrarFormulario = false }) {
-                    Text("Cancelar", color = TextSecondary)
+                    Text(
+                        "Cancelar",
+                        color = TextSecondary
+                    )
                 }
             },
+
             containerColor = Surface
         )
     }
@@ -229,13 +492,19 @@ fun MensajesAdminScreen(
     if (mostrarConfirmacion) {
         AlertDialog(
             onDismissRequest = { mostrarConfirmacion = false },
+
             title = {
                 Text(
-                    text = if (mensajeEnviado) "¡Envío simulado!" else "Confirmar mensaje grupal",
+                    text = if (mensajeEnviado) {
+                        "¡Envío simulado!"
+                    } else {
+                        "Confirmar mensaje grupal"
+                    },
                     color = TealPrimary,
                     fontWeight = FontWeight.Bold
                 )
             },
+
             text = {
                 Column {
                     Text(
@@ -249,13 +518,21 @@ fun MensajesAdminScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(text = asuntoMensaje, color = TealPrimary, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = asuntoMensaje,
+                        color = TealPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Text(text = contenidoMensaje, color = TextPrimary)
+                    Text(
+                        text = contenidoMensaje,
+                        color = TextPrimary
+                    )
                 }
             },
+
             confirmButton = {
                 Button(
                     onClick = {
@@ -270,9 +547,16 @@ fun MensajesAdminScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = BrownPrimary)
                 ) {
-                    Text(if (mensajeEnviado) "Aceptar" else "Confirmar envío")
+                    Text(
+                        if (mensajeEnviado) {
+                            "Aceptar"
+                        } else {
+                            "Confirmar envío"
+                        }
+                    )
                 }
             },
+
             dismissButton = {
                 if (!mensajeEnviado) {
                     TextButton(
@@ -281,10 +565,14 @@ fun MensajesAdminScreen(
                             mostrarFormulario = true
                         }
                     ) {
-                        Text("Volver a editar", color = TealPrimary)
+                        Text(
+                            "Volver a editar",
+                            color = TealPrimary
+                        )
                     }
                 }
             },
+
             containerColor = Surface
         )
     }
@@ -292,16 +580,39 @@ fun MensajesAdminScreen(
     if (mostrarParticipantes) {
         AlertDialog(
             onDismissRequest = { mostrarParticipantes = false },
-            title = { Text("Contactar participante") },
+
+            title = {
+                Text("Contactar participante")
+            },
+
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text("Selecciona a quién deseas escribirle:")
 
                     messageViewModel.usuarios.forEach { usuario ->
                         OutlinedButton(
                             onClick = {
                                 mostrarParticipantes = false
-                                onChatClick(usuario.id, usuario.full_name, R.drawable.icon)
+
+                                val activityIdEnviar =
+                                    if (contextoSeleccionado == "Actividad") activityId else null
+
+                                val eventIdEnviar =
+                                    if (contextoSeleccionado == "Evento") eventIdSeleccionado else null
+
+                                val workshopIdEnviar =
+                                    if (contextoSeleccionado == "Taller") workshopIdSeleccionado else null
+
+                                onChatClick(
+                                    usuario.id,
+                                    usuario.full_name,
+                                    R.drawable.icon,
+                                    activityIdEnviar,
+                                    eventIdEnviar,
+                                    workshopIdEnviar
+                                )
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -310,8 +621,11 @@ fun MensajesAdminScreen(
                     }
                 }
             },
+
             confirmButton = {
-                TextButton(onClick = { mostrarParticipantes = false }) {
+                TextButton(
+                    onClick = { mostrarParticipantes = false }
+                ) {
                     Text("Cerrar")
                 }
             }
@@ -335,22 +649,31 @@ fun MensajeCard(
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(1.dp, Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.padding(18.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(18.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(id = imagenId),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.size(56.dp).clip(RoundedCornerShape(18.dp)).background(TealLight)
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(TealLight)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -363,7 +686,9 @@ fun MensajeCard(
                         fontSize = 16.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
                     )
 
                     Text(
@@ -391,7 +716,10 @@ fun MensajeCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         if (esAnuncio) {
                             Icon(
                                 Icons.Default.Campaign,
@@ -399,6 +727,7 @@ fun MensajeCard(
                                 tint = BrownPrimary,
                                 modifier = Modifier.size(16.dp)
                             )
+
                             Spacer(modifier = Modifier.width(4.dp))
                         }
 
@@ -417,7 +746,10 @@ fun MensajeCard(
 
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(20.dp).clip(CircleShape).background(BrownPrimary)
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(BrownPrimary)
                         ) {
                             Text(
                                 text = noLeidos.toString(),
@@ -433,11 +765,24 @@ fun MensajeCard(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 800
+)
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 800,
+    fontScale = 1.3f
+)
 @Composable
 private fun MensajesAdminScreenPreview() {
-    FamiliasQueSumanTheme(darkTheme = false) {
-        MensajesAdminScreen(participantes = emptyList())
+    FamiliasQueSumanTheme(
+        darkTheme = false
+    ) {
+        MensajesAdminScreen(
+            participantes = emptyList()
+        )
     }
 }

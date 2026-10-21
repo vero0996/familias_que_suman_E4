@@ -2,19 +2,7 @@ package mx.tec.familias.ui.screens.mensajes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,20 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +31,6 @@ import mx.tec.familias.ui.theme.TextSecondary
 import mx.tec.familias.viewmodel.MessageViewModel
 import mx.tec.familias.viewmodel.MessageViewModelFactory
 
-
 @Composable
 fun ChatScreen(
     conversacion: Conversacion = Conversacion(
@@ -64,43 +39,68 @@ fun ChatScreen(
         ultimoMensaje = "",
         hora = ""
     ),
+    activityId: Int? = null,
+    eventId: Int? = null,
+    workshopId: Int? = null,
     onBackClick: () -> Unit = {}
 ) {
     ChatMessages(
         conversacion = conversacion,
+        activityId = activityId,
+        eventId = eventId,
+        workshopId = workshopId,
         onBackClick = onBackClick
     )
 }
 
-
 @Composable
 fun ChatMessages(
     conversacion: Conversacion,
+    activityId: Int? = null,
+    eventId: Int? = null,
+    workshopId: Int? = null,
     onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
     val factory = remember {
-        MessageViewModelFactory(
-            SessionManager(context)
-        )
+        MessageViewModelFactory(SessionManager(context))
     }
 
-    val messageViewModel: MessageViewModel = viewModel(
-        factory = factory
-    )
-
+    val messageViewModel: MessageViewModel = viewModel(factory = factory)
     val mensajes = messageViewModel.mensajes
     val usuarioActualId = messageViewModel.usuarioActualId
+    var mensaje by remember { mutableStateOf("") }
 
-    var mensaje by remember {
-        mutableStateOf("")
-    }
+    LaunchedEffect(conversacion.id, activityId, eventId, workshopId) {
+        when {
+            eventId != null -> {
+                messageViewModel.cargarMensajesEvento(
+                    eventId = eventId,
+                    userId = conversacion.id
+                )
+            }
 
-    LaunchedEffect(conversacion.id) {
-        messageViewModel.cargarMensajes(
-            conversacion.id
-        )
+            workshopId != null -> {
+                messageViewModel.cargarMensajesTaller(
+                    workshopId = workshopId,
+                    userId = conversacion.id
+                )
+            }
+
+            activityId != null -> {
+                messageViewModel.cargarMensajesActividad(
+                    activityId = activityId,
+                    userId = conversacion.id
+                )
+            }
+
+            else -> {
+                messageViewModel.cargarMensajes(
+                    userId = conversacion.id
+                )
+            }
+        }
     }
 
     Column(
@@ -109,53 +109,29 @@ fun ChatMessages(
             .background(TealLight.copy(alpha = 0.12f))
             .statusBarsPadding()
     ) {
-
-        // Header
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 16.dp
-                ),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
             shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Surface
-            ),
-            border = BorderStroke(
-                1.dp,
-                Color.White.copy(alpha = 0.90f)
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 3.dp
-            )
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = 8.dp,
-                        vertical = 8.dp
-                    ),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                IconButton(
-                    onClick = onBackClick
-                ) {
-
+                IconButton(onClick = onBackClick) {
                     Box(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(
-                                TealLight.copy(alpha = 0.55f)
-                            ),
+                            .background(TealLight.copy(alpha = 0.55f)),
                         contentAlignment = Alignment.Center
                     ) {
-
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Regresar",
@@ -164,26 +140,16 @@ fun ChatMessages(
                     }
                 }
 
-                Spacer(
-                    modifier = Modifier.width(4.dp)
-                )
+                Spacer(Modifier.width(4.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(42.dp)
-                            .clip(
-                                RoundedCornerShape(15.dp)
-                            )
-                            .background(
-                                TealLight.copy(alpha = 0.65f)
-                            ),
+                            .clip(RoundedCornerShape(15.dp))
+                            .background(TealLight.copy(alpha = 0.65f)),
                         contentAlignment = Alignment.Center
                     ) {
-
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
@@ -191,12 +157,9 @@ fun ChatMessages(
                         )
                     }
 
-                    Spacer(
-                        modifier = Modifier.width(12.dp)
-                    )
+                    Spacer(Modifier.width(12.dp))
 
                     Column {
-
                         Text(
                             text = conversacion.nombre,
                             fontSize = 18.sp,
@@ -205,7 +168,12 @@ fun ChatMessages(
                         )
 
                         Text(
-                            text = "En línea",
+                            text = when {
+                                eventId != null -> "Chat de evento"
+                                workshopId != null -> "Chat de taller"
+                                activityId != null -> "Chat de actividad"
+                                else -> "En línea"
+                            },
                             fontSize = 12.sp,
                             color = TealPrimary
                         )
@@ -214,22 +182,16 @@ fun ChatMessages(
             }
         }
 
-
-        // Mensajes
         if (messageViewModel.cargando) {
-
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-
                 CircularProgressIndicator()
             }
-
         } else {
-
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -238,19 +200,14 @@ fun ChatMessages(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 reverseLayout = false
             ) {
-
                 item {
-
-                    Spacer(
-                        modifier = Modifier.height(14.dp)
-                    )
+                    Spacer(Modifier.height(14.dp))
                 }
 
                 items(
                     items = mensajes,
                     key = { it.id }
                 ) { mensajeActual ->
-
                     MessageBubble(
                         mensaje = mensajeActual,
                         usuarioActualId = usuarioActualId
@@ -258,65 +215,40 @@ fun ChatMessages(
                 }
 
                 item {
-
-                    Spacer(
-                        modifier = Modifier.height(10.dp)
-                    )
+                    Spacer(Modifier.height(10.dp))
                 }
             }
         }
 
-
-        // Error
         if (messageViewModel.error != null) {
-
             Text(
                 text = messageViewModel.error!!,
                 color = Color.Red,
-                modifier = Modifier.padding(
-                    horizontal = 20.dp
-                )
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
         }
 
-
-        // Campo para escribir
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(
-                    horizontal = 12.dp,
-                    vertical = 10.dp
-                ),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Surface
-            ),
-            border = BorderStroke(
-                1.dp,
-                Color.White.copy(alpha = 0.95f)
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
+            colors = CardDefaults.cardColors(containerColor = Surface),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.95f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 TextField(
                     value = mensaje,
-                    onValueChange = {
-                        mensaje = it
-                    },
+                    onValueChange = { mensaje = it },
                     modifier = Modifier.weight(1f),
                     placeholder = {
-
                         Text(
                             text = "Escribe un mensaje...",
                             color = TextSecondary
@@ -325,29 +257,24 @@ fun ChatMessages(
                     shape = RoundedCornerShape(24.dp),
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = TealLight.copy(
-                            alpha = 0.20f
-                        ),
-                        unfocusedContainerColor = TealLight.copy(
-                            alpha = 0.20f
-                        ),
+                        focusedContainerColor = TealLight.copy(alpha = 0.20f),
+                        unfocusedContainerColor = TealLight.copy(alpha = 0.20f),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
 
-                Spacer(
-                    modifier = Modifier.width(8.dp)
-                )
+                Spacer(Modifier.width(8.dp))
 
                 IconButton(
                     onClick = {
-
                         if (mensaje.isNotBlank()) {
-
                             messageViewModel.enviarMensaje(
                                 userId = conversacion.id,
-                                texto = mensaje
+                                texto = mensaje,
+                                activityId = activityId,
+                                eventId = eventId,
+                                workshopId = workshopId
                             )
 
                             mensaje = ""
@@ -355,7 +282,6 @@ fun ChatMessages(
                     },
                     enabled = mensaje.isNotBlank()
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(42.dp)
@@ -364,14 +290,11 @@ fun ChatMessages(
                                 if (mensaje.isNotBlank()) {
                                     TealPrimary
                                 } else {
-                                    TealLight.copy(
-                                        alpha = 0.55f
-                                    )
+                                    TealLight.copy(alpha = 0.55f)
                                 }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-
                         Icon(
                             imageVector = Icons.Default.Send,
                             contentDescription = "Enviar mensaje",
@@ -388,14 +311,12 @@ fun ChatMessages(
     }
 }
 
-
 @Composable
 private fun MessageBubble(
     mensaje: MessageResponse,
     usuarioActualId: Int?
 ) {
-    val enviadoPorUsuario =
-        mensaje.sender_user_id == usuarioActualId
+    val enviadoPorUsuario = mensaje.sender_user_id == usuarioActualId
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -405,22 +326,13 @@ private fun MessageBubble(
             Arrangement.Start
         }
     ) {
-
         Card(
             modifier = Modifier.width(280.dp),
             shape = RoundedCornerShape(
                 topStart = 22.dp,
                 topEnd = 22.dp,
-                bottomStart = if (enviadoPorUsuario) {
-                    22.dp
-                } else {
-                    6.dp
-                },
-                bottomEnd = if (enviadoPorUsuario) {
-                    6.dp
-                } else {
-                    22.dp
-                }
+                bottomStart = if (enviadoPorUsuario) 22.dp else 6.dp,
+                bottomEnd = if (enviadoPorUsuario) 6.dp else 22.dp
             ),
             colors = CardDefaults.cardColors(
                 containerColor = if (enviadoPorUsuario) {
@@ -432,23 +344,16 @@ private fun MessageBubble(
             border = if (enviadoPorUsuario) {
                 null
             } else {
-                BorderStroke(
-                    1.dp,
-                    Color.White.copy(alpha = 0.95f)
-                )
+                BorderStroke(1.dp, Color.White.copy(alpha = 0.95f))
             },
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 2.dp
-            )
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-
             Column(
                 modifier = Modifier.padding(
                     horizontal = 14.dp,
                     vertical = 10.dp
                 )
             ) {
-
                 Text(
                     text = mensaje.text,
                     fontSize = 14.sp,
@@ -460,9 +365,7 @@ private fun MessageBubble(
                     }
                 )
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
+                Spacer(Modifier.height(4.dp))
 
                 Text(
                     text = mensaje.created_at

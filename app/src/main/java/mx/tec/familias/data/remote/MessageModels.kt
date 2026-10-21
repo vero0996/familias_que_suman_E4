@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MessageCreateRequest(
     val receiver_user_id: Int,
+    val activity_id: Int? = null,
+    val event_id: Int? = null,
+    val workshop_id: Int? = null,
     val text: String
 )
 
@@ -15,6 +18,9 @@ data class MessageResponse(
     val id: Int,
     val sender_user_id: Int,
     val receiver_user_id: Int,
+    val activity_id: Int? = null,
+    val event_id: Int? = null,
+    val workshop_id: Int? = null,
     val text: String,
     val created_at: String
 )

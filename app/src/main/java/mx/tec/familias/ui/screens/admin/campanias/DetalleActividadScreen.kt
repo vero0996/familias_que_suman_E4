@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
@@ -19,9 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +43,7 @@ fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
     onEditarClick: () -> Unit = {},
     onParticipantesClick: () -> Unit = {},
+    onMensajesActividadClick: () -> Unit = {},
     onCompartirClick: () -> Unit = {},
     onEliminarClick: () -> Unit = {}
 ) {
@@ -307,6 +309,32 @@ fun DetalleActividadScreen(
 
                 Text(
                     text = "Gestionar participantes",
+                    color = TealPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedButton(
+                onClick = onMensajesActividadClick,
+                modifier = Modifier.fillMaxWidth(),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    TealPrimary
+                ),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Message,
+                    contentDescription = null,
+                    tint = TealPrimary
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Mensajes de la actividad",
                     color = TealPrimary
                 )
             }

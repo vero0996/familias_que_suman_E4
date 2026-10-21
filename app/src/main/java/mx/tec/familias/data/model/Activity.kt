@@ -2,6 +2,7 @@ package mx.tec.familias.data.model
 
 data class Activity(
     val id: String,
+    val campaignId: Int? = null,
     val nombre: String,
     val organizacion: String,
     val descripcion: String,
@@ -17,7 +18,6 @@ data class Activity(
     val requisitos: String = "",
     val contacto: String = "",
     val endsAtEpochMillis: Long? = null
-
 )
 
 enum class EstadoInscripcion {
@@ -45,6 +45,7 @@ data class EstadoActividades(
     fun evento(id: String): Activity =
         eventoOrNull(id) ?: eventos.firstOrNull() ?: Activity(
             id = id,
+            campaignId = null,
             nombre = "Actividad",
             organizacion = "Organización",
             descripcion = "",
@@ -62,7 +63,6 @@ data class EstadoActividades(
         )
 
     /** Total de personas ocupando lugares, incluida la ocupación publicada. */
-
     fun ocupados(id: String): Int {
         val ev = eventoOrNull(id) ?: return 0
         return ev.ocupacionInicial

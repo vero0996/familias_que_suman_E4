@@ -26,15 +26,57 @@ class MessageRepository {
         )
     }
 
+    suspend fun getActivityMessages(
+        token: String,
+        activityId: Int,
+        userId: Int
+    ): List<MessageResponse> {
+        return ApiClient.apiService.getActivityMessages(
+            authorization = "Bearer $token",
+            activityId = activityId,
+            userId = userId
+        )
+    }
+
+    suspend fun getEventMessages(
+        token: String,
+        eventId: Int,
+        userId: Int
+    ): List<MessageResponse> {
+        return ApiClient.apiService.getEventMessages(
+            authorization = "Bearer $token",
+            eventId = eventId,
+            userId = userId
+        )
+    }
+
+    suspend fun getWorkshopMessages(
+        token: String,
+        workshopId: Int,
+        userId: Int
+    ): List<MessageResponse> {
+        return ApiClient.apiService.getWorkshopMessages(
+            authorization = "Bearer $token",
+            workshopId = workshopId,
+            userId = userId
+        )
+    }
+
     suspend fun sendMessage(
         token: String,
         receiverUserId: Int,
-        text: String
+        text: String,
+        activityId: Int? = null,
+        eventId: Int? = null,
+        workshopId: Int? = null
     ): MessageResponse {
         return ApiClient.apiService.sendMessage(
             authorization = "Bearer $token",
             request = MessageCreateRequest(
                 receiver_user_id = receiverUserId,
+                activity_id = activityId,
+                event_id = eventId,
+                workshop_id = workshopId,
                 text = text
             )
         )

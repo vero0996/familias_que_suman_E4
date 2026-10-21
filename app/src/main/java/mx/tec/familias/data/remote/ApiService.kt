@@ -122,12 +122,32 @@ interface ApiService {
         @Path("user_id") userId: Int
     ): List<MessageResponse>
 
+    @GET("api/mensajes/actividad/{activity_id}/{user_id}")
+    suspend fun getActivityMessages(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Path("user_id") userId: Int
+    ): List<MessageResponse>
+
+    @GET("api/mensajes/evento/{event_id}/{user_id}")
+    suspend fun getEventMessages(
+        @Header("Authorization") authorization: String,
+        @Path("event_id") eventId: Int,
+        @Path("user_id") userId: Int
+    ): List<MessageResponse>
+
+    @GET("api/mensajes/taller/{workshop_id}/{user_id}")
+    suspend fun getWorkshopMessages(
+        @Header("Authorization") authorization: String,
+        @Path("workshop_id") workshopId: Int,
+        @Path("user_id") userId: Int
+    ): List<MessageResponse>
+
     @POST("api/mensajes/")
     suspend fun sendMessage(
         @Header("Authorization") authorization: String,
         @Body request: MessageCreateRequest
     ): MessageResponse
-
 
     @GET("api/notificaciones")
     suspend fun getNotifications(
@@ -140,10 +160,8 @@ interface ApiService {
         @Path("notification_id") notificationId: Int
     ): NotificationResponse
 
-
     @POST("auth/forgot-password")
     suspend fun forgotPassword(
         @Body request: ForgotPasswordRequest
     ): RecoveryResponse
 }
-

@@ -1,13 +1,11 @@
 package mx.tec.familias.viewmodel
 
 import androidx.compose.runtime.getValue
-import kotlinx.coroutines.flow.first
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mx.tec.familias.data.remote.MessageResponse
 import mx.tec.familias.data.remote.MessageUserResponse
@@ -45,7 +43,8 @@ class MessageViewModel(
             error = null
 
             try {
-                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()
+                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -70,7 +69,8 @@ class MessageViewModel(
             error = null
 
             try {
-                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()
+                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -94,9 +94,117 @@ class MessageViewModel(
     }
 
 
+    fun cargarMensajesActividad(
+        activityId: Int,
+        userId: Int
+    ) {
+        viewModelScope.launch {
+            cargando = true
+            error = null
+
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException(
+                        "Tu sesión expiró. Inicia sesión nuevamente."
+                    )
+
+                val usuario = authRepository.getCurrentUser(token)
+
+                usuarioActualId = usuario.id
+
+                mensajes = repository.getActivityMessages(
+                    token = token,
+                    activityId = activityId,
+                    userId = userId
+                )
+
+            } catch (e: Exception) {
+                error = e.message
+                    ?: "No se pudieron cargar los mensajes."
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
+
+    fun cargarMensajesEvento(
+        eventId: Int,
+        userId: Int
+    ) {
+        viewModelScope.launch {
+            cargando = true
+            error = null
+
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException(
+                        "Tu sesión expiró. Inicia sesión nuevamente."
+                    )
+
+                val usuario = authRepository.getCurrentUser(token)
+
+                usuarioActualId = usuario.id
+
+                mensajes = repository.getEventMessages(
+                    token = token,
+                    eventId = eventId,
+                    userId = userId
+                )
+
+            } catch (e: Exception) {
+                error = e.message
+                    ?: "No se pudieron cargar los mensajes."
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
+
+    fun cargarMensajesTaller(
+        workshopId: Int,
+        userId: Int
+    ) {
+        viewModelScope.launch {
+            cargando = true
+            error = null
+
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException(
+                        "Tu sesión expiró. Inicia sesión nuevamente."
+                    )
+
+                val usuario = authRepository.getCurrentUser(token)
+
+                usuarioActualId = usuario.id
+
+                mensajes = repository.getWorkshopMessages(
+                    token = token,
+                    workshopId = workshopId,
+                    userId = userId
+                )
+
+            } catch (e: Exception) {
+                error = e.message
+                    ?: "No se pudieron cargar los mensajes."
+            } finally {
+                cargando = false
+            }
+        }
+    }
+
+
     fun enviarMensaje(
         userId: Int,
-        texto: String
+        texto: String,
+        activityId: Int? = null,
+        eventId: Int? = null,
+        workshopId: Int? = null
     ) {
         if (texto.isBlank()) return
 
@@ -104,7 +212,8 @@ class MessageViewModel(
             error = null
 
             try {
-                val token = sessionManager.getToken()                    ?.takeIf { it.isNotBlank() }
+                val token = sessionManager.getToken()
+                    ?.takeIf { it.isNotBlank() }
                     ?: throw IllegalStateException(
                         "Tu sesión expiró. Inicia sesión nuevamente."
                     )
@@ -112,7 +221,10 @@ class MessageViewModel(
                 val nuevoMensaje = repository.sendMessage(
                     token = token,
                     receiverUserId = userId,
-                    text = texto.trim()
+                    text = texto.trim(),
+                    activityId = activityId,
+                    eventId = eventId,
+                    workshopId = workshopId
                 )
 
                 mensajes = mensajes + nuevoMensaje

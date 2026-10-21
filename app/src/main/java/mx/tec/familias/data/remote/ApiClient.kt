@@ -1,7 +1,6 @@
 package mx.tec.familias.data.remote
 
 import kotlinx.serialization.json.Json
-import okhttp3.CertificatePinner
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -14,23 +13,13 @@ object ApiClient {
     // y no debe incluir "/docs" al final, ya que los endpoints están en la raíz.
 
     private const val BASE_URL =
-        "https://chapters-device-presentation-fotos.trycloudflare.com/"
-
+        "https://tucson-owner-gsm-doug.trycloudflare.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true
     }
 
-    // Cambiar el pin cada que cambie el dominio
-    private val certificatePinner = CertificatePinner.Builder()
-        .add(
-            "chapters-device-presentation-fotos.trycloudflare.com",
-            "sha256/uXsPjVwaDxO4vIxFBYMc1wgPXF0VN/KExd/HrvBoDwY="
-        )
-        .build()
-
     private val okHttpClient = OkHttpClient.Builder()
-        .certificatePinner(certificatePinner)
         .build()
 
     val apiService: ApiService by lazy {

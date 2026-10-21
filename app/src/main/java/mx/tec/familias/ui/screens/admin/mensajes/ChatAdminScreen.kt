@@ -36,104 +36,239 @@ fun ChatAdminScreen(
     userId: Int,
     nombreChat: String = "Conversación",
     imagenId: Int = R.drawable.icon,
+    activityId: Int? = null,
+    eventId: Int? = null,
+    workshopId: Int? = null,
     onBackClick: () -> Unit = {}
 ) {
     var textoMensaje by remember { mutableStateOf("") }
     val listaEstado = rememberLazyListState()
     val context = LocalContext.current
-    val factory = remember { MessageViewModelFactory(SessionManager(context)) }
-    val messageViewModel: MessageViewModel = viewModel(factory = factory)
+
+    val factory = remember {
+        MessageViewModelFactory(
+            SessionManager(context)
+        )
+    }
+
+    val messageViewModel: MessageViewModel =
+        viewModel(factory = factory)
+
     val mensajes = messageViewModel.mensajes
 
-    LaunchedEffect(userId) {
+    LaunchedEffect(
+        userId,
+        activityId,
+        eventId,
+        workshopId
+    ) {
         if (userId != 0) {
-            messageViewModel.cargarMensajes(userId)
+            when {
+                eventId != null -> {
+                    messageViewModel.cargarMensajesEvento(
+                        eventId = eventId,
+                        userId = userId
+                    )
+                }
+
+                workshopId != null -> {
+                    messageViewModel.cargarMensajesTaller(
+                        workshopId = workshopId,
+                        userId = userId
+                    )
+                }
+
+                activityId != null -> {
+                    messageViewModel.cargarMensajesActividad(
+                        activityId = activityId,
+                        userId = userId
+                    )
+                }
+
+                else -> {
+                    messageViewModel.cargarMensajes(
+                        userId
+                    )
+                }
+            }
         }
     }
 
     LaunchedEffect(mensajes.size) {
         if (mensajes.isNotEmpty()) {
-            listaEstado.animateScrollToItem(mensajes.lastIndex)
+            listaEstado.animateScrollToItem(
+                mensajes.lastIndex
+            )
         }
     }
 
     Scaffold(
         containerColor = Background,
+
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment =
+                            Alignment.CenterVertically
+                    ) {
                         Box(
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(TealLight),
-                            contentAlignment = Alignment.Center
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(TealLight),
+                            contentAlignment =
+                                Alignment.Center
                         ) {
                             Image(
-                                painter = painterResource(id = imagenId),
+                                painter =
+                                    painterResource(
+                                        id = imagenId
+                                    ),
                                 contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(36.dp).clip(CircleShape)
+                                contentScale =
+                                    ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(
+                            modifier =
+                                Modifier.width(12.dp)
+                        )
 
                         Column {
-                            Text(text = nombreChat, color = TealPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text(text = "Activo recientemente", color = TextSecondary, fontSize = 11.sp)
+                            Text(
+                                text = nombreChat,
+                                color = TealPrimary,
+                                fontWeight =
+                                    FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+
+                            Text(
+                                text = when {
+                                    eventId != null ->
+                                        "Chat de evento"
+
+                                    workshopId != null ->
+                                        "Chat de taller"
+
+                                    activityId != null ->
+                                        "Chat de actividad"
+
+                                    else ->
+                                        "Activo recientemente"
+                                },
+                                color = TextSecondary,
+                                fontSize = 11.sp
+                            )
                         }
                     }
                 },
+
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(
+                        onClick = onBackClick
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            imageVector =
+                                Icons.AutoMirrored
+                                    .Filled
+                                    .ArrowBack,
+                            contentDescription =
+                                "Regresar",
                             tint = TealPrimary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface)
+
+                colors =
+                    TopAppBarDefaults
+                        .topAppBarColors(
+                            containerColor =
+                                Surface
+                        )
             )
         },
+
         bottomBar = {
             Surface(
                 color = Surface,
                 shadowElevation = 8.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier =
+                    Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .imePadding()
+                        .padding(12.dp),
+                    verticalAlignment =
+                        Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
                         value = textoMensaje,
-                        onValueChange = { textoMensaje = it },
-                        placeholder = { Text("Escribe un mensaje...", fontSize = 14.sp) },
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape = RoundedCornerShape(24.dp),
+                        onValueChange = {
+                            textoMensaje = it
+                        },
+                        placeholder = {
+                            Text(
+                                "Escribe un mensaje...",
+                                fontSize = 14.sp
+                            )
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp),
+                        shape =
+                            RoundedCornerShape(24.dp),
                         singleLine = true
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(
+                        modifier =
+                            Modifier.width(8.dp)
+                    )
 
                     IconButton(
                         onClick = {
-                            if (textoMensaje.isNotBlank() && userId != 0) {
-                                messageViewModel.enviarMensaje(
-                                    userId = userId,
-                                    texto = textoMensaje
-                                )
+                            if (
+                                textoMensaje.isNotBlank() &&
+                                userId != 0
+                            ) {
+                                messageViewModel
+                                    .enviarMensaje(
+                                        userId = userId,
+                                        texto =
+                                            textoMensaje,
+                                        activityId =
+                                            activityId,
+                                        eventId =
+                                            eventId,
+                                        workshopId =
+                                            workshopId
+                                    )
 
                                 textoMensaje = ""
                             }
                         },
-                        modifier = Modifier.size(48.dp).clip(CircleShape).background(TealPrimary)
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(TealPrimary)
                     ) {
                         Icon(
-                            Icons.Default.Send,
-                            contentDescription = "Enviar",
+                            imageVector =
+                                Icons.Default.Send,
+                            contentDescription =
+                                "Enviar",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier =
+                                Modifier.size(20.dp)
                         )
                     }
                 }
@@ -141,56 +276,141 @@ fun ChatAdminScreen(
         }
     ) { paddingValues ->
 
-        if (messageViewModel.cargando && mensajes.isEmpty()) {
+        if (
+            messageViewModel.cargando &&
+            mensajes.isEmpty()
+        ) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment =
+                    Alignment.Center
             ) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(
                 state = listaEstado,
-                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(
+                        horizontal = 16.dp
+                    ),
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp),
+                contentPadding =
+                    PaddingValues(
+                        vertical = 16.dp
+                    )
             ) {
                 items(
                     items = mensajes,
-                    key = { it.id }
+                    key = {
+                        it.id
+                    }
                 ) { mensaje ->
 
-                    val esDelAdmin = mensaje.sender_user_id == messageViewModel.usuarioActualId
+                    val esDelAdmin =
+                        mensaje.sender_user_id ==
+                                messageViewModel
+                                    .usuarioActualId
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = if (esDelAdmin) Arrangement.End else Arrangement.Start
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            if (esDelAdmin) {
+                                Arrangement.End
+                            } else {
+                                Arrangement.Start
+                            }
                     ) {
                         Surface(
-                            shape = RoundedCornerShape(
-                                topStart = 16.dp,
-                                topEnd = 16.dp,
-                                bottomStart = if (esDelAdmin) 16.dp else 0.dp,
-                                bottomEnd = if (esDelAdmin) 0.dp else 16.dp
-                            ),
-                            color = if (esDelAdmin) TealPrimary else Surface,
-                            modifier = Modifier.widthIn(max = 280.dp),
+                            shape =
+                                RoundedCornerShape(
+                                    topStart = 16.dp,
+                                    topEnd = 16.dp,
+                                    bottomStart =
+                                        if (esDelAdmin) {
+                                            16.dp
+                                        } else {
+                                            0.dp
+                                        },
+                                    bottomEnd =
+                                        if (esDelAdmin) {
+                                            0.dp
+                                        } else {
+                                            16.dp
+                                        }
+                                ),
+
+                            color =
+                                if (esDelAdmin) {
+                                    TealPrimary
+                                } else {
+                                    Surface
+                                },
+
+                            modifier =
+                                Modifier.widthIn(
+                                    max = 280.dp
+                                ),
+
                             shadowElevation = 1.dp
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
+                            Column(
+                                modifier =
+                                    Modifier.padding(12.dp)
+                            ) {
                                 Text(
-                                    text = mensaje.text,
-                                    color = if (esDelAdmin) Color.White else TextPrimary,
+                                    text =
+                                        mensaje.text,
+                                    color =
+                                        if (esDelAdmin) {
+                                            Color.White
+                                        } else {
+                                            TextPrimary
+                                        },
                                     fontSize = 14.sp
                                 )
 
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(
+                                    modifier =
+                                        Modifier.height(4.dp)
+                                )
 
                                 Text(
-                                    text = if (mensaje.created_at.length >= 16) mensaje.created_at.substring(11, 16) else "",
-                                    color = if (esDelAdmin) Color.White.copy(alpha = 0.7f) else TextSecondary,
+                                    text =
+                                        if (
+                                            mensaje.created_at
+                                                .length >= 16
+                                        ) {
+                                            mensaje.created_at
+                                                .substring(
+                                                    11,
+                                                    16
+                                                )
+                                        } else {
+                                            ""
+                                        },
+
+                                    color =
+                                        if (esDelAdmin) {
+                                            Color.White.copy(
+                                                alpha = 0.7f
+                                            )
+                                        } else {
+                                            TextSecondary
+                                        },
+
                                     fontSize = 10.sp,
-                                    modifier = Modifier.align(Alignment.End)
+
+                                    modifier =
+                                        Modifier.align(
+                                            Alignment.End
+                                        )
                                 )
                             }
                         }
