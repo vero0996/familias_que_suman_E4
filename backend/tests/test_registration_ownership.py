@@ -1002,3 +1002,49 @@ def test_reactivated_family_returns_to_end_of_waitlist(
         # Debe avanzar quien ya estaba esperando, no quien se reinscribió.
         assert db.get(Registration, foreign_id).status == "confirmada"
         assert db.get(Registration, own_id).status == "lista_espera"
+
+@pytest.mark.parametrize(
+    "capacity, expected_status",
+    [
+        (2, "confirmada"),
+        (1, "lista_espera"),
+    ],
+)
+def test_holder_alone_occupies_one_place(
+    registration_sandbox,
+    capacity,
+    expected_status,
+):
+    client, engine, _, _, activity_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        # Esta actividad ya tiene un titular confirmado.
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = capacity
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == expected_status
+
+    with Session(engine) as db:
+        registration = db.get(Registration, response.json()["id"])
+        assert registration.status == expected_status
+        assert registration.participants == []
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == capacity

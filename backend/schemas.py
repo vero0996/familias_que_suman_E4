@@ -235,7 +235,6 @@ class RegistrationCreate(BaseModel):
     activity_id: int = Field(gt=0)
     participant_ids: list[int] = Field(
         default_factory=list,
-        min_length=1,
         max_length=20,
     )
     notes: str | None = Field(default=None, max_length=2000)

@@ -66,13 +66,16 @@ fun InscripcionScreen(
     error: String? = null,
     onConfirmarClick: (List<String>, String) -> Unit = { _, _ -> }
 ) {
-    var usuarioSeleccionado by remember { mutableStateOf(true) }
     val seleccionados = remember { mutableStateListOf<String>() }
     var observaciones by remember { mutableStateOf("") }
     var mostrarDialogoConfirmacion by remember {
         mutableStateOf(false)
     }
-    val totalSeleccionados = seleccionados.size + (if (usuarioSeleccionado) 1 else 0)
+    val acompanantes = viewModel.integrantes.filterNot {
+        it.parentesco.trim().equals("responsable", ignoreCase = true)
+    }
+
+    val totalSeleccionados = 1 + seleccionados.size
 
     if (mostrarDialogoConfirmacion) {
         AlertDialog(
@@ -265,11 +268,7 @@ fun InscripcionScreen(
                 viewModel.usuario.value?.let { usuario ->
                     UsuarioSeleccionCard(
                         nombre = usuario.nombre,
-                        correo = usuario.correo,
-                        seleccionado = usuarioSeleccionado,
-                        onSeleccionar = {
-                            usuarioSeleccionado = !usuarioSeleccionado
-                        }
+                        correo = usuario.correo
                     )
                 }
             }
@@ -296,7 +295,7 @@ fun InscripcionScreen(
             }
 
             // LISTA DE ACOMPAÑANTES
-            if (viewModel.integrantes.isEmpty()) {
+            if (acompanantes.isEmpty()) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -314,7 +313,7 @@ fun InscripcionScreen(
                     }
                 }
             } else {
-                items(viewModel.integrantes) { integrante ->
+                items(acompanantes, key = { it.id }) { integrante ->
                     IntegranteSeleccionCard(
                         integrante = integrante,
                         seleccionado = seleccionados.contains(integrante.id),
@@ -469,9 +468,7 @@ private fun ActivityDetailRow(
 @Composable
 private fun UsuarioSeleccionCard(
     nombre: String,
-    correo: String,
-    seleccionado: Boolean,
-    onSeleccionar: () -> Unit
+    correo: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -513,17 +510,16 @@ private fun UsuarioSeleccionCard(
                 Spacer(modifier = Modifier.height(3.dp))
 
                 Text(
-                    text = "Yo · $correo",
+                    text = "Yo · $correo · Incluido",
                     fontSize = 13.sp,
                     color = TextSecondary
                 )
             }
 
-            Checkbox(
-                checked = seleccionado,
-                onCheckedChange = {
-                    onSeleccionar()
-                }
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "Titular incluido en la inscripción",
+                tint = TealPrimary
             )
         }
     }
