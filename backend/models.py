@@ -1,22 +1,18 @@
 from datetime import date, datetime, timezone
-from sqlalchemy import Date
-from datetime import datetime
-from sqlalchemy import String, Text, DateTime, Column, Integer
-from sqlalchemy.orm import Mapped, mapped_column
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Column,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
     String,
+    Table,
     Text,
     UniqueConstraint,
-    Table,
-    Column,
 )
-
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -59,19 +55,21 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     token_version: Mapped[int] = mapped_column(
-    Integer,
-    default=0,
-    server_default="0",
-    nullable=False,
-)
+        Integer,
+        default=0,
+        server_default="0",
+        nullable=False,
+    )
     role: Mapped[str] = mapped_column(String(20), default="familia")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
     family: Mapped["Family | None"] = relationship(
-        back_populates="owner", uselist=False
+        back_populates="owner",
+        uselist=False,
     )
 
 
@@ -85,7 +83,8 @@ class Family(Base):
         unique=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
     owner: Mapped["User"] = relationship(back_populates="family")
@@ -97,20 +96,20 @@ class Family(Base):
 class FamilyMember(Base):
     __tablename__ = "family_members"
     __table_args__ = (
-        CheckConstraint("age IS NULL OR age >= 0", name="ck_member_age"),
+        CheckConstraint(
+            "age IS NULL OR age >= 0",
+            name="ck_member_age",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     family_id: Mapped[int] = mapped_column(
-        ForeignKey("families.id", ondelete="RESTRICT"), index=True
+        ForeignKey("families.id", ondelete="RESTRICT"),
+        index=True,
     )
     full_name: Mapped[str] = mapped_column(String(150))
     age: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
-    date_of_birth: Mapped[date | None] = mapped_column(
-        Date, nullable=True
-    )
-
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     relationship_type: Mapped[str] = mapped_column(String(50))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -126,13 +125,17 @@ class Campaign(Base):
     organization_name: Mapped[str] = mapped_column(String(200))
     status: Mapped[str] = mapped_column(String(20), default="borrador")
     created_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=True
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
     )
 
     activities: Mapped[list["Activity"]] = relationship(
@@ -144,7 +147,8 @@ class Activity(Base):
     __tablename__ = "activities"
     __table_args__ = (
         CheckConstraint(
-            "capacity_families > 0", name="ck_activity_capacity"
+            "capacity_families > 0",
+            name="ck_activity_capacity",
         ),
         CheckConstraint(
             "status IN ('borrador', 'publicada', 'cancelada', 'finalizada')",
@@ -162,24 +166,25 @@ class Activity(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     ends_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True),
+        nullable=True,
     )
     location: Mapped[str] = mapped_column(String(250))
-
     capacity_people: Mapped[int] = mapped_column(
         "capacity_families",
         Integer,
     )
-
     registration_deadline: Mapped[datetime] = mapped_column(
         DateTime(timezone=True)
     )
     status: Mapped[str] = mapped_column(String(20), default="borrador")
     created_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=True
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
     campaign: Mapped["Campaign | None"] = relationship(
@@ -194,7 +199,9 @@ class Registration(Base):
     __tablename__ = "registrations"
     __table_args__ = (
         UniqueConstraint(
-            "activity_id", "family_id", name="uq_registration_activity_family"
+            "activity_id",
+            "family_id",
+            name="uq_registration_activity_family",
         ),
         CheckConstraint(
             "status IN ('confirmada', 'lista_espera', 'cancelada')",
@@ -204,23 +211,31 @@ class Registration(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     activity_id: Mapped[int] = mapped_column(
-        ForeignKey("activities.id", ondelete="RESTRICT"), index=True
+        ForeignKey("activities.id", ondelete="RESTRICT"),
+        index=True,
     )
     family_id: Mapped[int] = mapped_column(
-        ForeignKey("families.id", ondelete="RESTRICT"), index=True
+        ForeignKey("families.id", ondelete="RESTRICT"),
+        index=True,
     )
     status: Mapped[str] = mapped_column(
-        String(20), default="confirmada", index=True
+        String(20),
+        default="confirmada",
+        index=True,
     )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
     )
     canceled_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     activity: Mapped["Activity"] = relationship(
@@ -233,7 +248,8 @@ class Registration(Base):
         back_populates="registration"
     )
     survey: Mapped["Survey | None"] = relationship(
-        back_populates="registration", uselist=False
+        back_populates="registration",
+        uselist=False,
     )
 
 
@@ -242,21 +258,26 @@ class RegistrationEvent(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     registration_id: Mapped[int] = mapped_column(
-        ForeignKey("registrations.id", ondelete="RESTRICT"), index=True
+        ForeignKey("registrations.id", ondelete="RESTRICT"),
+        index=True,
     )
     event_type: Mapped[str] = mapped_column(String(40))
     from_status: Mapped[str | None] = mapped_column(
-        String(20), nullable=True
+        String(20),
+        nullable=True,
     )
     to_status: Mapped[str | None] = mapped_column(
-        String(20), nullable=True
+        String(20),
+        nullable=True,
     )
     actor_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=True
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=True,
     )
     details: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
     registration: Mapped["Registration"] = relationship(
@@ -267,7 +288,10 @@ class RegistrationEvent(Base):
 class Survey(Base):
     __tablename__ = "surveys"
     __table_args__ = (
-        UniqueConstraint("registration_id", name="uq_survey_registration"),
+        UniqueConstraint(
+            "registration_id",
+            name="uq_survey_registration",
+        ),
         CheckConstraint(
             "campaign_rating BETWEEN 1 AND 5",
             name="ck_survey_campaign_rating",
@@ -295,10 +319,14 @@ class Survey(Base):
     communication_rating: Mapped[int] = mapped_column(Integer)
     overall_rating: Mapped[int] = mapped_column(Integer)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
-    photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    photo_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
     photo_consent: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
     registration: Mapped["Registration"] = relationship(
@@ -313,7 +341,8 @@ class Project(Base):
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
 
@@ -326,7 +355,8 @@ class Donation(Base):
     goal_amount: Mapped[int] = mapped_column(Integer)
     current_amount: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
 
@@ -334,15 +364,38 @@ class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+
     sender_user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT")
     )
+
     receiver_user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT")
     )
+
+    activity_id: Mapped[int | None] = mapped_column(
+        ForeignKey("activities.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("events.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+
+    workshop_id: Mapped[int | None] = mapped_column(
+        ForeignKey("workshops.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+
     text: Mapped[str] = mapped_column(Text)
+
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
 
@@ -358,7 +411,8 @@ class Notification(Base):
     notification_type: Mapped[str] = mapped_column(String(50))
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
 
@@ -371,7 +425,8 @@ class Event(Base):
     location: Mapped[str] = mapped_column(String(250))
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
 
 
@@ -384,8 +439,10 @@ class Workshop(Base):
     location: Mapped[str] = mapped_column(String(250))
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
+        DateTime(timezone=True),
+        default=utc_now,
     )
+
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"

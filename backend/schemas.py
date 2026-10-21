@@ -1,14 +1,16 @@
 import re
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from datetime import datetime
-from typing import Literal
-from pydantic import AliasChoices
-from pydantic import model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 ActivityStatus = Literal["borrador", "publicada", "cancelada", "finalizada"]
@@ -26,16 +28,20 @@ class RegisterRequest(BaseModel):
     @classmethod
     def clean_names(cls, value: str) -> str:
         value = value.strip()
+
         if len(value) < 2:
             raise ValueError("El nombre debe tener al menos 2 caracteres")
+
         return value
 
     @field_validator("email")
     @classmethod
     def normalize_email(cls, value: str) -> str:
         value = value.strip().lower()
+
         if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value):
             raise ValueError("Correo electrónico no válido")
+
         return value
 
     @field_validator("phone")
@@ -43,6 +49,7 @@ class RegisterRequest(BaseModel):
     def clean_phone(cls, value: str | None) -> str | None:
         if value is None:
             return None
+
         value = value.strip()
         return value or None
 
@@ -55,8 +62,10 @@ class LoginRequest(BaseModel):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         value = value.strip().lower()
+
         if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value):
             raise ValueError("Correo electrónico no válido")
+
         return value
 
 
@@ -94,8 +103,10 @@ class CampaignCreate(BaseModel):
     @classmethod
     def clean_text(cls, value: str) -> str:
         value = value.strip()
+
         if not value:
             raise ValueError("Este campo no puede estar vacío")
+
         return value
 
 
@@ -110,9 +121,12 @@ class CampaignUpdate(BaseModel):
     def clean_optional_text(cls, value: str | None) -> str | None:
         if value is None:
             return None
+
         value = value.strip()
+
         if not value:
             raise ValueError("Este campo no puede estar vacío")
+
         return value
 
 
@@ -136,8 +150,10 @@ class OrganizationPromoteRequest(BaseModel):
     @classmethod
     def normalize_email(cls, value: str) -> str:
         value = value.strip().lower()
+
         if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value):
             raise ValueError("Correo electrónico no válido")
+
         return value
 
 
@@ -154,7 +170,7 @@ class OrganizationAdminResponse(BaseModel):
 
 
 class ActivityCreate(BaseModel):
-    campaign_id: int = Field(gt=0)
+    campaign_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=1, max_length=5000)
     starts_at: datetime
@@ -167,14 +183,18 @@ class ActivityCreate(BaseModel):
     @classmethod
     def clean_activity_text(cls, value: str) -> str:
         value = value.strip()
+
         if not value:
             raise ValueError("Este campo no puede estar vacío")
+
         return value
 
     @model_validator(mode="after")
     def validate_dates(self):
         if self.ends_at <= self.starts_at:
-            raise ValueError("La fecha de finalización debe ser posterior al inicio")
+            raise ValueError(
+                "La fecha de finalización debe ser posterior al inicio"
+            )
 
         if (
             self.registration_deadline is not None
@@ -202,9 +222,12 @@ class ActivityUpdate(BaseModel):
     def clean_optional_activity_text(cls, value: str | None) -> str | None:
         if value is None:
             return None
+
         value = value.strip()
+
         if not value:
             raise ValueError("Este campo no puede estar vacío")
+
         return value
 
 
@@ -219,10 +242,7 @@ class ActivityResponse(BaseModel):
     ends_at: datetime | None
     location: str
     capacity_people: int = Field(
-        validation_alias=AliasChoices(
-            "capacity_people",
-            "capacity_families",
-        )
+        validation_alias=AliasChoices("capacity_people", "capacity_families")
     )
     registration_deadline: datetime | None
     status: str
@@ -302,6 +322,7 @@ class SurveyCreate(BaseModel):
     def clean_comment(cls, value: str | None) -> str | None:
         if value is None:
             return None
+
         value = value.strip()
         return value or None
 
@@ -367,6 +388,9 @@ class DonationResponse(BaseModel):
 
 class MessageCreate(BaseModel):
     receiver_user_id: int = Field(gt=0)
+    activity_id: int | None = Field(default=None, gt=0)
+    event_id: int | None = Field(default=None, gt=0)
+    workshop_id: int | None = Field(default=None, gt=0)
     text: str = Field(min_length=1, max_length=5000)
 
 
@@ -376,6 +400,9 @@ class MessageResponse(BaseModel):
     id: int
     sender_user_id: int
     receiver_user_id: int
+    activity_id: int | None
+    event_id: int | None
+    workshop_id: int | None
     text: str
     created_at: datetime
 
