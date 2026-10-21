@@ -85,7 +85,9 @@ fun MisActividadesScreen(
         actividadesViewModel.cargarMisInscripcionesYEncuestas(familiaId)
     }
 
-    val propias = estado.inscripciones
+    val propias = estado.inscripciones.filter {
+        it.familiaId == familiaId
+    }
 
     val confirmadas = propias.filter {
         it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
