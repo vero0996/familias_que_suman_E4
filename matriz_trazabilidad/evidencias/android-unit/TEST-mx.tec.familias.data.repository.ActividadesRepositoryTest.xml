@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="mx.tec.familias.data.repository.ActividadesRepositoryTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-10-21T21:59:53.208Z" hostname="VEROLAPTOP" time="0.238">
+  <properties/>
+  <testcase name="cancelacionesConcurrentesRespetanCupoYOrden" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.136"/>
+  <testcase name="actividadSobreCapacidadNoMuestraDisponibilidadNegativa" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="inscripcionEnEsperaNoConsumeLugaresConfirmados" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.002"/>
+  <testcase name="cierreRechazaNuevasSolicitudes" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.003"/>
+  <testcase name="mismaFamiliaPuedeInscribirseEnDosEventos" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="conCupoConfirmaUnaFamilia" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="solicitudesInvalidasNoCambianDatos" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.005"/>
+  <testcase name="consultarNoInscribeAutomaticamenteAQuienEspera" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="cancelarOtraFamiliaFallaSinModificarDatos" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.002"/>
+  <testcase name="dobleInscripcionConfirmadaEsIdempotente" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="familiaCanceladaSeReincorporaAlFinalDeLaFila" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.002"/>
+  <testcase name="cancelarPromuevePrimeraFamiliaYRecalculaPosiciones" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="cupoLlenoAgregaAEsperaSinConsumirLugar" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="dobleSolicitudEnEsperaNoDuplicaNiCambiaOrden" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="concurrenciaNoSobrepasaCupoNiDuplicaFamilias" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.037"/>
+  <testcase name="dobleCancelacionNoLiberaDosLugares" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.002"/>
+  <testcase name="actividadVaciaTieneTodosLosLugaresDisponibles" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.0"/>
+  <testcase name="actividadLlenaNoTieneLugaresDisponibles" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.001"/>
+  <testcase name="filaRespetaOrdenYPosicionesPorEvento" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.003"/>
+  <testcase name="actividadParcialUsaPersonasConfirmadasDelBackend" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.0"/>
+  <testcase name="personasDuplicadasNoSeCuentanDosVeces" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.003"/>
+  <testcase name="noPromueveDespuesDelCierre" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.002"/>
+  <testcase name="cancelarLiberaCupoSinCambiarOtroEvento" classname="mx.tec.familias.data.repository.ActividadesRepositoryTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

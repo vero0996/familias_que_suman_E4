@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="17" failures="0" errors="0" skipped="0" time="106.371" timestamp="2026-10-21T22:02:02" hostname="localhost">
+  <testsuite name="mx.tec.familias.ui.screens.admin.dashboard.ActivityOccupancyUiTest" tests="1" failures="0" errors="0" skipped="0" time="12.938" timestamp="2026-10-21T22:02:02" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_10(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="dashboardShowsBackendOccupancyAndAvailablePlaces" classname="mx.tec.familias.ui.screens.admin.dashboard.ActivityOccupancyUiTest" time="12.938" />
+  </testsuite>
+  <testsuite name="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" tests="6" failures="0" errors="0" skipped="0" time="35.085" timestamp="2026-10-21T22:02:02" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_10(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="filtroCampaniasOcultaActividades" classname="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" time="3.901" />
+    <testcase name="filtroEventosOcultaCampanias" classname="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" time="5.464" />
+    <testcase name="busquedaSinCoincidenciasMuestraEstadoVacio" classname="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" time="6.004" />
+    <testcase name="busquedaEncuentraCampaniaPorOrganizacion" classname="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" time="6.845" />
+    <testcase name="busquedaEncuentraCampaniaPorNombre" classname="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" time="6.972" />
+    <testcase name="pantallaMuestraBuscadorYFiltros" classname="mx.tec.familias.ui.screens.explorar.ExplorarScreenTest" time="5.899" />
+  </testsuite>
+  <testsuite name="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" tests="10" failures="0" errors="0" skipped="0" time="53.443" timestamp="2026-10-21T22:02:02" hostname="localhost">
+    <properties>
+      <property name="device" value="Pixel_10(AVD) - 17" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="gestionDeParticipantesConfirmaAntesDeAceptarListaDeEspera" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="6.869" />
+    <testcase name="gestionDeParticipantesPideConfirmacionParaCancelar" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="7.083" />
+    <testcase name="selectorDeRolInvocaLaOpcionElegida" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="4.448" />
+    <testcase name="gestionDeParticipantesNoOfreceAceptarSiNoHayCupoSuficiente" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="2.506" />
+    <testcase name="loginNavegaARegistroYRecuperacionDeContrasena" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="3.759" />
+    <testcase name="inscripcionPideConfirmacionAntesDeEnviarParticipantes" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="4.715" />
+    <testcase name="perfilPermiteAbrirGestionDeIntegrantesYCerrarSesion" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="5.115" />
+    <testcase name="formularioDeCampaniaValidaCamposYEntregaLosDatos" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="7.679" />
+    <testcase name="loginRechazaFormularioVacioSinLlamarAlServidor" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="5.646" />
+    <testcase name="campaniasAdministrativasPermitenEditarLaCampaniaCorrecta" classname="mx.tec.familias.ui.workflows.CoreWorkflowUiTest" time="5.623" />
+  </testsuite>
+</testsuites>
