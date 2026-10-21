@@ -9,10 +9,11 @@ Código de salida: 0
 
 ## Android - pruebas unitarias
 Comando: .\gradlew.bat testDebugUnitTest
-Resultado: BUILD SUCCESSFUL
+Resultado: 23 pruebas, 0 fallidas, 0 errores, 0 omitidas. BUILD SUCCESSFUL
 
 ## Android - pruebas instrumentadas
 Comando: .\gradlew.bat connectedDebugAndroidTest
 Dispositivo: Pixel_10 (AVD) - 17
 Resultado: 17 pruebas completadas, 0 fallidas, 0 omitidas
 Estado de Gradle: BUILD SUCCESSFUL
+

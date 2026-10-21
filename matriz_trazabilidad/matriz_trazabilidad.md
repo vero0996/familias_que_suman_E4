@@ -1,62 +1,157 @@
 
-# Matriz de trazabilidad de historias de usuario
-## Proyecto: Familias que Suman+
+# Matriz de Trazabilidad de Requisitos
+## Familias que Suman — Reto E4
 
-### 1. Objetivo
+**Asignatura:** Integración de seguridad informática en redes y sistemas de software
+**Grupo:** 402
+**Fecha de actualización:** 21 de octubre de 2026
+**Proyecto:** Familias que Suman
+**Repositorio:** https://github.com/vero0996/familias_que_suman_E4
 
-Relacionar las historias de usuario (HU) con las suites de pruebas automatizadas del proyecto, identificando la evidencia disponible y el nivel de cobertura de cada historia.
+---
 
-### 2. Criterios de evaluación
+## 1. Objetivo
 
-- **Validación directa:** las pruebas verifican específicamente el comportamiento descrito en la historia de usuario.
-- **Cobertura parcial:** existen pruebas relacionadas, pero no verifican todos los escenarios o el flujo completo.
-- **Pendiente de evidencia:** no se ha identificado una prueba que compruebe directamente la funcionalidad solicitada.
+Esta matriz relaciona los requerimientos funcionales y no funcionales del proyecto con sus criterios de aceptación, las pruebas utilizadas para verificarlos, los resultados obtenidos y su estado final.
 
-Que una suite de pruebas pase significa que los casos incluidos se ejecutaron correctamente; no implica que toda la historia de usuario esté validada.
+Se incluyen los requerimientos funcionales originales (RF-01 a RF-15), los funcionales propuestos (RF-16 a RF-22) y los no funcionales propuestos documentados para el proyecto.
 
-### 3. Matriz de trazabilidad
+**Importante:** un requerimiento no se considera cumplido únicamente porque esté documentado o exista una pantalla relacionada. Su cumplimiento debe demostrarse mediante pruebas y evidencia verificable.
 
-| ID | Historia de usuario | Suites de pruebas relacionadas | Evidencia disponible | Estado |
-|---|---|---|---|---|
-| HU-01 | **Filtros.** Como usuario de la plataforma, quiero filtrar causas y campañas por tipo de ayuda, ubicación o asociación, para encontrar una actividad adecuada para mi familia. | `test_campaign_activity_security.py`, `test_projects_security.py`, `test_events_security.py` | Las pruebas se relacionan con campañas, actividades, proyectos y eventos. No se ha confirmado que comprueben específicamente los filtros por tipo de ayuda, ubicación y asociación. | Cobertura parcial |
-| HU-02 | **Directorio.** Como padre de familia, quiero acceder a un directorio actualizado de asilos, comedores y asociaciones, para saber a dónde acudir a realizar una visita de apoyo. | Sin suite directa identificada | Las pruebas de proyectos y eventos no demuestran por sí solas que el directorio de asociaciones y centros funcione y esté actualizado. | Pendiente de evidencia |
-| HU-03 | **Comprobación social.** Como voluntario, quiero subir una fotografía y una breve descripción de la actividad realizada, para inspirar a otras familias a sumarse. | `test_photos_security.py` | Se prueban la autenticación para subir fotografías, los formatos JPG, PNG y WEBP permitidos en los casos probados y el rechazo de archivos TXT y PDF. No se ha confirmado la cobertura de la descripción, publicación y revisión del testimonio. | Cobertura parcial |
-| HU-04 | **Registro seguro.** Como nuevo usuario, quiero crear una cuenta con nombre, apellido, teléfono y correo electrónico de forma segura, para guardar mis preferencias y participar en proyectos. | `test_auth_registration_security.py`, `test_auth_login_security.py`, `test_security.py`, `test_rate_limit_security.py` | Las suites están relacionadas con autenticación, registro y seguridad. Se debe confirmar que las pruebas cubran todos los campos y las validaciones requeridas por la historia. | Cobertura parcial |
-| HU-05 | **Calendario.** Como usuario, quiero agregar una actividad en la que estoy inscrito al calendario de mi dispositivo para recordar la fecha, el horario y la ubicación. | Sin suite directa identificada | No se ha presentado evidencia de pruebas de integración con el calendario del dispositivo ni de la transferencia correcta de los datos de la actividad. | Pendiente de evidencia |
-| HU-06 | **Notificaciones.** Como padre de familia, quiero recibir avisos automáticos y recordatorios sobre mis actividades, para conocer confirmaciones, cambios en mis inscripciones y disponibilidad de lugares. | Sin suite directa identificada | Las pruebas de seguridad de actividades e inscripciones no demuestran por sí solas el envío de notificaciones y recordatorios automáticos. | Pendiente de evidencia |
-| HU-07 | **Lista de espera y cancelación.** Como participante, quiero entrar en una lista de espera cuando un evento esté lleno y cancelar mi inscripción con anticipación para liberar mi lugar. | `test_registration_validation.py`, `test_registration_ownership.py`, `test_campaign_activity_security.py` | Las suites se relacionan con validaciones de inscripciones, propiedad y actividades. Se requiere comprobar específicamente el cupo lleno, la lista de espera, la cancelación y la reasignación de lugares. | Cobertura parcial |
-| HU-08 | **Mensajes grupales y privados.** Como participante, quiero comunicarme mediante mensajes grupales o privados con asociaciones, administradores y otros participantes. | `test_messages_security.py` | Se prueban la autenticación, el envío y consulta de mensajes privados, la identificación del remitente, las validaciones de entrada, el aislamiento de conversaciones y la persistencia. No se ha demostrado la funcionalidad de mensajes grupales ni la comunicación con todos los roles indicados. | Cobertura parcial |
-| HU-09 | **Compartir campañas.** Como usuario, quiero compartir campañas con otras personas para darles mayor difusión e invitar a más familias. | Sin suite directa identificada | No se ha presentado evidencia de pruebas de la funcionalidad para compartir campañas o generar y abrir enlaces de difusión. | Pendiente de evidencia |
-| HU-10 | **Reconocimiento de participación.** Como padre de familia, quiero recibir insignias o niveles por las actividades en las que participe para visualizar la trayectoria de servicio de mi familia. | Sin suite directa identificada | No se ha presentado evidencia de pruebas para el cálculo de participación, la asignación de insignias o niveles y la actualización del reconocimiento de la familia. | Pendiente de evidencia |
+**Validación manual:** la usuaria reporta que probó en un dispositivo físico los flujos disponibles de la aplicación y que funcionaron correctamente. Esta confirmación se registra como prueba manual reportada; al no haber capturas ni un checklist por requisito adjuntos, los estados se conservan como parciales cuando falta evidencia de algún criterio específico.
 
-### 4. Observaciones
+## 2. Estados utilizados
 
-- **HU-01:** comprobar que los filtros por tipo de ayuda, ubicación y asociación tengan pruebas específicas.
-- **HU-02:** verificar el directorio de asociaciones y centros, así como la información mostrada en sus fichas.
-- **HU-03:** verificar la descripción, publicación y revisión de los testimonios con fotografía.
-- **HU-04:** confirmar la validación de todos los campos del registro y los casos positivos y negativos.
-- **HU-05:** verificar la integración con el calendario del dispositivo.
-- **HU-06:** comprobar el envío de notificaciones en los escenarios definidos.
-- **HU-07:** probar el flujo completo de lista de espera, cancelación y reasignación de cupos.
-- **HU-08:** verificar los mensajes grupales y los permisos de comunicación de los diferentes roles.
-- **HU-09:** probar la funcionalidad para compartir campañas.
-- **HU-10:** verificar las reglas para asignar y actualizar insignias o niveles de reconocimiento.
-
-### 5. Resultado de la ejecución automatizada
-
-Según el resultado reportado por el equipo, todas las pruebas automatizadas ejecutadas finalizaron correctamente.
-
-| Métrica | Resultado |
+| Estado | Significado |
 |---|---|
-| Comando de ejecución | `uv run pytest` (confirmar con la ejecución final) |
-| Pruebas aprobadas | Completar con el resumen de la terminal |
-| Pruebas fallidas | 0, según el resultado reportado |
-| Fecha de ejecución | Completar con la fecha de la ejecución documentada |
+| Cumplido | El criterio de aceptación fue verificado y existe evidencia suficiente. |
+| Parcialmente cumplido | Existe implementación o evidencia parcial, pero falta verificar parte del criterio. |
+| Pendiente de verificación | No se dispone todavía de evidencia suficiente para determinar su cumplimiento. |
+| No cumplido | La verificación demostró que el criterio no se satisface. |
 
-### 6. Conclusión
+## 3. Requerimientos funcionales originales
 
-Las pruebas automatizadas ejecutadas pasaron correctamente, de acuerdo con el resultado reportado. Sin embargo, la aprobación de las pruebas no implica que todas las historias de usuario estén completamente validadas.
+| ID | Requerimiento | Criterio de aceptación | Prueba o evidencia | Resultado | Estado final |
+|---|---|---|---|---|---|
+| RF-01 | Directorio de asociaciones y centros | La familia puede consultar el directorio, sus categorías y la información de una asociación o centro. | Prueba manual en dispositivo físico reportada por la usuaria; no se identificó una prueba instrumentada específica para categorías y fichas del directorio. | La usuaria reporta que los flujos disponibles funcionaron; faltan capturas o checklist que demuestren este criterio completo. | Parcialmente cumplido |
+| RF-02 | Filtro por ubicación | La familia puede seleccionar o cambiar una ciudad y consultar las opciones correspondientes. | `ExplorarScreenTest` prueba búsqueda y filtros de campañas/eventos; prueba manual en dispositivo físico reportada. No se identificó prueba directa del filtro por ciudad. | Funcionaron los filtros cubiertos por las pruebas disponibles; falta demostrar selección/cambio de ubicación. | Parcialmente cumplido |
+| RF-03 | Ficha de asociación | La aplicación muestra propósito, población beneficiada, necesidades, ubicación y medios de contacto de la asociación. | Prueba manual en dispositivo físico reportada por la usuaria; no se identificó una prueba instrumentada que compruebe cada campo de la ficha. | Se reporta funcionamiento de los flujos disponibles; falta evidencia que permita verificar todos los campos del criterio. | Parcialmente cumplido |
+| RF-04 | Actividades de voluntariado | La familia consulta fecha, horario, ubicación, descripción, requisitos y adecuación para niños antes de inscribirse. | Prueba manual en dispositivo físico reportada; `ActivityOccupancyUiTest` verifica el renderizado de actividad, participantes y lugares disponibles; suite Android: 17/17. | Las pruebas finalizaron correctamente; no documentan todos los campos requeridos en el criterio. | Parcialmente cumplido |
+| RF-05 | Disponibilidad de lugares en tiempo real | La disponibilidad se actualiza después de una inscripción o cancelación y no se excede el cupo ante solicitudes simultáneas. | `ActivityOccupancyUiTest` valida ocupación/cupos renderizados; pruebas de inscripción y cancelación de `CoreWorkflowUiTest`; suite Android: 17/17. | La interfaz y las confirmaciones se probaron; no se verificó en esta ejecución la actualización persistida ni la concurrencia de solicitudes. | Parcialmente cumplido |
+| RF-06 | Inscripción con acompañantes | La inscripción registra los integrantes asistentes, incluidos nombres y edades, y permite consultar esos datos para organizar la actividad. | Prueba manual en dispositivo físico reportada; `CoreWorkflowUiTest.inscripcionPideConfirmacionAntesDeEnviarParticipantes`; suite Android: 17/17. | Se comprobó la confirmación del flujo de inscripción y la usuaria reporta funcionamiento en físico; falta evidencia de persistencia y consulta de nombres/edades en backend. | Parcialmente cumplido |
+| RF-07 | Agregar actividad al calendario | La actividad aparece en el calendario del dispositivo con fecha, horario y ubicación correctos. | Pendiente: prueba en dispositivo físico o emulador y captura del evento creado. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-08 | Medios de contacto | La familia puede iniciar el medio de contacto seleccionado desde la aplicación sin copiar manualmente la información. | Pendiente: prueba de los medios de contacto disponibles. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-09 | Proyectos y campañas | La familia consulta las campañas activas desde la aplicación sin depender del sitio web. | Prueba manual en dispositivo físico: carga de campañas y consulta del enlace compartido; `ExplorarScreenTest` y suite instrumentada Android (17/17). | Se reportó carga correcta en el dispositivo físico; también se verificó previamente la respuesta de `GET /campaigns` y `GET /campaigns/3`. | Cumplido |
+| RF-10 | Información para donar | La aplicación indica qué se necesita donar, dónde entregar las donaciones y los horarios disponibles; no procesa pagos ni donativos monetarios. | Pendiente: revisión de la información presentada y comprobación de que no se procesan pagos. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-11 | Perfil e historial de la familia | La familia consulta y administra sus datos personales y visualiza el historial de participación. | Prueba manual en dispositivo físico reportada; `CoreWorkflowUiTest.perfilPermiteAbrirGestionDeIntegrantesYCerrarSesion`; suite Android: 17/17. | Se comprobó navegación del perfil a gestión de integrantes y cierre de sesión; falta evidencia de actualización de datos e historial. | Parcialmente cumplido |
+| RF-12 | Testimonio con fotografía | El testimonio permanece pendiente de revisión hasta que un administrador lo aprueba. | Pendiente: prueba de envío, revisión administrativa y publicación posterior a la aprobación. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-13 | Encuesta antes y después de la actividad | Las respuestas de ambas encuestas quedan almacenadas y relacionadas con la actividad correspondiente. | Pruebas de backend de encuestas; prueba manual en dispositivo físico reportada por la usuaria. | El flujo se reporta probado; falta incorporar evidencia que demuestre ambas encuestas y la relación/persistencia con la actividad. | Parcialmente cumplido |
+| RF-14 | Reconocimiento por participación | La familia consulta su reconocimiento y este se actualiza según las actividades en las que participa. | Pendiente: prueba de registro de participación y actualización del reconocimiento. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-15 | Aviso de privacidad accesible | La familia consulta el aviso de privacidad y puede solicitar la eliminación de sus datos mediante el mecanismo del sistema. | Pendiente: revisión del aviso y prueba del procedimiento de eliminación de datos. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
 
-La matriz permite identificar qué funcionalidades cuentan con evidencia relacionada y cuáles requieren pruebas específicas adicionales o documentación de pruebas existentes. Los estados deberán actualizarse cuando se confirme la cobertura directa de cada historia.
+## 4. Requerimientos funcionales propuestos
 
-**Nota:** antes de entregar, verificar los nombres de las suites contra los archivos reales del repositorio y completar las métricas con el resultado exacto de la ejecución final.
+Los siguientes requerimientos se incluyen porque forman parte del backlog propuesto. Su inclusión no implica que ya estén implementados.
+
+| ID | Requerimiento | Criterio de aceptación | Prueba o evidencia | Resultado | Estado final |
+|---|---|---|---|---|---|
+| RF-16 | Priorización de necesidades y campañas | La asociación o el administrador activa una etiqueta de urgencia y esta se muestra destacada en la interfaz principal o en el perfil de la organización. | Pendiente: prueba de activación de urgencia y verificación de su visualización. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-17 | Recomendación de actividades | La familia visualiza recomendaciones personalizadas según sus intereses, las edades de sus integrantes y el tipo de participación disponible. | Pendiente: prueba con perfiles e intereses diferentes y comparación de recomendaciones. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-18 | Gestión simplificada de campañas | La asociación puede crear, editar y duplicar una campaña sin volver a registrar todos sus datos. | Prueba manual en dispositivo físico reportada; `CoreWorkflowUiTest` verifica formulario de creación y edición de campaña; suite Android: 17/17. | Se reporta funcionamiento correcto en físico y pasaron las pruebas de creación/edición; no se verificó duplicación ni persistencia completa. | Parcialmente cumplido |
+| RF-19 | Cancelación de inscripción | La familia cancela una inscripción con al menos 72 horas de anticipación y el sistema libera el lugar y actualiza la disponibilidad. | Prueba manual en dispositivo físico reportada; `CoreWorkflowUiTest.gestionDeParticipantesPideConfirmacionParaCancelar`; suite Android: 17/17. | Se verificó la confirmación de cancelación en UI; falta evidencia del límite de 72 horas y de la liberación persistida del lugar. | Parcialmente cumplido |
+| RF-20 | Lista de espera | Al cancelarse una inscripción, el sistema ofrece o asigna el lugar disponible a la primera persona o familia de la lista de espera, respetando el orden de registro. | Prueba manual en dispositivo físico reportada; `CoreWorkflowUiTest` verifica aceptación de lista de espera y disponibilidad de cupo; suite Android: 17/17. | La aceptación fue probada en UI; falta demostrar la asignación automática del primer lugar y el respeto del orden de espera. | Parcialmente cumplido |
+| RF-21 | Notificaciones automatizadas | La familia recibe notificaciones push relevantes sobre inscripciones, recordatorios, lugares disponibles y campañas, y puede abrir el apartado correspondiente. | Pendiente: prueba de envío push, recepción en dispositivo y navegación al destino. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RF-22 | Comunicación automatizada con participantes | Los participantes reciben un mensaje de confirmación con información pertinente y, cuando corresponda, una liga para contactar a la asociación y a otros participantes. | Pendiente: prueba de envío, recepción y contenido del mensaje de confirmación. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+
+## 5. Requerimientos no funcionales propuestos
+
+Se conservan los identificadores documentados en el archivo de requerimientos. El segundo aparece como `RFN02` en la fuente original; debe confirmarse si el identificador oficial del backlog es ese o `RNF-02`.
+
+| ID | Requerimiento | Criterio de aceptación | Prueba o evidencia | Resultado | Estado final |
+|---|---|---|---|---|---|
+| RNF-01 | Seguridad en tránsito | La comunicación entre la aplicación y la API utiliza HTTPS con TLS 1.2 o superior en todos los endpoints. | Pendiente: comprobación de HTTPS/TLS y revisión de la configuración de los endpoints. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RFN02 | Privacidad de datos | Las contraseñas se almacenan mediante hashing seguro y nunca en texto plano; los datos personales solo son accesibles por funciones autorizadas. | Pendiente: revisión del mecanismo de hashing y pruebas de acceso autorizado y no autorizado. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RNF-03 | Rendimiento de multimedia | Las fotografías se comprimen antes de enviarse al servidor y tienen un tamaño máximo de 2 MB, conservando calidad suficiente. | Pendiente: prueba con fotografías de diferentes tamaños y comprobación del archivo enviado. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| RNF-04 | Disponibilidad | El sistema mantiene un uptime mensual mínimo del 99.99 %, excluyendo mantenimientos programados. | Pendiente: registros de monitoreo y cálculo de disponibilidad durante un periodo mensual. | No hay registros de disponibilidad mensual documentados en esta matriz. | Pendiente de verificación |
+
+## 6. Requisitos técnicos y de seguridad de la entrega final
+
+Además de los requisitos anteriores, la entrega solicita evidencia de controles de seguridad en la API y de despliegue seguro. Estos puntos deben vincularse con los IDs del backlog cuando existan; no se deben inventar identificadores para reemplazar los originales.
+
+| Control solicitado | Criterio de verificación | Prueba o evidencia | Resultado | Estado final |
+|---|---|---|---|---|
+| Autenticación y manejo de sesiones | Las credenciales y los tokens se validan de forma segura, y los tokens inválidos o expirados no permiten acceder a recursos protegidos. | Pendiente: pruebas con credenciales inválidas y tokens manipulados o expirados. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| Autorización por rol y propiedad del recurso | Un usuario no puede consultar ni modificar recursos que no le corresponden. | Pendiente: pruebas con usuarios diferentes y accesos a recursos ajenos. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| Validación de entradas e inyección SQL | Las entradas se validan y las consultas se construyen de manera segura. | Pendiente: pruebas negativas y revisión de consultas parametrizadas u ORM. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| Límites de peticiones | Los endpoints críticos cuentan con límites de tasa, control de concurrencia o bloqueo temporal contra abusos. | Pendiente: pruebas de exceso de peticiones en endpoints críticos. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| Cabeceras de seguridad HTTP | Se configuran las cabeceras de seguridad pertinentes para el servicio. | Pendiente: revisión de las respuestas HTTP de la API. | Sin resultado documentado en esta matriz. | Pendiente de verificación |
+| Contenedores y gestión de secretos | La API se despliega en contenedores con configuración segura y secretos administrados mediante variables de entorno u otro mecanismo apropiado. | Pendiente: inspección de la configuración de despliegue y de la gestión de secretos. | Se ha trabajado con Docker; falta documentar la verificación de los controles solicitados. | Parcialmente cumplido |
+| Acceso externo seguro a la API | El túnel permite la demostración desde la aplicación y el servicio utiliza los protocolos de protección definidos. | Pendiente: prueba de acceso externo y revisión de HTTPS/TLS. | Se han presentado incidencias de conexión del túnel; no se considera verificado el acceso externo estable. | Pendiente de verificación |
+| Pruebas de seguridad | La API rechaza solicitudes maliciosas o no autorizadas. | Pendiente: evidencia de intentos de inyección, tokens inválidos, accesos ajenos y exceso de peticiones. | Sin resultados completos documentados en esta matriz. | Pendiente de verificación |
+| Análisis dinámico con OWASP ZAP | Se ejecuta un escaneo DAST y se documentan los hallazgos relevantes y sus mitigaciones. | Pendiente: reporte exportado de OWASP ZAP y registro de las mitigaciones. | No se ha incorporado un reporte de escaneo a esta matriz. | Pendiente de verificación |
+
+## 7. Relación con historias de usuario y casos de uso
+
+La relación entre los requisitos y las historias de usuario debe conservar los identificadores de los documentos originales. No se asignan relaciones definitivas cuando no se dispone del contenido completo para verificarlas.
+
+| Requisito | Historia de usuario relacionada | Caso de uso relacionado | Evidencia |
+|---|---|---|---|
+| RF-01 a RF-04 | Por vincular con las HU documentadas | Explorar y filtrar el directorio de ayuda | Pendiente de verificar |
+| RF-05 y RF-06 | Por vincular con las HU documentadas | Agendar o inscribirse a una actividad | Pendiente de verificar |
+| RF-18 | Por vincular con las HU documentadas | Crear o reutilizar una campaña (vista de administrador) | Pendiente de verificar |
+| RF-19 y RF-20 | Por vincular con las HU documentadas | Flujo de inscripción y cancelación | Pendiente de verificar |
+| RF-22 | Por vincular con las HU documentadas | Comunicación con participantes | Pendiente de verificar |
+
+## 8. Evidencias por recopilar
+
+Utiliza estos nombres como convención para organizar las evidencias. No representan archivos existentes hasta que se incorporen al repositorio o a la entrega.
+
+### Resultados de pruebas Android
+
+| Ejecución | Resultado | Alcance y límite |
+|---|---|---|
+| `.\gradlew.bat :app:connectedDebugAndroidTest` en `Pixel_10` | 17 pruebas aprobadas, 0 fallidas (resultado reportado por la usuaria). | Pruebas instrumentadas de UI, navegación, validaciones y callbacks; por sí solas no demuestran persistencia ni integración de todos los flujos con backend. |
+| `.\gradlew.bat :app:testDebugUnitTest` | 23 pruebas aprobadas, 0 fallidas. | Pruebas unitarias Android; no sustituyen pruebas manuales de todos los criterios funcionales. |
+| Prueba manual en dispositivo físico | La usuaria reporta que probó los flujos disponibles de la app y que funcionaron correctamente. | Registrar capturas o checklist por requisito para hacer trazable qué criterios se validaron en físico. |
+
+| ID de evidencia sugerido | Evidencia necesaria | Requisitos relacionados |
+|---|---|---|
+| EV-01 | Capturas de navegación del directorio, filtros y fichas; la prueba manual en físico fue reportada, pero faltan capturas por requisito. | RF-01, RF-02, RF-03 |
+| EV-02 | Pruebas instrumentadas y validación manual en físico de actividades y campañas; conservar capturas de los recorridos. | RF-04, RF-09 |
+| EV-03 | Pruebas de inscripción y ocupación ejecutadas; faltan evidencia de persistencia, acompañantes y concurrencia. | RF-05, RF-06 |
+| EV-04 | Prueba de integración con el calendario del dispositivo | RF-07 |
+| EV-05 | Prueba instrumentada de navegación de perfil ejecutada; falta evidencia de actualización e historial. | RF-11 |
+| EV-06 | Pruebas de envío, revisión y aprobación de testimonios | RF-12 |
+| EV-07 | Pruebas de encuestas disponibles; falta evidencia del vínculo y persistencia de encuestas antes y después por actividad. | RF-13 |
+| EV-08 | Pruebas instrumentadas de confirmación para cancelar y aceptar lista de espera ejecutadas; falta evidencia de reglas de plazo, liberación y orden. | RF-19, RF-20 |
+| EV-09 | Pruebas instrumentadas de creación y edición ejecutadas; falta evidencia de duplicación y persistencia completa. | RF-18 |
+| EV-10 | Pruebas de autenticación, autorización y validación de entradas | Controles de seguridad |
+| EV-11 | Evidencia de HTTPS/TLS, cabeceras y despliegue | RNF-01 y controles de seguridad |
+| EV-12 | Pruebas de compresión de imágenes | RNF-03 |
+| EV-13 | Registros de disponibilidad | RNF-04 |
+| EV-14 | Reporte DAST de OWASP ZAP | Pruebas de seguridad |
+| EV-15 | Pruebas de notificaciones y comunicación automatizada | RF-21, RF-22 |
+| EV-16 | Evidencia de privacidad, eliminación de datos y reconocimiento | RF-10, RF-14, RF-15 y privacidad |
+
+## 9. Criterios de cierre
+
+Antes de marcar un requisito como cumplido, se debe:
+
+1. Identificar el requisito con el mismo ID del backlog.
+2. Comprobar que existe una implementación relacionada.
+3. Ejecutar una prueba que cubra su criterio de aceptación.
+4. Guardar el resultado y la evidencia reproducible.
+5. Registrar cualquier limitación o condición que impida considerarlo completamente cumplido.
+6. Actualizar el estado de la matriz con base en el resultado real.
+
+La matriz debe actualizarse conforme se completen y verifiquen las funcionalidades. Los requisitos propuestos también se conservan en el documento, independientemente de que su implementación se haya realizado o no.
+
+## 10. Referencias del proyecto
+
+- Repositorio: https://github.com/vero0996/familias_que_suman_E4
+- Documento de requerimientos funcionales y no funcionales.
+- Documento de prototipos, requerimientos validados y backlog.
+- Resultados de pruebas unitarias y de integración.
+- Reportes de pruebas de seguridad y despliegue.
+
+**Nota final:** esta matriz constituye una versión inicial de trazabilidad. Los estados y las evidencias deben actualizarse después de revisar los tests, el código, los resultados de ejecución y la configuración real del sistema.
