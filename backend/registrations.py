@@ -128,10 +128,9 @@ def get_available_activity(
         else None
     )
 
-    if (
-        activity.status != "publicada"
-        or campaign is None
-        or campaign.status != "publicada"
+    if activity.status != "publicada" or (
+        activity.campaign_id is not None
+        and (campaign is None or campaign.status != "publicada")
     ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -233,6 +232,7 @@ def create_registration(
         if confirmed_people + requested_people <= activity.capacity_people
         else "lista_espera"
     )
+    waitlisted_at = utc_now() if new_status == "lista_espera" else None
 
     try:
         if existing is None:
@@ -241,6 +241,7 @@ def create_registration(
                 family_id=family.id,
                 status=new_status,
                 notes=data.notes,
+                waitlisted_at=waitlisted_at,
             )
 
             db.add(registration)
@@ -260,6 +261,7 @@ def create_registration(
         else:
             old_status = existing.status
             existing.status = new_status
+            existing.waitlisted_at = waitlisted_at
             existing.notes = data.notes
             existing.canceled_at = None
             existing.participants = list(participants)
@@ -433,6 +435,9 @@ def cancel_registration(
         and activity is not None
         and ensure_utc(activity.starts_at) > utc_now()
     ):
+        # Enviar la cancelación a la base antes de calcular el cupo.
+        db.flush()
+
         confirmed_people = count_confirmed_people(db, activity_id)
 
         available_people = max(
@@ -447,7 +452,10 @@ def cancel_registration(
                 Registration.status == "lista_espera",
             )
             .order_by(
-                Registration.created_at,
+                func.coalesce(
+                    Registration.waitlisted_at,
+                    Registration.created_at,
+                ),
                 Registration.id,
             )
             .with_for_update()

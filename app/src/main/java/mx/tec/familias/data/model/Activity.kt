@@ -11,7 +11,7 @@ data class Activity(
     val lugar: String,
     val capacidadPersonas: Int,
     val cierreInscripciones: Long,
-    val ocupacionInicial: Int = 0,
+    val personasConfirmadas: Int = 0,
     val url: String = "",
     val puntoEncuentro: String = "",
     val tipoAportacion: String = "",
@@ -52,9 +52,9 @@ data class EstadoActividades(
             fecha = "",
             hora = "",
             lugar = "",
-            capacidadPersonas = 20,
+            capacidadPersonas = 0,
             cierreInscripciones = 0L,
-            ocupacionInicial = 0,
+            personasConfirmadas = 0,
             url = "",
             puntoEncuentro = "",
             tipoAportacion = "",
@@ -62,10 +62,11 @@ data class EstadoActividades(
             contacto = ""
         )
 
-    /** Total de personas ocupando lugares, incluida la ocupación publicada. */
+    /** Personas confirmadas reportadas por el backend. */
+
     fun ocupados(id: String): Int {
         val ev = eventoOrNull(id) ?: return 0
-        return ev.ocupacionInicial
+        return ev.personasConfirmadas
     }
 
     fun disponibles(id: String): Int {

@@ -8,7 +8,6 @@ from schemas import RegistrationCreate
 @pytest.mark.parametrize(
     "payload",
     [
-        {"activity_id": 1, "participant_ids": []},
         {"activity_id": 1, "participant_ids": [1, 1]},
         {"activity_id": 1, "participant_ids": [0]},
         {"activity_id": 1, "participant_ids": [-1]},
@@ -46,3 +45,16 @@ def test_blank_notes_are_normalized_to_none():
     )
 
     assert data.notes is None
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"activity_id": 1, "participant_ids": []},
+        {"activity_id": 1},
+    ],
+)
+def test_registration_without_companions_is_accepted(payload):
+    data = RegistrationCreate.model_validate(payload)
+
+    assert data.activity_id == 1
+    assert data.participant_ids == []

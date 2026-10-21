@@ -123,6 +123,7 @@ class Campaign(Base):
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
     organization_name: Mapped[str] = mapped_column(String(200))
+    photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="borrador")
     created_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),
@@ -164,6 +165,7 @@ class Activity(Base):
     )
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
+    photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     ends_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -234,6 +236,10 @@ class Registration(Base):
         onupdate=utc_now,
     )
     canceled_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    waitlisted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )

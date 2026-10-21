@@ -40,14 +40,7 @@ import mx.tec.familias.ui.theme.Background
 import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import mx.tec.familias.viewmodel.ActividadesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,21 +57,6 @@ fun FormularioActividadAdminScreen(
     var ubicacion by remember { mutableStateOf(actividad.ubicacion) }
     var cupos by remember { mutableStateOf(actividad.cuposTotales.toString()) }
     var esUrgente by remember { mutableStateOf(actividad.esUrgente) }
-    // --- VARIABLES PARA LA FOTO ---
-    val context = LocalContext.current
-    val viewModel: ActividadesViewModel = viewModel()
-    var fotoUri by remember { mutableStateOf<Uri?>(null) }
-
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            fotoUri = uri
-            // Cuando selecciona la foto, la enviamos al servidor
-            viewModel.subirFotoCampania(context, uri)
-        }
-    }
-
     Scaffold(
         containerColor = Background,
 
@@ -161,7 +139,7 @@ fun FormularioActividadAdminScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
-                    Text("Ej. Recogida de Invierno")
+                    Text("Escribe el título de la actividad")
                 },
                 singleLine = true
             )
@@ -346,38 +324,6 @@ fun FormularioActividadAdminScreen(
                         esUrgente = it
                     }
                 )
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // --------------------------------------------------
-// FOTO DE LA CAMPAÑA
-// --------------------------------------------------
-            Text(
-                text = "Foto de la actividad",
-                color = TextPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Button(
-                onClick = {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Background),
-                border = androidx.compose.foundation.BorderStroke(1.dp, TealPrimary)
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = TealPrimary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Seleccionar imagen de la galería", color = TealPrimary)
-            }
-
-            if (fotoUri != null) {
-                Text("Foto seleccionada", color = TealPrimary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
             }
 
             Spacer(modifier = Modifier.height(28.dp))

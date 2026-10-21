@@ -64,7 +64,6 @@ import mx.tec.familias.ui.theme.TealPrimary
 import mx.tec.familias.ui.theme.TextPrimary
 import mx.tec.familias.ui.theme.TextSecondary
 
-
 @Composable
 fun DetalleActividadScreen(
     onBackClick: () -> Unit = {},
@@ -403,9 +402,7 @@ fun DetalleActividadScreen(
                     )
                 },
                 title = "Participación",
-                value =
-                    "$ocupados/${actividad.capacidadPersonas} familias · " +
-                            "$disponibles lugares libres"
+                value = "$ocupados/${actividad.capacidadPersonas} personas · $disponibles lugares libres"
             )
 
             Spacer(
@@ -800,7 +797,6 @@ fun DetalleActividadScreen(
         )
     }
 }
-
 
 // --------------------------------------------------
 // TARJETA DE INFORMACIÓN

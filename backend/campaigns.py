@@ -21,6 +21,29 @@ def list_campaigns(db: Session = Depends(get_db)):
     )
     return db.scalars(statement).all()
 
+@router.get("/admin", response_model=list[CampaignResponse])
+def list_all_campaigns_for_admin(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    """Lista todas las campañas para la administración."""
+    statement = select(Campaign).order_by(Campaign.created_at.desc())
+    return db.scalars(statement).all()
+
+
+@router.get("/mine", response_model=list[CampaignResponse])
+def list_managed_campaigns(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("organizacion", "admin")),
+):
+    """Lista las campañas propias de una organización o todas para admin."""
+    statement = select(Campaign).order_by(Campaign.created_at.desc())
+    if current_user.role != "admin":
+        statement = statement.where(
+            Campaign.created_by_user_id == current_user.id
+        )
+    return db.scalars(statement).all()
+
 
 @router.get("/{campaign_id}", response_model=CampaignResponse)
 def get_campaign(campaign_id: int, db: Session = Depends(get_db)):
@@ -51,6 +74,7 @@ def create_campaign(
         title=data.title,
         description=data.description,
         organization_name=data.organization_name,
+        photo_url=data.photo_url,
         status="borrador",
         created_by_user_id=current_user.id,
     )
@@ -107,13 +131,6 @@ def update_campaign(
 
         new_status = changes["status"]
 
-        
-        if new_status == campaign.status:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"La campaña ya está en estado '{campaign.status}'",
-            )
-
         allowed = allowed_transitions.get(campaign.status, set())
 
         if new_status not in allowed:
@@ -133,4 +150,3 @@ def update_campaign(
     db.refresh(campaign)
 
     return campaign
-

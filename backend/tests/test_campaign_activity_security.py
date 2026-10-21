@@ -11,7 +11,14 @@ from sqlalchemy.pool import StaticPool
 from database import Base, get_db
 from dependencies import get_current_user
 from main import app
-from models import Activity, Campaign, User
+from models import (
+    Activity,
+    Campaign,
+    Family,
+    FamilyMember,
+    Registration,
+    User,
+)
 
 
 @pytest.fixture
@@ -204,6 +211,279 @@ def test_draft_campaign_is_not_public(security_sandbox):
 
     assert response.status_code == 404
 
+def test_organization_cannot_list_all_admin_campaigns(security_sandbox):
+    client, _, _, _ = security_sandbox
+
+    response = client.get("/campaigns/admin")
+
+    assert response.status_code == 403
+
+
+def test_organization_lists_only_its_managed_campaigns(security_sandbox):
+    client, _, ids, _ = security_sandbox
+
+    response = client.get("/campaigns/mine")
+
+    assert response.status_code == 200, response.text
+    assert {campaign["id"] for campaign in response.json()} == {
+        ids["campaign_a"],
+    }
+
+
+def test_organization_can_create_campaign_with_photo(security_sandbox):
+    client, _, _, _ = security_sandbox
+
+    response = client.post(
+        "/campaigns",
+        json={
+            "title": "Campaña con foto",
+            "description": "Descripción",
+            "organization_name": "Organización A",
+            "photo_url": "/uploads/campaign.jpg",
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["photo_url"] == "/uploads/campaign.jpg"
+
+
+def test_admin_can_list_campaigns_in_all_statuses(security_sandbox):
+    client, identity, ids, _ = security_sandbox
+    identity.update(id=ids["admin"], role="admin")
+
+    response = client.get("/campaigns/admin")
+
+    assert response.status_code == 200, response.text
+
+    campaigns = response.json()
+    campaign_ids = {campaign["id"] for campaign in campaigns}
+
+    assert campaign_ids == {
+        ids["campaign_a"],
+        ids["campaign_b"],
+        ids["campaign_draft"],
+    }
+
+    statuses = {campaign["status"] for campaign in campaigns}
+    assert "publicada" in statuses
+    assert "borrador" in statuses
+
+
+def test_organization_lists_only_activities_it_can_manage(security_sandbox):
+    client, _, ids, _ = security_sandbox
+
+    response = client.get("/activities/admin")
+
+    assert response.status_code == 200, response.text
+    assert {activity["id"] for activity in response.json()} == {
+        ids["activity_a"],
+    }
+
+
+def test_admin_lists_activities_in_all_statuses(security_sandbox):
+    client, identity, ids, _ = security_sandbox
+    identity.update(id=ids["admin"], role="admin")
+
+    response = client.get("/activities/admin")
+
+    assert response.status_code == 200, response.text
+    assert {activity["id"] for activity in response.json()} == {
+        ids["activity_a"],
+        ids["activity_b"],
+        ids["activity_in_draft"],
+    }
+
+
+def test_organization_can_list_activity_registrations(security_sandbox):
+    client, _, ids, TestSession = security_sandbox
+    with TestSession() as db:
+        family_user = User(
+            full_name="Contacto",
+            email="family@example.com",
+            password_hash="test-hash-family",
+            role="familia",
+            is_active=True,
+        )
+        db.add(family_user)
+        db.flush()
+        family = Family(name="Familia de prueba", owner_user_id=family_user.id)
+        db.add(family)
+        db.flush()
+        participant = FamilyMember(
+            family_id=family.id,
+            full_name="Integrante de prueba",
+            age=12,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(participant)
+        registration = Registration(
+            activity_id=ids["activity_a"],
+            family_id=family.id,
+            status="confirmada",
+            participants=[participant],
+        )
+        db.add(registration)
+        db.commit()
+        registration_id = registration.id
+
+    response = client.get(
+        f"/activities/admin/{ids['activity_a']}/registrations"
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json() == [
+        {
+            "id": registration_id,
+            "activity_id": ids["activity_a"],
+            "family_id": family.id,
+            "family_name": "Familia de prueba",
+            "contact_name": "Contacto",
+            "email": "family@example.com",
+            "phone": None,
+            "status": "confirmada",
+            "participant_names": ["Integrante de prueba"],
+            "people_count": 2,
+            "created_at": response.json()[0]["created_at"],
+        }
+    ]
+
+
+def test_organization_can_cancel_then_accept_waitlisted_registration(
+    security_sandbox,
+):
+    client, _, ids, TestSession = security_sandbox
+    with TestSession() as db:
+        registrations = []
+        for index, status in enumerate(("confirmada", "lista_espera"), start=1):
+            user = User(
+                full_name=f"Contacto {index}",
+                email=f"family{index}@example.com",
+                password_hash="test-hash-family",
+                role="familia",
+                is_active=True,
+            )
+            db.add(user)
+            db.flush()
+            family = Family(
+                name=f"Familia {index}",
+                owner_user_id=user.id,
+            )
+            db.add(family)
+            db.flush()
+            registration = Registration(
+                activity_id=ids["activity_a"],
+                family_id=family.id,
+                status=status,
+            )
+            db.add(registration)
+            registrations.append(registration)
+        db.commit()
+        confirmed_id, waiting_id = [registration.id for registration in registrations]
+
+    response = client.patch(
+        f"/activities/admin/{ids['activity_a']}/registrations/{confirmed_id}/cancel"
+    )
+
+    assert response.status_code == 200, response.text
+    statuses = {row["id"]: row["status"] for row in response.json()}
+    assert statuses == {
+        confirmed_id: "cancelada",
+        waiting_id: "lista_espera",
+    }
+
+    response = client.patch(
+        f"/activities/admin/{ids['activity_a']}/registrations/{waiting_id}/accept"
+    )
+
+    assert response.status_code == 200, response.text
+    statuses = {row["id"]: row["status"] for row in response.json()}
+    assert statuses == {
+        confirmed_id: "cancelada",
+        waiting_id: "confirmada",
+    }
+
+
+def test_organization_cannot_accept_waitlisted_family_without_enough_places(
+    security_sandbox,
+):
+    client, _, ids, TestSession = security_sandbox
+    with TestSession() as db:
+        activity = db.get(Activity, ids["activity_a"])
+        activity.capacity_people = 2
+
+        family_users = [
+            User(
+                full_name=f"Contacto {index}",
+                email=f"capacity-family{index}@example.com",
+                password_hash="test-hash-family",
+                role="familia",
+                is_active=True,
+            )
+            for index in (1, 2)
+        ]
+        db.add_all(family_users)
+        db.flush()
+        families = [
+            Family(name=f"Familia {index}", owner_user_id=user.id)
+            for index, user in enumerate(family_users, start=1)
+        ]
+        db.add_all(families)
+        db.flush()
+        participant = FamilyMember(
+            family_id=families[1].id,
+            full_name="Acompañante",
+            age=12,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(participant)
+        confirmed = Registration(
+            activity_id=activity.id,
+            family_id=families[0].id,
+            status="confirmada",
+        )
+        waiting = Registration(
+            activity_id=activity.id,
+            family_id=families[1].id,
+            status="lista_espera",
+            participants=[participant],
+        )
+        db.add_all([confirmed, waiting])
+        db.commit()
+        waiting_id = waiting.id
+
+    response = client.patch(
+        f"/activities/admin/{ids['activity_a']}/registrations/{waiting_id}/accept"
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == (
+        "No hay suficientes lugares disponibles para esta familia"
+    )
+
+
+def test_organization_cannot_manage_foreign_activity_registrations(
+    security_sandbox,
+):
+    client, _, ids, _ = security_sandbox
+
+    response = client.get(
+        f"/activities/admin/{ids['activity_b']}/registrations"
+    )
+
+    assert response.status_code == 403
+
+
+def test_organization_can_cancel_its_activity(security_sandbox):
+    client, _, ids, TestSession = security_sandbox
+
+    response = client.delete(f"/activities/{ids['activity_a']}")
+
+    assert response.status_code == 204
+    with TestSession() as db:
+        assert db.get(Activity, ids["activity_a"]).status == "cancelada"
+
 
 def test_organization_cannot_update_foreign_activity(security_sandbox):
     client, _, ids, _ = security_sandbox
@@ -252,11 +532,87 @@ def test_activity_can_be_updated_without_ends_at(security_sandbox):
 
     response = client.patch(
         f"/activities/{ids['activity_a']}",
-        json={"title": "Título actualizado"},
+        json={
+            "title": "Título actualizado",
+            "photo_url": "/uploads/activity.jpg",
+        },
     )
 
     assert response.status_code == 200, response.text
     assert response.json()["title"] == "Título actualizado"
+    assert response.json()["photo_url"] == "/uploads/activity.jpg"
+
+
+def test_organization_can_create_and_edit_standalone_activity(security_sandbox):
+    client, identity, ids, TestSession = security_sandbox
+    starts_at = datetime.now(timezone.utc) + timedelta(days=20)
+    response = client.post(
+        "/activities",
+        json={
+            "campaign_id": None,
+            "title": "Actividad independiente",
+            "description": "No pertenece a una campaña",
+            "starts_at": starts_at.isoformat(),
+            "ends_at": (starts_at + timedelta(hours=2)).isoformat(),
+            "location": "Monterrey",
+            "capacity_people": 10,
+            "registration_deadline": (
+                starts_at - timedelta(days=1)
+            ).isoformat(),
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    activity_id = response.json()["id"]
+    assert response.json()["campaign_id"] is None
+
+    update_response = client.patch(
+        f"/activities/{activity_id}",
+        json={"title": "Actividad independiente editada"},
+    )
+    assert update_response.status_code == 200, update_response.text
+    assert update_response.json()["title"] == "Actividad independiente editada"
+
+    identity.update(id=ids["admin"], role="admin")
+    publish_response = client.patch(
+        f"/activities/{activity_id}",
+        json={"status": "publicada"},
+    )
+    assert publish_response.status_code == 200, publish_response.text
+
+    list_response = client.get("/activities")
+    assert list_response.status_code == 200, list_response.text
+    assert activity_id in {
+        activity["id"] for activity in list_response.json()
+    }
+
+    detail_response = client.get(f"/activities/{activity_id}")
+    assert detail_response.status_code == 200, detail_response.text
+    assert detail_response.json()["campaign_id"] is None
+
+    with TestSession() as db:
+        activity = db.get(Activity, activity_id)
+        assert activity.campaign_id is None
+
+
+def test_activity_create_requires_registration_deadline(security_sandbox):
+    client, _, _, _ = security_sandbox
+    starts_at = datetime.now(timezone.utc) + timedelta(days=20)
+
+    response = client.post(
+        "/activities",
+        json={
+            "campaign_id": None,
+            "title": "Actividad independiente",
+            "description": "Falta la fecha límite",
+            "starts_at": starts_at.isoformat(),
+            "ends_at": (starts_at + timedelta(hours=2)).isoformat(),
+            "location": "Monterrey",
+            "capacity_people": 10,
+        },
+    )
+
+    assert response.status_code == 422, response.text
 
 
 def test_activity_in_draft_campaign_is_not_public(security_sandbox):

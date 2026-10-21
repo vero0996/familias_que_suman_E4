@@ -31,9 +31,11 @@ services:
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"
       SMTP_FROM: "Familias que Suman <no-reply@familias.test>"
-      PASSWORD_RESET_URL: "https://chapters-device-presentation-fotos.trycloudflare.com/auth/reset-password"
+      PASSWORD_RESET_URL: "https://undo-excluding-county-weekend.trycloudflare.com/auth/reset-password"
     ports:
       - "8000:8000"
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -58,4 +60,5 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
   mailpit_data:

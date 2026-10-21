@@ -217,6 +217,25 @@ def test_family_can_register_own_active_member(registration_sandbox):
     assert response.status_code == 201, response.text
 
 
+def test_family_can_register_for_standalone_activity(registration_sandbox):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.campaign_id = None
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+
+
 def test_family_cannot_register_foreign_member(registration_sandbox):
     client, _, _, _, activity_id, _, foreign_member_id, *_ = registration_sandbox
 
@@ -713,3 +732,338 @@ def test_reactivation_event_records_previous_and_new_status(
         assert event is not None
         assert event.from_status == "cancelada"
         assert event.to_status == response.json()["status"]
+
+def test_registration_is_confirmed_when_family_exactly_fits(
+    registration_sandbox,
+):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        # Ya hay un titular inscrito. Quedan dos lugares.
+        activity.capacity_people = 3
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == "confirmada"
+
+    with Session(engine) as db:
+        registration = db.get(Registration, response.json()["id"])
+        assert registration.status == "confirmada"
+        assert {member.id for member in registration.participants} == {
+            own_member_id
+        }
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 3
+        assert occupied == db.get(Activity, activity_id).capacity_people
+
+
+def test_registration_waits_when_only_one_of_two_required_places_is_free(
+    registration_sandbox,
+):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        # Ya hay un titular inscrito. Solo queda un lugar.
+        activity.capacity_people = 2
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == "lista_espera"
+
+    with Session(engine) as db:
+        registration = db.get(Registration, response.json()["id"])
+        assert registration.status == "lista_espera"
+        assert {member.id for member in registration.participants} == {
+            own_member_id
+        }
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 1
+
+@pytest.mark.parametrize("oldest_people", [2, 3])
+def test_waitlist_promotes_oldest_family_that_fits(
+    registration_sandbox,
+    oldest_people,
+):
+    (
+        client, engine, own_id, foreign_id, activity_id,
+        own_member_id, foreign_member_id, _,
+    ) = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = 2
+
+        confirmed = db.get(Registration, own_id)
+        confirmed.activity_id = activity_id
+        confirmed.participants = [db.get(FamilyMember, own_member_id)]
+
+        oldest = db.get(Registration, foreign_id)
+        oldest.status = "lista_espera"
+        oldest.created_at = datetime.now(timezone.utc) - timedelta(days=2)
+        oldest.participants = [db.get(FamilyMember, foreign_member_id)]
+
+        if oldest_people == 3:
+            extra_member = FamilyMember(
+                family_id=oldest.family_id,
+                full_name="Otro acompañante",
+                age=9,
+                relationship_type="Hijo",
+                is_active=True,
+            )
+            db.add(extra_member)
+            oldest.participants.append(extra_member)
+
+        newer_user = User(
+            full_name="Familia C",
+            email="familia-c@test.invalid",
+            password_hash="test-only-hash",
+            role="familia",
+            is_active=True,
+        )
+        db.add(newer_user)
+        db.flush()
+
+        newer_family = Family(
+            name="Familia C",
+            owner_user_id=newer_user.id,
+        )
+        db.add(newer_family)
+        db.flush()
+
+        newer_member = FamilyMember(
+            family_id=newer_family.id,
+            full_name="Acompañante C",
+            age=10,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(newer_member)
+        db.flush()
+
+        newer = Registration(
+            activity_id=activity_id,
+            family_id=newer_family.id,
+            status="lista_espera",
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            participants=[newer_member],
+        )
+        db.add(newer)
+        db.commit()
+        newer_id = newer.id
+
+    response = client.patch(
+        f"/registrations/{own_id}/cancel",
+        json={"reason": "Probar orden y capacidad de la lista de espera"},
+    )
+
+    assert response.status_code == 200, response.text
+
+    promoted_id = foreign_id if oldest_people == 2 else newer_id
+    waiting_id = newer_id if oldest_people == 2 else foreign_id
+
+    with Session(engine) as db:
+        assert db.get(Registration, own_id).status == "cancelada"
+        assert db.get(Registration, promoted_id).status == "confirmada"
+        assert db.get(Registration, waiting_id).status == "lista_espera"
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 2
+        assert occupied <= db.get(Activity, activity_id).capacity_people
+
+        promotion = db.scalar(
+            select(RegistrationEvent).where(
+                RegistrationEvent.registration_id == promoted_id,
+                RegistrationEvent.event_type == "lista_espera_promovida",
+            )
+        )
+        assert promotion is not None
+        assert promotion.from_status == "lista_espera"
+        assert promotion.to_status == "confirmada"
+
+        cancellation = db.scalar(
+            select(RegistrationEvent).where(
+                RegistrationEvent.registration_id == own_id,
+                RegistrationEvent.event_type == "inscripcion_cancelada",
+            )
+        )
+        assert cancellation is not None
+        assert cancellation.from_status == "confirmada"
+        assert cancellation.to_status == "cancelada"
+
+def test_reactivated_family_returns_to_end_of_waitlist(
+    registration_sandbox,
+):
+    (
+        client, engine, own_id, foreign_id, activity_id,
+        own_member_id, foreign_member_id, _,
+    ) = registration_sandbox
+
+    with Session(engine) as db:
+        now = datetime.now(timezone.utc)
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = 2
+
+        returning = db.get(Registration, own_id)
+        returning.activity_id = activity_id
+        returning.status = "cancelada"
+        returning.created_at = now - timedelta(days=3)
+        returning.canceled_at = now - timedelta(days=2)
+
+        waiting = db.get(Registration, foreign_id)
+        waiting.status = "lista_espera"
+        waiting.created_at = now - timedelta(days=1)
+        waiting.participants = [db.get(FamilyMember, foreign_member_id)]
+
+        holder_user = User(
+            full_name="Familia con lugares",
+            email="familia-con-lugares@test.invalid",
+            password_hash="test-only-hash",
+            role="familia",
+            is_active=True,
+        )
+        db.add(holder_user)
+        db.flush()
+
+        holder_family = Family(
+            name="Familia con lugares",
+            owner_user_id=holder_user.id,
+        )
+        db.add(holder_family)
+        db.flush()
+
+        holder_member = FamilyMember(
+            family_id=holder_family.id,
+            full_name="Acompañante",
+            age=10,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(holder_member)
+        db.flush()
+
+        holder = Registration(
+            activity_id=activity_id,
+            family_id=holder_family.id,
+            status="confirmada",
+            participants=[holder_member],
+        )
+        db.add(holder)
+        db.commit()
+
+        holder_id = holder.id
+        holder_user_id = holder_user.id
+
+    # La familia que canceló vuelve a inscribirse cuando el cupo está lleno.
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["id"] == own_id
+    assert response.json()["status"] == "lista_espera"
+
+    # Cambiar al usuario que tiene los lugares para que cancele su inscripción.
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=holder_user_id,
+        role="familia",
+        is_active=True,
+    )
+
+    response = client.patch(f"/registrations/{holder_id}/cancel")
+    assert response.status_code == 200, response.text
+
+    with Session(engine) as db:
+        # Debe avanzar quien ya estaba esperando, no quien se reinscribió.
+        assert db.get(Registration, foreign_id).status == "confirmada"
+        assert db.get(Registration, own_id).status == "lista_espera"
+
+@pytest.mark.parametrize(
+    "capacity, expected_status",
+    [
+        (2, "confirmada"),
+        (1, "lista_espera"),
+    ],
+)
+def test_holder_alone_occupies_one_place(
+    registration_sandbox,
+    capacity,
+    expected_status,
+):
+    client, engine, _, _, activity_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        # Esta actividad ya tiene un titular confirmado.
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = capacity
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == expected_status
+
+    with Session(engine) as db:
+        registration = db.get(Registration, response.json()["id"])
+        assert registration.status == expected_status
+        assert registration.participants == []
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == capacity

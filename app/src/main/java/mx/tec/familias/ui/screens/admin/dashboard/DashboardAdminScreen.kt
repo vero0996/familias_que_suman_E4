@@ -36,25 +36,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.R
-import mx.tec.familias.data.model.Activity
 import mx.tec.familias.ui.components.AdminBottomNavigationBar
 import mx.tec.familias.ui.components.AdminDestination
 import mx.tec.familias.ui.components.AdminScreenHeader
 import mx.tec.familias.ui.theme.*
+import mx.tec.familias.viewmodel.EditablePublication
 
 @Composable
 fun DashboardAdminScreen(
     tituloActividad: String,
     participantesActividad: Int,
     cuposTotalesActividad: Int,
-    actividades: List<Activity> = emptyList(),
+    fechaActividad: String = "",
+    horaActividad: String = "",
+    actividadId: Int? = null,
+    actividadStatus: String = "",
+    managedActivities: List<EditablePublication> = emptyList(),
+    isLoadingActivities: Boolean = false,
+    activityError: String? = null,
+    actividadSecundaria: EditablePublication? = null,
     onCampaniasClick: () -> Unit = {},
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
     onPerfilClick: () -> Unit = {},
     onCrearCampaniaClick: () -> Unit = {},
-    onReutilizarCampaniaClick: () -> Unit = {},
-    onActividadClick: (String) -> Unit = {}
+    onActividadClick: (Int) -> Unit = {}
 ) {
     var mostrarAccionesUrgentes by remember { mutableStateOf(false) }
     var mostrarCancelarCampania by remember { mutableStateOf(false) }
@@ -80,27 +86,52 @@ fun DashboardAdminScreen(
 
     val porcentajeCuposTexto = "${(porcentajeCupos * 100).toInt()}%"
 
+    val fechaHoraActividad = listOf(fechaActividad, horaActividad)
+        .filter { it.isNotBlank() }
+        .joinToString(" • ")
+        .ifBlank { "Fecha por confirmar" }
+
+    val cuposDisponiblesSecundaria = actividadSecundaria?.let {
+        ((it.capacityPeople.toIntOrNull() ?: 0) - it.confirmedPeople).coerceAtLeast(0)
+    } ?: 0
+
+    val porcentajeCuposSecundaria = actividadSecundaria?.let {
+        val capacity = it.capacityPeople.toIntOrNull() ?: 0
+
+        if (capacity > 0) {
+            (it.confirmedPeople.toFloat() / capacity).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+    } ?: 0f
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = TealLight.copy(alpha = 0.12f),
+
         topBar = {
             AdminScreenHeader(
                 title = "Inicio",
+
                 actions = {
                     IconButton(onClick = onPerfilClick) {
                         Image(
                             painter = painterResource(id = R.drawable.fotoperfil),
                             contentDescription = "Perfil",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(36.dp).clip(CircleShape)
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
                         )
                     }
                 }
             )
         },
+
         bottomBar = {
             AdminBottomNavigationBar(
                 currentDestination = AdminDestination.INICIO,
+
                 onDestinationSelected = { destination ->
                     when (destination) {
                         AdminDestination.INICIO -> Unit
@@ -114,15 +145,29 @@ fun DashboardAdminScreen(
     ) { paddingValues ->
 
         Column(
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 18.dp, start = 18.dp, end = 18.dp, bottom = 32.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        top = 18.dp,
+                        start = 18.dp,
+                        end = 18.dp,
+                        bottom = 32.dp
+                    )
             ) {
 
                 // SALUDO
 
-                Column(modifier = Modifier.padding(bottom = 20.dp).fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .padding(bottom = 20.dp)
+                        .fillMaxWidth()
+                ) {
                     Text(
                         text = "Hola, Asociación Banco de Alimentos",
                         color = TealPrimary,
@@ -141,10 +186,19 @@ fun DashboardAdminScreen(
                 // NECESIDADES URGENTES
 
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp).background(WarningBackground, RoundedCornerShape(22.dp)).padding(20.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp)
+                        .background(
+                            WarningBackground,
+                            RoundedCornerShape(22.dp)
+                        )
+                        .padding(20.dp)
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
@@ -167,7 +221,11 @@ fun DashboardAdminScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = "Faltan 5 voluntarios para la campaña\n\"Recogida de Invierno\" de este fin de semana.",
+                            text = if (tituloActividad.isNotBlank()) {
+                                "Revisa la disponibilidad de lugares para \"$tituloActividad\"."
+                            } else {
+                                "Revisa las próximas actividades de tu organización."
+                            },
                             color = Error,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
@@ -192,9 +250,14 @@ fun DashboardAdminScreen(
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Compartir campaña") },
+
                                 leadingIcon = {
-                                    Icon(Icons.Default.Share, contentDescription = null)
+                                    Icon(
+                                        Icons.Default.Share,
+                                        contentDescription = null
+                                    )
                                 },
+
                                 onClick = {
                                     mostrarAccionesUrgentes = false
                                     mostrarDialogoCompartir = true
@@ -203,9 +266,14 @@ fun DashboardAdminScreen(
 
                             DropdownMenuItem(
                                 text = { Text("Enviar mensaje") },
+
                                 leadingIcon = {
-                                    Icon(Icons.Default.Email, contentDescription = null)
+                                    Icon(
+                                        Icons.Default.Email,
+                                        contentDescription = null
+                                    )
                                 },
+
                                 onClick = {
                                     mostrarAccionesUrgentes = false
                                     onMensajesClick()
@@ -214,11 +282,20 @@ fun DashboardAdminScreen(
 
                             DropdownMenuItem(
                                 text = {
-                                    Text("Cancelar campaña", color = Error)
+                                    Text(
+                                        text = "Cancelar campaña",
+                                        color = Error
+                                    )
                                 },
+
                                 leadingIcon = {
-                                    Icon(Icons.Default.Cancel, contentDescription = null, tint = Error)
+                                    Icon(
+                                        Icons.Default.Cancel,
+                                        contentDescription = null,
+                                        tint = Error
+                                    )
                                 },
+
                                 onClick = {
                                     mostrarAccionesUrgentes = false
                                     mostrarCancelarCampania = true
@@ -241,7 +318,9 @@ fun DashboardAdminScreen(
                 // KPIs PRINCIPALES
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Card(
@@ -314,7 +393,9 @@ fun DashboardAdminScreen(
                 // SEGUNDA FILA KPIs
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Card(
@@ -388,7 +469,9 @@ fun DashboardAdminScreen(
 
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
                     colors = CardDefaults.cardColors(containerColor = Surface),
                     shape = RoundedCornerShape(28.dp),
                     border = BorderStroke(1.dp, Color.White)
@@ -404,7 +487,7 @@ fun DashboardAdminScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = "$participantesActividad de $cuposTotalesActividad cupos ocupados",
+                            text = "$participantesActividad personas confirmadas de $cuposTotalesActividad lugares",
                             color = TextSecondary,
                             fontSize = 13.sp
                         )
@@ -413,7 +496,10 @@ fun DashboardAdminScreen(
 
                         LinearProgressIndicator(
                             progress = { porcentajeCupos },
-                            modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(8.dp)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                                .clip(RoundedCornerShape(8.dp)),
                             color = TealPrimary,
                             trackColor = TealLight.copy(alpha = 0.35f)
                         )
@@ -424,16 +510,42 @@ fun DashboardAdminScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(TealPrimary))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(TealPrimary)
+                                )
+
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("$participantesActividad participantes", color = TextSecondary, fontSize = 12.sp)
+
+                                Text(
+                                    text = "$participantesActividad participantes",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
                             }
 
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(Divider))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .clip(CircleShape)
+                                        .background(Divider)
+                                )
+
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("$cuposDisponibles disponibles", color = TextSecondary, fontSize = 12.sp)
+
+                                Text(
+                                    text = "$cuposDisponibles disponibles",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
                             }
                         }
                     }
@@ -443,7 +555,9 @@ fun DashboardAdminScreen(
 
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
                     colors = CardDefaults.cardColors(containerColor = Surface),
                     shape = RoundedCornerShape(28.dp),
                     border = BorderStroke(1.dp, Color.White)
@@ -466,23 +580,26 @@ fun DashboardAdminScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        if (actividades.isEmpty()) {
+                        if (managedActivities.isEmpty()) {
                             Text(
                                 text = "No hay actividades disponibles.",
                                 color = TextSecondary,
                                 fontSize = 13.sp
                             )
                         } else {
-                            actividades.take(2).forEachIndexed { index, actividad ->
+                            managedActivities.take(2).forEachIndexed { index, actividad ->
 
-                                val progresoActividad = if (actividad.capacidadPersonas > 0) {
-                                    (actividad.ocupacionInicial.toFloat() / actividad.capacidadPersonas.toFloat()).coerceIn(0f, 1f)
+                                val capacity = actividad.capacityPeople.toIntOrNull() ?: 0
+
+                                val progresoActividad = if (capacity > 0) {
+                                    (actividad.confirmedPeople.toFloat() / capacity.toFloat())
+                                        .coerceIn(0f, 1f)
                                 } else {
                                     0f
                                 }
 
                                 Text(
-                                    text = actividad.nombre,
+                                    text = actividad.title,
                                     color = TextPrimary,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium
@@ -492,7 +609,10 @@ fun DashboardAdminScreen(
 
                                 LinearProgressIndicator(
                                     progress = { progresoActividad },
-                                    modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(8.dp)),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(12.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
                                     color = if (index == 0) TealPrimary else BrownPrimary,
                                     trackColor = TealLight.copy(alpha = 0.35f)
                                 )
@@ -504,19 +624,19 @@ fun DashboardAdminScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "${actividad.ocupacionInicial} participantes",
+                                        text = "${actividad.confirmedPeople} participantes",
                                         color = TextSecondary,
                                         fontSize = 12.sp
                                     )
 
                                     Text(
-                                        text = "${actividad.capacidadPersonas} cupos",
+                                        text = "$capacity cupos",
                                         color = TextSecondary,
                                         fontSize = 12.sp
                                     )
                                 }
 
-                                if (index < actividades.take(2).lastIndex) {
+                                if (index < managedActivities.take(2).lastIndex) {
                                     Spacer(modifier = Modifier.height(18.dp))
                                 }
                             }
@@ -527,7 +647,9 @@ fun DashboardAdminScreen(
                 // PRÓXIMAS ACTIVIDADES
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -542,153 +664,233 @@ fun DashboardAdminScreen(
                         color = TealPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable { onCampaniasClick() }
+                        modifier = Modifier.clickable {
+                            onCampaniasClick()
+                        }
                     )
                 }
 
-                if (actividades.isEmpty()) {
-                    Card(
-                        shape = RoundedCornerShape(28.dp),
-                        border = BorderStroke(1.dp, Color.White),
-                        colors = CardDefaults.cardColors(containerColor = Surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
-                    ) {
+                when {
+                    isLoadingActivities -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = TealPrimary
+                            )
+                        }
+                    }
+
+                    !activityError.isNullOrBlank() -> {
                         Text(
-                            text = "No hay actividades disponibles.",
-                            color = TextSecondary,
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(18.dp)
+                            text = activityError,
+                            color = Error
                         )
                     }
-                } else {
-                    actividades.take(2).forEachIndexed { index, actividad ->
 
-                        val progresoActividad = if (actividad.capacidadPersonas > 0) {
-                            (actividad.ocupacionInicial.toFloat() / actividad.capacidadPersonas.toFloat()).coerceIn(0f, 1f)
-                        } else {
-                            0f
-                        }
-
-                        val cuposDisponiblesActividad = (actividad.capacidadPersonas - actividad.ocupacionInicial).coerceAtLeast(0)
-
+                    managedActivities.isEmpty() -> {
                         Card(
                             shape = RoundedCornerShape(28.dp),
                             border = BorderStroke(1.dp, Color.White),
                             colors = CardDefaults.cardColors(containerColor = Surface),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).clickable {
-                                onActividadClick(actividad.id)
-                            }
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
                         ) {
-                            Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                            Text(
+                                text = "No tienes actividades para mostrar.",
+                                color = TextSecondary,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(18.dp)
+                            )
+                        }
+                    }
 
-                                Box(
-                                    modifier = Modifier.width(8.dp).fillMaxHeight().background(
-                                        if (index == 0) Error else TealLight
-                                    )
-                                )
+                    else -> {
+                        managedActivities.forEachIndexed { index, actividad ->
 
-                                Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                            val capacity = actividad.capacityPeople.toIntOrNull() ?: 0
 
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Text(
-                                            text = actividad.nombre,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp,
-                                            modifier = Modifier.weight(1f)
+                            val available = (
+                                    capacity -
+                                            actividad.confirmedPeople
+                                    ).coerceAtLeast(0)
+
+                            val progress = if (capacity > 0) {
+                                (
+                                        actividad.confirmedPeople.toFloat() /
+                                                capacity.toFloat()
+                                        ).coerceIn(0f, 1f)
+                            } else {
+                                0f
+                            }
+
+                            Card(
+                                shape = RoundedCornerShape(28.dp),
+                                border = BorderStroke(1.dp, Color.White),
+                                colors = CardDefaults.cardColors(containerColor = Surface),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp)
+                                    .clickable {
+                                        onActividadClick(
+                                            actividad.id
                                         )
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier.height(IntrinsicSize.Min)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(8.dp)
+                                            .fillMaxHeight()
+                                            .background(
+                                                if (index == 0) {
+                                                    Error
+                                                } else {
+                                                    TealLight
+                                                }
+                                            )
+                                    )
 
-                                        if (index == 0) {
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(16.dp)
+                                            .fillMaxWidth()
+                                    ) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = actividad.title,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp,
+                                                modifier = Modifier.weight(1f)
+                                            )
+
                                             Spacer(modifier = Modifier.width(8.dp))
 
-                                            Box(
-                                                modifier = Modifier.background(
-                                                    WarningBackground,
-                                                    RoundedCornerShape(4.dp)
-                                                ).padding(horizontal = 6.dp, vertical = 2.dp)
+                                            Text(
+                                                text = actividad.status
+                                                    .replaceFirstChar {
+                                                        it.uppercase()
+                                                    },
+                                                color = TealPrimary,
+                                                fontSize = 11.sp
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                Icons.Default.CalendarToday,
+                                                contentDescription = "Fecha",
+                                                modifier = Modifier.size(12.dp),
+                                                tint = TextSecondary
+                                            )
+
+                                            Spacer(modifier = Modifier.width(4.dp))
+
+                                            Text(
+                                                text = actividad.startsAt
+                                                    .replace("T", " ")
+                                                    .take(16),
+                                                fontSize = 12.sp,
+                                                color = TextSecondary
+                                            )
+                                        }
+
+                                        if (actividad.location.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
+                                                Icon(
+                                                    Icons.Default.LocationOn,
+                                                    contentDescription = "Ubicación",
+                                                    modifier = Modifier.size(12.dp),
+                                                    tint = TextSecondary
+                                                )
+
+                                                Spacer(modifier = Modifier.width(4.dp))
+
                                                 Text(
-                                                    text = "URGENTE",
-                                                    color = Error,
-                                                    fontSize = 8.sp,
-                                                    fontWeight = FontWeight.Bold
+                                                    text = actividad.location,
+                                                    fontSize = 12.sp,
+                                                    color = TextSecondary
                                                 )
                                             }
                                         }
-                                    }
 
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.height(12.dp))
 
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Default.CalendarToday,
-                                            contentDescription = "Fecha",
-                                            modifier = Modifier.size(12.dp),
-                                            tint = TextSecondary
-                                        )
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = "Lugares disponibles",
+                                                fontSize = 12.sp,
+                                                color = TextSecondary
+                                            )
 
-                                        Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = "$available disponibles",
+                                                fontSize = 12.sp,
+                                                color = if (index == 0) Error else TealPrimary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
 
-                                        Text(
-                                            text = "${actividad.fecha} • ${actividad.hora}",
-                                            fontSize = 12.sp,
-                                            color = TextSecondary
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.height(6.dp))
-
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Default.LocationOn,
-                                            contentDescription = "Ubicación",
-                                            modifier = Modifier.size(12.dp),
-                                            tint = TextSecondary
-                                        )
-
-                                        Spacer(modifier = Modifier.width(4.dp))
-
-                                        Text(
-                                            text = actividad.lugar,
-                                            fontSize = 12.sp,
-                                            color = TextSecondary
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.height(12.dp))
-
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Text(
-                                            text = "Lugares disponibles",
-                                            fontSize = 12.sp,
-                                            color = TextSecondary
-                                        )
-
-                                        Text(
-                                            text = "$cuposDisponiblesActividad/${actividad.capacidadPersonas} disponibles",
-                                            fontSize = 12.sp,
+                                        LinearProgressIndicator(
+                                            progress = { progress },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 4.dp),
                                             color = if (index == 0) Error else TealPrimary,
-                                            fontWeight = FontWeight.Bold
+                                            trackColor = TealLight.copy(alpha = 0.35f)
                                         )
                                     }
-
-                                    LinearProgressIndicator(
-                                        progress = { progresoActividad },
-                                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                                        color = if (index == 0) Error else TealPrimary,
-                                        trackColor = TealLight.copy(alpha = 0.35f)
-                                    )
                                 }
                             }
                         }
                     }
+                }
+
+                Button(
+                    onClick = onCrearCampaniaClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .height(52.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TealPrimary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "Crear campaña",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -698,8 +900,12 @@ fun DashboardAdminScreen(
 
     if (mostrarDialogoCompartir) {
         AlertDialog(
-            onDismissRequest = { mostrarDialogoCompartir = false },
+            onDismissRequest = {
+                mostrarDialogoCompartir = false
+            },
+
             containerColor = Surface,
+
             title = {
                 Text(
                     text = "Compartir campaña",
@@ -709,6 +915,7 @@ fun DashboardAdminScreen(
                     textAlign = TextAlign.Center
                 )
             },
+
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -724,7 +931,17 @@ fun DashboardAdminScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Box(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Surface).border(1.dp, Divider, RoundedCornerShape(10.dp)).padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Surface)
+                            .border(
+                                1.dp,
+                                Divider,
+                                RoundedCornerShape(10.dp)
+                            )
+                            .padding(12.dp),
+
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -736,27 +953,52 @@ fun DashboardAdminScreen(
                     }
                 }
             },
+
             confirmButton = {
                 TextButton(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(urlCampania))
-                        Toast.makeText(context, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                        clipboardManager.setText(
+                            AnnotatedString(
+                                urlCampania
+                            )
+                        )
+
+                        Toast.makeText(
+                            context,
+                            "Enlace copiado",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 ) {
-                    Icon(Icons.Default.ContentCopy, contentDescription = null, tint = TealPrimary)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Copiar", color = TealPrimary)
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        tint = TealPrimary
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(6.dp)
+                    )
+
+                    Text(
+                        text = "Copiar",
+                        color = TealPrimary
+                    )
                 }
             },
+
             dismissButton = {
                 Row {
                     TextButton(
                         onClick = {
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            val shareIntent = Intent(
+                                Intent.ACTION_SEND
+                            ).apply {
                                 type = "text/plain"
+
                                 putExtra(
                                     Intent.EXTRA_TEXT,
-                                    "¡Mira esta campaña en Familias que Suman!\n\nRecogida de Invierno\n\n$urlCampania"
+                                    "¡Mira esta campaña en Familias que Suman!\n\n$tituloActividad\n\n$urlCampania"
                                 )
                             }
 
@@ -768,13 +1010,31 @@ fun DashboardAdminScreen(
                             )
                         }
                     ) {
-                        Icon(Icons.Default.Share, contentDescription = null, tint = TealPrimary)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Compartir", color = TealPrimary)
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = null,
+                            tint = TealPrimary
+                        )
+
+                        Spacer(
+                            modifier = Modifier.width(6.dp)
+                        )
+
+                        Text(
+                            text = "Compartir",
+                            color = TealPrimary
+                        )
                     }
 
-                    TextButton(onClick = { mostrarDialogoCompartir = false }) {
-                        Text("Cerrar", color = TextSecondary)
+                    TextButton(
+                        onClick = {
+                            mostrarDialogoCompartir = false
+                        }
+                    ) {
+                        Text(
+                            text = "Cerrar",
+                            color = TextSecondary
+                        )
                     }
                 }
             }
@@ -785,37 +1045,72 @@ fun DashboardAdminScreen(
 
     if (mostrarCancelarCampania) {
         AlertDialog(
-            onDismissRequest = { mostrarCancelarCampania = false },
+            onDismissRequest = {
+                mostrarCancelarCampania = false
+            },
+
             title = {
-                Text("Cancelar campaña")
+                Text(
+                    text = "Cancelar campaña"
+                )
             },
+
             text = {
-                Text("¿Seguro que deseas cancelar esta campaña?")
+                Text(
+                    text = "¿Seguro que deseas cancelar esta campaña?"
+                )
             },
+
             confirmButton = {
                 TextButton(
                     onClick = {
                         mostrarCancelarCampania = false
-                        Toast.makeText(context, "Campaña cancelada", Toast.LENGTH_SHORT).show()
+
+                        Toast.makeText(
+                            context,
+                            "Campaña cancelada",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 ) {
-                    Text("Cancelar campaña", color = Error)
+                    Text(
+                        text = "Cancelar campaña",
+                        color = Error
+                    )
                 }
             },
+
             dismissButton = {
-                TextButton(onClick = { mostrarCancelarCampania = false }) {
-                    Text("Volver")
+                TextButton(
+                    onClick = {
+                        mostrarCancelarCampania = false
+                    }
+                ) {
+                    Text(
+                        text = "Volver"
+                    )
                 }
             }
         )
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Preview(showBackground = true, widthDp = 360, heightDp = 800, fontScale = 1.3f)
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 800
+)
+@Preview(
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 800,
+    fontScale = 1.3f
+)
 @Composable
 private fun DashboardAdminScreenPreview() {
-    FamiliasQueSumanTheme(darkTheme = false) {
+    FamiliasQueSumanTheme(
+        darkTheme = false
+    ) {
         DashboardAdminScreen(
             tituloActividad = "Colecta de Invierno 2026",
             participantesActividad = 35,

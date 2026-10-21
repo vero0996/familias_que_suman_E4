@@ -98,6 +98,7 @@ class CampaignCreate(BaseModel):
     title: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=1, max_length=5000)
     organization_name: str = Field(min_length=2, max_length=200)
+    photo_url: str | None = Field(default=None, max_length=500)
 
     @field_validator("title", "description", "organization_name")
     @classmethod
@@ -114,6 +115,7 @@ class CampaignUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=200)
     description: str | None = Field(default=None, min_length=1, max_length=5000)
     organization_name: str | None = Field(default=None, min_length=2, max_length=200)
+    photo_url: str | None = Field(default=None, max_length=500)
     status: CampaignStatus | None = None
 
     @field_validator("title", "description", "organization_name")
@@ -137,6 +139,7 @@ class CampaignResponse(BaseModel):
     title: str
     description: str
     organization_name: str
+    photo_url: str | None = None
     status: str
     created_by_user_id: int | None
     created_at: datetime
@@ -173,11 +176,12 @@ class ActivityCreate(BaseModel):
     campaign_id: int | None = Field(default=None, gt=0)
     title: str = Field(min_length=3, max_length=200)
     description: str = Field(min_length=1, max_length=5000)
+    photo_url: str | None = Field(default=None, max_length=500)
     starts_at: datetime
     ends_at: datetime
     location: str = Field(min_length=2, max_length=300)
     capacity_people: int = Field(gt=0)
-    registration_deadline: datetime | None = None
+    registration_deadline: datetime
 
     @field_validator("title", "description", "location")
     @classmethod
@@ -197,8 +201,7 @@ class ActivityCreate(BaseModel):
             )
 
         if (
-            self.registration_deadline is not None
-            and self.registration_deadline > self.starts_at
+            self.registration_deadline > self.starts_at
         ):
             raise ValueError(
                 "La fecha límite de inscripción no puede ser posterior al inicio"
@@ -210,6 +213,7 @@ class ActivityCreate(BaseModel):
 class ActivityUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=200)
     description: str | None = Field(default=None, min_length=1, max_length=5000)
+    photo_url: str | None = Field(default=None, max_length=500)
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     location: str | None = Field(default=None, min_length=2, max_length=300)
@@ -238,6 +242,7 @@ class ActivityResponse(BaseModel):
     campaign_id: int | None
     title: str
     description: str
+    photo_url: str | None = None
     starts_at: datetime
     ends_at: datetime | None
     location: str
@@ -251,11 +256,24 @@ class ActivityResponse(BaseModel):
     confirmed_people: int = 0
 
 
+class ManagedActivityRegistrationResponse(BaseModel):
+    id: int
+    activity_id: int
+    family_id: int
+    family_name: str
+    contact_name: str
+    email: str
+    phone: str | None
+    status: str
+    participant_names: list[str]
+    people_count: int
+    created_at: datetime
+
+
 class RegistrationCreate(BaseModel):
     activity_id: int = Field(gt=0)
     participant_ids: list[int] = Field(
         default_factory=list,
-        min_length=1,
         max_length=20,
     )
     notes: str | None = Field(default=None, max_length=2000)
