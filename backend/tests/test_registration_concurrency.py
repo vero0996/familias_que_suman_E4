@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from database import Base
 from models import Activity, Campaign, Family, FamilyMember, Registration, User
-from registrations import create_registration
+from registrations import create_registration, cancel_registration
 from schemas import RegistrationCreate
 
 
@@ -184,3 +184,70 @@ def test_same_family_cannot_register_twice_simultaneously(
         assert len(registrations) == 1
         assert registrations[0].status == "confirmada"
         assert len(registrations[0].participants) == 1
+
+def test_cancellation_promotes_waitlist_with_autoflush_disabled(
+    postgres_registrations,
+):
+    engine, activity_id, families = postgres_registrations
+
+    # La primera familia ocupa los dos lugares.
+    # La segunda queda esperando.
+    registration_ids = []
+
+    for user_id, member_id in families:
+        with Session(
+            engine,
+            autoflush=False,
+            expire_on_commit=False,
+        ) as db:
+            registration = create_registration(
+                data=RegistrationCreate(
+                    activity_id=activity_id,
+                    participant_ids=[member_id],
+                ),
+                db=db,
+                current_user=SimpleNamespace(
+                    id=user_id,
+                    role="familia",
+                    is_active=True,
+                ),
+            )
+            registration_ids.append(registration.id)
+
+    confirmed_id, waiting_id = registration_ids
+
+    with Session(engine) as db:
+        assert db.get(Registration, confirmed_id).status == "confirmada"
+        assert db.get(Registration, waiting_id).status == "lista_espera"
+
+    # Cancelar usando la misma configuración de sesión del backend.
+    with Session(
+        engine,
+        autoflush=False,
+        expire_on_commit=False,
+    ) as db:
+        cancel_registration(
+            registration_id=confirmed_id,
+            data=None,
+            db=db,
+            current_user=SimpleNamespace(
+                id=families[0][0],
+                role="familia",
+                is_active=True,
+            ),
+        )
+
+    with Session(engine) as db:
+        assert db.get(Registration, confirmed_id).status == "cancelada"
+        assert db.get(Registration, waiting_id).status == "confirmada"
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 2
+        assert occupied <= db.get(Activity, activity_id).capacity_people

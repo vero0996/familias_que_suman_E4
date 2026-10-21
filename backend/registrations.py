@@ -436,6 +436,9 @@ def cancel_registration(
         and activity is not None
         and ensure_utc(activity.starts_at) > utc_now()
     ):
+        # Enviar la cancelación a la base antes de calcular el cupo.
+        db.flush()
+
         confirmed_people = count_confirmed_people(db, activity_id)
 
         available_people = max(
