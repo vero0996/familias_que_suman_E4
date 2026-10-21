@@ -106,3 +106,9 @@ def database_health():
             status_code=503,
             detail="Database connection failed",
         )
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
