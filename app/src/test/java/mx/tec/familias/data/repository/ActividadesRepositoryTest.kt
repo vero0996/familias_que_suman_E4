@@ -9,8 +9,24 @@ import java.util.concurrent.TimeUnit
 
 class ActividadesRepositoryTest {
     private fun evento(id: String = "e", capacidad: Int = 2) = Activity(
-        id, "Evento", "Asociación", "Descripción", "24 NOV 2026", "09:00", "Parque", capacidad, 1000L
+        id = id,
+        campaignId = null,
+        nombre = "Evento",
+        organizacion = "Asociación",
+        descripcion = "Descripción",
+        fecha = "24 NOV 2026",
+        hora = "09:00",
+        lugar = "Parque",
+        capacidadPersonas = capacidad,
+        cierreInscripciones = 1000L,
+        personasConfirmadas = 0,
+        url = "",
+        puntoEncuentro = "",
+        tipoAportacion = "",
+        requisitos = "",
+        contacto = ""
     )
+
     private fun repo(capacidad: Int = 2) = ActividadesRepository(listOf(evento(capacidad = capacidad)), { 0L })
     private fun inscribir(repo: ActividadesRepository, familia: String, evento: String = "e") =
         repo.inscribir(evento, familia, listOf("$familia:titular"))
@@ -76,7 +92,6 @@ class ActividadesRepositoryTest {
             eventos = listOf(evento(capacidad = 10)),
             inscripciones = emptyList()
         )
-
         assertEquals(0, estado.ocupados("e"))
         assertEquals(10, estado.disponibles("e"))
     }
@@ -86,7 +101,6 @@ class ActividadesRepositoryTest {
             eventos = listOf(evento(capacidad = 10).copy(personasConfirmadas = 4)),
             inscripciones = emptyList()
         )
-
         assertEquals(4, estado.ocupados("e"))
         assertEquals(6, estado.disponibles("e"))
     }
@@ -96,7 +110,6 @@ class ActividadesRepositoryTest {
             eventos = listOf(evento(capacidad = 10).copy(personasConfirmadas = 10)),
             inscripciones = emptyList()
         )
-
         assertEquals(10, estado.ocupados("e"))
         assertEquals(0, estado.disponibles("e"))
     }
@@ -106,7 +119,6 @@ class ActividadesRepositoryTest {
             eventos = listOf(evento(capacidad = 10).copy(personasConfirmadas = 12)),
             inscripciones = emptyList()
         )
-
         assertEquals(12, estado.ocupados("e"))
         assertEquals(0, estado.disponibles("e"))
     }
@@ -126,7 +138,6 @@ class ActividadesRepositoryTest {
                 )
             )
         )
-
         assertEquals(0, estado.ocupados("e"))
         assertEquals(10, estado.disponibles("e"))
     }
@@ -267,5 +278,4 @@ class ActividadesRepositoryTest {
             assertEquals(1, datos.posicion(e))
         } finally { pool.shutdownNow() }
     }
-
 }

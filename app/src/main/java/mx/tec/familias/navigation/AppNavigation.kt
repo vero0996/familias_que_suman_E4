@@ -196,15 +196,33 @@ fun AppNavigation() {
                 actividadesViewModel.cargarActividades()
 
                 try {
-                    val response = ApiClient.apiService.getEventos()
-                    if (response.isSuccessful) eventosExplorar = response.body().orEmpty()
+                    eventosExplorar = ApiClient.apiService.getEventos().map { event ->
+                        Evento(
+                            id = event.id,
+                            title = event.title,
+                            description = event.description,
+                            location = event.location,
+                            starts_at = event.starts_at,
+                            created_at = event.created_at
+                        )
+                    }
                 } catch (_: Exception) {
+                    eventosExplorar = emptyList()
                 }
 
                 try {
-                    val response = ApiClient.apiService.getTalleres()
-                    if (response.isSuccessful) talleresExplorar = response.body().orEmpty()
+                    talleresExplorar = ApiClient.apiService.getTalleres().map { workshop ->
+                        Taller(
+                            id = workshop.id,
+                            title = workshop.title,
+                            description = workshop.description,
+                            location = workshop.location,
+                            starts_at = workshop.starts_at,
+                            created_at = workshop.created_at
+                        )
+                    }
                 } catch (_: Exception) {
+                    talleresExplorar = emptyList()
                 }
             }
 

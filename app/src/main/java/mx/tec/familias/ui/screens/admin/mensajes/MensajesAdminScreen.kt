@@ -83,15 +83,33 @@ fun MensajesAdminScreen(
         messageViewModel.cargarUsuarios()
 
         try {
-            val response = ApiClient.apiService.getEventos()
-            if (response.isSuccessful) eventos = response.body().orEmpty()
+            eventos = ApiClient.apiService.getEventos().map { event ->
+                Evento(
+                    id = event.id,
+                    title = event.title,
+                    description = event.description,
+                    location = event.location,
+                    starts_at = event.starts_at,
+                    created_at = event.created_at
+                )
+            }
         } catch (_: Exception) {
+            eventos = emptyList()
         }
 
         try {
-            val response = ApiClient.apiService.getTalleres()
-            if (response.isSuccessful) talleres = response.body().orEmpty()
+            talleres = ApiClient.apiService.getTalleres().map { workshop ->
+                Taller(
+                    id = workshop.id,
+                    title = workshop.title,
+                    description = workshop.description,
+                    location = workshop.location,
+                    starts_at = workshop.starts_at,
+                    created_at = workshop.created_at
+                )
+            }
         } catch (_: Exception) {
+            talleres = emptyList()
         }
     }
 
