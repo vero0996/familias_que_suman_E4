@@ -62,7 +62,7 @@ fun ExplorarScreen(
     val busqueda = searchText.trim().lowercase()
 
     val mostrarCampanias = filtroActual == "Todos" || filtroActual == "Donaciones" || filtroActual == "Campañas"
-    val mostrarActividades = filtroActual == "Todos" || filtroActual == "Voluntariado"
+    val mostrarActividades = filtroActual == "Todos" || filtroActual == "Voluntariado" || filtroActual == "Eventos"
     val mostrarEventos = filtroActual == "Todos" || filtroActual == "Eventos"
     val mostrarTalleres = filtroActual == "Todos" || filtroActual == "Talleres"
 

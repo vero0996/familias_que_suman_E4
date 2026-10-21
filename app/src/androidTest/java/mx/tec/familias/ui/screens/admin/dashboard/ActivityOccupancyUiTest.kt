@@ -1,8 +1,9 @@
 package mx.tec.familias.ui.screens.admin.dashboard
 
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.junit4.v2.createComposeRule
-import mx.tec.familias.data.model.Activity
+import androidx.compose.ui.test.junit4.createComposeRule
+import mx.tec.familias.viewmodel.EditablePublication
+import mx.tec.familias.viewmodel.PublicationKind
 import mx.tec.familias.ui.theme.FamiliasQueSumanTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -15,17 +16,16 @@ class ActivityOccupancyUiTest {
 
     @Test
     fun dashboardShowsBackendOccupancyAndAvailablePlaces() {
-        val secondActivity = Activity(
-            id = "2",
-            nombre = "Actividad secundaria real",
-            organizacion = "Organización",
-            descripcion = "Prueba",
-            fecha = "21/10/2026",
-            hora = "10:00",
-            lugar = "Monterrey",
-            capacidadPersonas = 6,
-            cierreInscripciones = 0L,
-            personasConfirmadas = 2
+        val secondActivity = EditablePublication(
+            kind = PublicationKind.ACTIVITY,
+            id = 2,
+            title = "Actividad secundaria real",
+            organizationName = "Organización",
+            description = "Prueba",
+            startsAt = "21/10/2026 10:00",
+            location = "Monterrey",
+            capacityPeople = "6",
+            confirmedPeople = 2
         )
 
         composeRule.setContent {
@@ -36,7 +36,8 @@ class ActivityOccupancyUiTest {
                     cuposTotalesActividad = 10,
                     fechaActividad = "20/10/2026",
                     horaActividad = "09:00",
-                    actividadSecundaria = secondActivity
+                    actividadSecundaria = secondActivity,
+                    managedActivities = listOf(secondActivity)
                 )
             }
         }
@@ -57,7 +58,7 @@ class ActivityOccupancyUiTest {
                 .isNotEmpty()
         )
         assertTrue(
-            composeRule.onAllNodesWithText("2 personas")
+            composeRule.onAllNodesWithText("2 participantes")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         )

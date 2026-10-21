@@ -105,6 +105,14 @@ fun DashboardAdminScreen(
         }
     } ?: 0f
 
+    val displayActivities = remember(managedActivities, actividadSecundaria) {
+        when {
+            managedActivities.isNotEmpty() -> managedActivities
+            actividadSecundaria != null -> listOf(actividadSecundaria)
+            else -> emptyList()
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = TealLight.copy(alpha = 0.12f),
@@ -580,14 +588,14 @@ fun DashboardAdminScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        if (managedActivities.isEmpty()) {
+                        if (displayActivities.isEmpty()) {
                             Text(
                                 text = "No hay actividades disponibles.",
                                 color = TextSecondary,
                                 fontSize = 13.sp
                             )
                         } else {
-                            managedActivities.take(2).forEachIndexed { index, actividad ->
+                            displayActivities.take(2).forEachIndexed { index, actividad ->
 
                                 val capacity = actividad.capacityPeople.toIntOrNull() ?: 0
 
@@ -636,7 +644,7 @@ fun DashboardAdminScreen(
                                     )
                                 }
 
-                                if (index < managedActivities.take(2).lastIndex) {
+                                if (index < displayActivities.take(2).lastIndex) {
                                     Spacer(modifier = Modifier.height(18.dp))
                                 }
                             }
@@ -691,7 +699,7 @@ fun DashboardAdminScreen(
                         )
                     }
 
-                    managedActivities.isEmpty() -> {
+                    displayActivities.isEmpty() -> {
                         Card(
                             shape = RoundedCornerShape(28.dp),
                             border = BorderStroke(1.dp, Color.White),
@@ -711,7 +719,7 @@ fun DashboardAdminScreen(
                     }
 
                     else -> {
-                        managedActivities.forEachIndexed { index, actividad ->
+                        displayActivities.forEachIndexed { index, actividad ->
 
                             val capacity = actividad.capacityPeople.toIntOrNull() ?: 0
 
