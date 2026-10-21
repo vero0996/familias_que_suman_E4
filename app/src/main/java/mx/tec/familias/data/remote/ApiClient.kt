@@ -9,10 +9,9 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object ApiClient {
 
-    // URL de tu túnel de Cloudflare (o localhost para emulador: "http://10.0.2.2:8000/")
-    // IMPORTANTE: Retrofit exige que la URL base termine obligatoriamente con barra diagonal (/)
-    // y no debe incluir "/docs" al final, ya que los endpoints están en la raíz.
-    private const val BASE_URL = "https://incentive-duncan-result-oils.trycloudflare.com/"
+    // CAMBIAR URL cada que se levante el backend
+    private const val BASE_URL =
+        "https://shopper-digest-web-oldest.trycloudflare.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -21,7 +20,7 @@ object ApiClient {
     // Cambiar el pin cada que cambie el dominio
     private val certificatePinner = CertificatePinner.Builder()
         .add(
-            "nutrition-earn-atmosphere-slideshow.trycloudflare.com",
+            "*.trycloudflare.com",
             "sha256/uXsPjVwaDxO4vIxFBYMc1wgPXF0VN/KExd/HrvBoDwY="
         )
         .build()

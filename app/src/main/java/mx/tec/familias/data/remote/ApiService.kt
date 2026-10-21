@@ -25,6 +25,24 @@ interface ApiService {
     @GET("campaigns")
     suspend fun getCampaigns(): List<CampaignResponse>
 
+    @GET("campaigns/mine")
+    suspend fun getManagedCampaigns(
+        @Header("Authorization") authorization: String
+    ): List<CampaignResponse>
+
+    @POST("campaigns")
+    suspend fun createCampaign(
+        @Header("Authorization") authorization: String,
+        @Body request: CampaignCreateRequest
+    ): CampaignResponse
+
+    @PATCH("campaigns/{campaign_id}")
+    suspend fun updateCampaign(
+        @Header("Authorization") authorization: String,
+        @Path("campaign_id") campaignId: Int,
+        @Body request: CampaignUpdateRequest
+    ): CampaignResponse
+
     @POST("auth/login")
     suspend fun login(
         @Body request: LoginRequest
@@ -38,10 +56,48 @@ interface ApiService {
     @GET("activities")
     suspend fun getActivities(): List<ActivityResponse>
 
+    @GET("activities/admin")
+    suspend fun getManagedActivities(
+        @Header("Authorization") authorization: String
+    ): List<ActivityResponse>
+
+    @PATCH("activities/{activity_id}")
+    suspend fun updateActivity(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Body request: ActivityUpdateRequest
+    ): ActivityResponse
+
     @GET("activities/{activity_id}")
     suspend fun getActivity(
         @Path("activity_id") activityId: Int
     ): ActivityResponse
+
+    @GET("activities/admin/{activity_id}/registrations")
+    suspend fun getManagedActivityRegistrations(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int
+    ): List<ManagedActivityRegistrationResponse>
+
+    @retrofit2.http.PATCH("activities/admin/{activity_id}/registrations/{registration_id}/cancel")
+    suspend fun cancelManagedActivityRegistration(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Path("registration_id") registrationId: Int
+    ): List<ManagedActivityRegistrationResponse>
+
+    @retrofit2.http.PATCH("activities/admin/{activity_id}/registrations/{registration_id}/accept")
+    suspend fun acceptManagedActivityRegistration(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Path("registration_id") registrationId: Int
+    ): List<ManagedActivityRegistrationResponse>
+
+    @DELETE("activities/{activity_id}")
+    suspend fun cancelActivity(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int
+    )
 
     @POST("registrations")
     suspend fun createRegistration(
@@ -96,18 +152,50 @@ interface ApiService {
         @Header("Authorization") authorization: String
     ): List<SurveyResponse>
 
-    @retrofit2.http.GET("api/proyectos/")
-    suspend fun getProyectos(): retrofit2.Response<List<mx.tec.familias.data.model.Proyecto>>
+    @GET("api/proyectos/")
+    suspend fun getProyectos(): List<ProjectResponse>
 
-    @retrofit2.http.GET("api/eventos/")
-    suspend fun getEventos(): retrofit2.Response<List<mx.tec.familias.data.model.Evento>>
+    @PATCH("api/proyectos/{project_id}")
+    suspend fun updateProject(
+        @Header("Authorization") authorization: String,
+        @Path("project_id") projectId: Int,
+        @Body request: ProjectUpdateRequest
+    ): ProjectResponse
 
-    @retrofit2.http.GET("api/talleres/")
-    suspend fun getTalleres(): retrofit2.Response<List<mx.tec.familias.data.model.Taller>>
+    @GET("api/eventos/")
+    suspend fun getEventos(): List<EventResponse>
+
+    @PATCH("api/eventos/{event_id}")
+    suspend fun updateEvent(
+        @Header("Authorization") authorization: String,
+        @Path("event_id") eventId: Int,
+        @Body request: EventUpdateRequest
+    ): EventResponse
+
+    @GET("api/talleres/")
+    suspend fun getTalleres(): List<WorkshopResponse>
+
+    @PATCH("api/talleres/{workshop_id}")
+    suspend fun updateWorkshop(
+        @Header("Authorization") authorization: String,
+        @Path("workshop_id") workshopId: Int,
+        @Body request: WorkshopUpdateRequest
+    ): WorkshopResponse
+
+    @GET("api/donaciones/")
+    suspend fun getDonations(): List<DonationResponse>
+
+    @PATCH("api/donaciones/{donation_id}")
+    suspend fun updateDonation(
+        @Header("Authorization") authorization: String,
+        @Path("donation_id") donationId: Int,
+        @Body request: DonationUpdateRequest
+    ): DonationResponse
 
     @retrofit2.http.Multipart
     @retrofit2.http.POST("api/fotos/")
     suspend fun uploadFoto(
+        @Header("Authorization") authorization: String,
         @retrofit2.http.Part file: okhttp3.MultipartBody.Part
     ): retrofit2.Response<mx.tec.familias.data.model.UploadResponse>
 

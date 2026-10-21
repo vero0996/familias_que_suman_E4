@@ -61,14 +61,74 @@ class ActividadesRepositoryTest {
         assertEquals(1, r.consultar().posicion(b))
     }
 
-    @Test fun integrantesNoMultiplicanElCupoDeFamilia() {
-        val r = repo(1)
+    @Test fun personasDuplicadasNoSeCuentanDosVeces() {
+        val r = repo(3)
         val participantes = mutableListOf("titular", "hijo", "hijo")
         val i = r.inscribir("e", "A", participantes, "  Sin nueces  ")
         participantes.clear()
         assertEquals(listOf("titular", "hijo"), i.participantesIds)
         assertEquals("Sin nueces", i.observaciones)
-        assertEquals(1, r.consultar().ocupados("e"))
+        assertEquals(2, r.consultar().ocupados("e"))
+    }
+
+    @Test fun actividadVaciaTieneTodosLosLugaresDisponibles() {
+        val estado = EstadoActividades(
+            eventos = listOf(evento(capacidad = 10)),
+            inscripciones = emptyList()
+        )
+
+        assertEquals(0, estado.ocupados("e"))
+        assertEquals(10, estado.disponibles("e"))
+    }
+
+    @Test fun actividadParcialUsaPersonasConfirmadasDelBackend() {
+        val estado = EstadoActividades(
+            eventos = listOf(evento(capacidad = 10).copy(personasConfirmadas = 4)),
+            inscripciones = emptyList()
+        )
+
+        assertEquals(4, estado.ocupados("e"))
+        assertEquals(6, estado.disponibles("e"))
+    }
+
+    @Test fun actividadLlenaNoTieneLugaresDisponibles() {
+        val estado = EstadoActividades(
+            eventos = listOf(evento(capacidad = 10).copy(personasConfirmadas = 10)),
+            inscripciones = emptyList()
+        )
+
+        assertEquals(10, estado.ocupados("e"))
+        assertEquals(0, estado.disponibles("e"))
+    }
+
+    @Test fun actividadSobreCapacidadNoMuestraDisponibilidadNegativa() {
+        val estado = EstadoActividades(
+            eventos = listOf(evento(capacidad = 10).copy(personasConfirmadas = 12)),
+            inscripciones = emptyList()
+        )
+
+        assertEquals(12, estado.ocupados("e"))
+        assertEquals(0, estado.disponibles("e"))
+    }
+
+    @Test fun inscripcionEnEsperaNoConsumeLugaresConfirmados() {
+        val estado = EstadoActividades(
+            eventos = listOf(evento(capacidad = 10)),
+            inscripciones = listOf(
+                Inscripcion(
+                    id = "espera",
+                    eventoId = "e",
+                    familiaId = "familia",
+                    participantesIds = listOf("titular", "hijo"),
+                    observaciones = "",
+                    estado = EstadoInscripcion.EN_ESPERA,
+                    ordenEspera = 1
+                )
+            )
+        )
+
+        assertEquals(0, estado.ocupados("e"))
+        assertEquals(10, estado.disponibles("e"))
     }
 
     @Test fun mismaFamiliaPuedeInscribirseEnDosEventos() {
@@ -132,8 +192,8 @@ class ActividadesRepositoryTest {
     }
 
     @Test fun cancelarPromuevePrimeraFamiliaYRecalculaPosiciones() {
-        val r = repo(1)
-        val a = inscribir(r, "A")
+        val r = repo(2)
+        val a = r.inscribir("e", "A", listOf("titular", "hijo"))
         val b = r.inscribir("e", "B", listOf("titular", "hijo"), "Observación")
         val c = inscribir(r, "C")
         assertTrue(r.cancelar(a.id, "A"))
@@ -143,7 +203,7 @@ class ActividadesRepositoryTest {
         assertEquals(b.participantesIds, promovida.participantesIds)
         assertEquals(b.observaciones, promovida.observaciones)
         assertEquals(1, datos.posicion(c))
-        assertEquals(1, datos.ocupados("e"))
+        assertEquals(2, datos.ocupados("e"))
     }
 
     @Test fun dobleCancelacionNoLiberaDosLugares() {
