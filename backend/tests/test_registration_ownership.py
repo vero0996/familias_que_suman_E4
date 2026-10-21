@@ -793,3 +793,121 @@ def test_registration_waits_when_only_one_of_two_required_places_is_free(
 
         occupied = sum(1 + len(item.participants) for item in confirmed)
         assert occupied == 1
+
+@pytest.mark.parametrize("oldest_people", [2, 3])
+def test_waitlist_promotes_oldest_family_that_fits(
+    registration_sandbox,
+    oldest_people,
+):
+    (
+        client, engine, own_id, foreign_id, activity_id,
+        own_member_id, foreign_member_id, _,
+    ) = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.capacity_people = 2
+
+        confirmed = db.get(Registration, own_id)
+        confirmed.activity_id = activity_id
+        confirmed.participants = [db.get(FamilyMember, own_member_id)]
+
+        oldest = db.get(Registration, foreign_id)
+        oldest.status = "lista_espera"
+        oldest.created_at = datetime.now(timezone.utc) - timedelta(days=2)
+        oldest.participants = [db.get(FamilyMember, foreign_member_id)]
+
+        if oldest_people == 3:
+            extra_member = FamilyMember(
+                family_id=oldest.family_id,
+                full_name="Otro acompañante",
+                age=9,
+                relationship_type="Hijo",
+                is_active=True,
+            )
+            db.add(extra_member)
+            oldest.participants.append(extra_member)
+
+        newer_user = User(
+            full_name="Familia C",
+            email="familia-c@test.invalid",
+            password_hash="test-only-hash",
+            role="familia",
+            is_active=True,
+        )
+        db.add(newer_user)
+        db.flush()
+
+        newer_family = Family(
+            name="Familia C",
+            owner_user_id=newer_user.id,
+        )
+        db.add(newer_family)
+        db.flush()
+
+        newer_member = FamilyMember(
+            family_id=newer_family.id,
+            full_name="Acompañante C",
+            age=10,
+            relationship_type="Hijo",
+            is_active=True,
+        )
+        db.add(newer_member)
+        db.flush()
+
+        newer = Registration(
+            activity_id=activity_id,
+            family_id=newer_family.id,
+            status="lista_espera",
+            created_at=datetime.now(timezone.utc) - timedelta(days=1),
+            participants=[newer_member],
+        )
+        db.add(newer)
+        db.commit()
+        newer_id = newer.id
+
+    response = client.patch(
+        f"/registrations/{own_id}/cancel",
+        json={"reason": "Probar orden y capacidad de la lista de espera"},
+    )
+
+    assert response.status_code == 200, response.text
+
+    promoted_id = foreign_id if oldest_people == 2 else newer_id
+    waiting_id = newer_id if oldest_people == 2 else foreign_id
+
+    with Session(engine) as db:
+        assert db.get(Registration, own_id).status == "cancelada"
+        assert db.get(Registration, promoted_id).status == "confirmada"
+        assert db.get(Registration, waiting_id).status == "lista_espera"
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 2
+        assert occupied <= db.get(Activity, activity_id).capacity_people
+
+        promotion = db.scalar(
+            select(RegistrationEvent).where(
+                RegistrationEvent.registration_id == promoted_id,
+                RegistrationEvent.event_type == "lista_espera_promovida",
+            )
+        )
+        assert promotion is not None
+        assert promotion.from_status == "lista_espera"
+        assert promotion.to_status == "confirmada"
+
+        cancellation = db.scalar(
+            select(RegistrationEvent).where(
+                RegistrationEvent.registration_id == own_id,
+                RegistrationEvent.event_type == "inscripcion_cancelada",
+            )
+        )
+        assert cancellation is not None
+        assert cancellation.from_status == "confirmada"
+        assert cancellation.to_status == "cancelada"
