@@ -20,16 +20,20 @@ def get_message_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    role = "organizacion"
+    if current_user.role == "familia":
+        roles = ["admin"]
 
-    if current_user.role == "organizacion":
-        role = "familia"
+    elif current_user.role == "admin":
+        roles = ["familia"]
+
+    else:
+        roles = []
 
     users = (
         db.query(User)
         .filter(
             User.id != current_user.id,
-            User.role == role,
+            User.role.in_(roles),
             User.is_active == True,
         )
         .order_by(User.full_name)
