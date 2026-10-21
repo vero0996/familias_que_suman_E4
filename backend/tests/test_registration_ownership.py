@@ -713,3 +713,83 @@ def test_reactivation_event_records_previous_and_new_status(
         assert event is not None
         assert event.from_status == "cancelada"
         assert event.to_status == response.json()["status"]
+
+def test_registration_is_confirmed_when_family_exactly_fits(
+    registration_sandbox,
+):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        # Ya hay un titular inscrito. Quedan dos lugares.
+        activity.capacity_people = 3
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == "confirmada"
+
+    with Session(engine) as db:
+        registration = db.get(Registration, response.json()["id"])
+        assert registration.status == "confirmada"
+        assert {member.id for member in registration.participants} == {
+            own_member_id
+        }
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 3
+        assert occupied == db.get(Activity, activity_id).capacity_people
+
+
+def test_registration_waits_when_only_one_of_two_required_places_is_free(
+    registration_sandbox,
+):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        # Ya hay un titular inscrito. Solo queda un lugar.
+        activity.capacity_people = 2
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+    assert response.json()["status"] == "lista_espera"
+
+    with Session(engine) as db:
+        registration = db.get(Registration, response.json()["id"])
+        assert registration.status == "lista_espera"
+        assert {member.id for member in registration.participants} == {
+            own_member_id
+        }
+
+        confirmed = db.scalars(
+            select(Registration).where(
+                Registration.activity_id == activity_id,
+                Registration.status == "confirmada",
+            )
+        ).all()
+
+        occupied = sum(1 + len(item.participants) for item in confirmed)
+        assert occupied == 1
