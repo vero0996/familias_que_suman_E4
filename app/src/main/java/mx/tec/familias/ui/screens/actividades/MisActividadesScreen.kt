@@ -91,6 +91,10 @@ fun MisActividadesScreen(
         it.estado == mx.tec.familias.data.model.EstadoInscripcion.CONFIRMADA
     }
 
+    val enEspera = propias.filter {
+        it.estado == mx.tec.familias.data.model.EstadoInscripcion.EN_ESPERA
+    }
+
     var actividadEncuesta by remember {
         mutableStateOf<ActividadInscrita?>(null)
     }
@@ -227,9 +231,7 @@ fun MisActividadesScreen(
                 confirmadas,
                 key = { "confirmada:${it.id}" }
             ) { solicitud ->
-
                 val evento = estado.evento(solicitud.eventoId)
-
                 val registroId = solicitud.id.toIntOrNull()
 
                 val encuestaCompletada =
@@ -239,12 +241,57 @@ fun MisActividadesScreen(
                             }
 
                 val actividadTerminada =
-                    evento.endsAtEpochMillis
-                        ?.let {
-                            it > 0L &&
-                                    it <= System.currentTimeMillis()
-                        }
-                        ?: false
+                    evento.endsAtEpochMillis?.let {
+                        it > 0L && it <= System.currentTimeMillis()
+                    } ?: false
+
+                val actividad = ActividadInscrita(
+                    id = solicitud.id,
+                    nombre = evento.nombre,
+                    fecha = evento.fecha,
+                    hora = evento.hora,
+                    lugar = evento.lugar
+                )
+
+                ActividadInscritaCard(
+                    actividad = actividad,
+                    mostrarBotonEncuesta =
+                        actividadTerminada && !encuestaCompletada,
+                    encuestaCompletada = encuestaCompletada,
+                    onContestarEncuesta = {
+                        actividadEncuesta = actividad
+                        calificacionCampania = 5
+                        calificacionOrganizacion = 5
+                        calificacionComunicacion = 5
+                        calificacionGeneral = 5
+                        comentarioEncuesta = ""
+                        mensajeEncuesta = null
+                    }
+                )
+            }
+
+            item {
+                SectionHeader(
+                    "Lista de espera",
+                    "Solicitudes pendientes de un lugar para tu familia."
+                )
+            }
+
+            if (enEspera.isEmpty()) {
+                item {
+                    EmptyActivitiesCard(
+                        Icons.Default.Schedule,
+                        "No estás en ninguna lista de espera",
+                        "Aquí aparecerán tus solicitudes cuando no haya cupo suficiente."
+                    )
+                }
+            }
+
+            items(
+                enEspera,
+                key = { "espera:${it.id}" }
+            ) { solicitud ->
+                val evento = estado.evento(solicitud.eventoId)
 
                 ActividadInscritaCard(
                     actividad = ActividadInscrita(
@@ -254,27 +301,7 @@ fun MisActividadesScreen(
                         hora = evento.hora,
                         lugar = evento.lugar
                     ),
-                    mostrarBotonEncuesta =
-                        actividadTerminada &&
-                                !encuestaCompletada,
-                    encuestaCompletada = encuestaCompletada,
-                    onContestarEncuesta = {
-                        actividadEncuesta =
-                            ActividadInscrita(
-                                id = solicitud.id,
-                                nombre = evento.nombre,
-                                fecha = evento.fecha,
-                                hora = evento.hora,
-                                lugar = evento.lugar
-                            )
-
-                        calificacionCampania = 5
-                        calificacionOrganizacion = 5
-                        calificacionComunicacion = 5
-                        calificacionGeneral = 5
-                        comentarioEncuesta = ""
-                        mensajeEncuesta = null
-                    }
+                    enEspera = true
                 )
             }
         }
@@ -293,6 +320,7 @@ fun MisActividadesScreen(
             }
         )
     }
+
 
     actividadEncuesta?.let { actividad ->
         AlertDialog(
@@ -518,6 +546,7 @@ private fun ActividadInscritaCard(
     actividad: ActividadInscrita,
     mostrarBotonEncuesta: Boolean = false,
     encuestaCompletada: Boolean = false,
+    enEspera: Boolean = false,
     onContestarEncuesta: () -> Unit = {}
 ) {
     Card(
@@ -559,10 +588,26 @@ private fun ActividadInscritaCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 StatusBadge(
-                    text = "INSCRITO",
-                    backgroundColor = OrangePrimary.copy(alpha = 0.45f),
-                    textColor = BrownPrimary
+                    text = if (enEspera) "EN ESPERA" else "INSCRITO",
+                    backgroundColor = if (enEspera) {
+                        TealLight
+                    } else {
+                        OrangePrimary.copy(alpha = 0.45f)
+                    },
+                    textColor = if (enEspera) TealPrimary else BrownPrimary
                 )
+
+                if (enEspera) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Tu inscripción se confirmará automáticamente " +
+                                "si se liberan lugares suficientes para tu familia " +
+                                "y corresponde tu turno.",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
