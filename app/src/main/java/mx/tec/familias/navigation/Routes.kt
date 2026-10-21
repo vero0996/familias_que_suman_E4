@@ -31,6 +31,7 @@ sealed class Routes(val route: String) {
     data object DashboardAdmin : Routes("dashboardAdmin")
 
     data object MisCampanias : Routes("misCampanias")
+    data object GestionPublicaciones : Routes("gestionPublicaciones")
 
     data object MensajesAdmin : Routes("mensajesAdmin")
 
@@ -47,6 +48,9 @@ sealed class Routes(val route: String) {
     data object VistaPreviaCampania : Routes("vistaPreviaCampania")
     data object EditarCampania : Routes("editarCampania") {
         fun createRoute(campaignId: Int) = "editarCampania/$campaignId"
+    }
+    data object EditarPublicacion : Routes("editarPublicacion") {
+        fun createRoute(kind: String, id: Int) = "editarPublicacion/$kind/$id"
     }
 
     data object Mensajes : Routes("mensajes")

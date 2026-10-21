@@ -43,6 +43,7 @@ fun MisCampaniasScreen(
     onMensajesClick: () -> Unit = {},
     onConfiguracionClick: () -> Unit = {},
     onNuevaCampaniaClick: () -> Unit = {},
+    onGestionarPublicacionesClick: () -> Unit = {},
     onGestionCampaniaClick: () -> Unit = {},
     onEditarCampaniaClick: (Int) -> Unit = {},
     onReutilizarCampaniaClick: () -> Unit = {}
@@ -79,6 +80,14 @@ fun MisCampaniasScreen(
                 .verticalScroll(rememberScrollState()).padding(horizontal = 18.dp)
         ) {
             Spacer(modifier = Modifier.height(18.dp))
+
+            Button(
+                onClick = onGestionarPublicacionesClick,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TealPrimary)
+            ) {
+                Text("Editar todas mis publicaciones", color = Surface)
+            }
 
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {

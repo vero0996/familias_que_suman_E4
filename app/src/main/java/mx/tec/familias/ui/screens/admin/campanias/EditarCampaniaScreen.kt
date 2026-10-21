@@ -22,6 +22,7 @@ import mx.tec.familias.ui.theme.*
 fun EditarCampaniaScreen(
     campaignId: Int,
     campaigns: List<CampaignResponse>,
+    canChangeStatus: Boolean = false,
     isSaving: Boolean = false,
     error: String? = null,
     onBackClick: () -> Unit = {},
@@ -33,6 +34,12 @@ fun EditarCampaniaScreen(
     var description by remember(campaign) { mutableStateOf(campaign?.description ?: "") }
     var organizationName by remember(campaign) { mutableStateOf(campaign?.organization_name ?: "") }
     var status by remember(campaign) { mutableStateOf(campaign?.status ?: "borrador") }
+    var statusExpanded by remember(campaign) { mutableStateOf(false) }
+    val statusOptions = when (campaign?.status) {
+        "borrador" -> listOf("borrador", "publicada", "cancelada")
+        "publicada" -> listOf("publicada", "cancelada", "finalizada")
+        else -> listOf(campaign?.status ?: "borrador")
+    }
 
     Scaffold(
         containerColor = TealLight.copy(alpha = 0.12f),
@@ -110,18 +117,51 @@ fun EditarCampaniaScreen(
                     )
                 )
 
-                OutlinedTextField(
-                    value = status,
-                    onValueChange = { status = it },
-                    label = { Text("Estado (borrador, publicada, etc.)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Surface,
-                        unfocusedContainerColor = Surface,
-                        focusedBorderColor = TealPrimary
+                if (canChangeStatus) {
+                    ExposedDropdownMenuBox(
+                        expanded = statusExpanded,
+                        onExpandedChange = { statusExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = status,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Estado") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = statusExpanded
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Surface,
+                                unfocusedContainerColor = Surface,
+                                focusedBorderColor = TealPrimary
+                            )
+                        )
+                        ExposedDropdownMenu(
+                            expanded = statusExpanded,
+                            onDismissRequest = { statusExpanded = false }
+                        ) {
+                            statusOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        status = option
+                                        statusExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "Estado actual: $status",
+                        color = TextSecondary,
+                        fontSize = 14.sp
                     )
-                )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -139,9 +179,9 @@ fun EditarCampaniaScreen(
                             title = title.ifBlank { null },
                             description = description.ifBlank { null },
                             organization_name = organizationName.ifBlank { null },
-                            status = status
-                                .takeIf { it != campaign.status }
-                                ?.ifBlank { null }
+                            status = status.takeIf {
+                                canChangeStatus && it != campaign.status
+                            }
                         )
                         onSave(campaignId, request)
                     },

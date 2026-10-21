@@ -45,6 +45,13 @@ interface ApiService {
     @GET("activities")
     suspend fun getActivities(): List<ActivityResponse>
 
+    @PATCH("activities/{activity_id}")
+    suspend fun updateActivity(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Body request: ActivityUpdateRequest
+    ): ActivityResponse
+
     @GET("activities/{activity_id}")
     suspend fun getActivity(
         @Path("activity_id") activityId: Int
@@ -103,14 +110,45 @@ interface ApiService {
         @Header("Authorization") authorization: String
     ): List<SurveyResponse>
 
-    @retrofit2.http.GET("api/proyectos/")
-    suspend fun getProyectos(): retrofit2.Response<List<mx.tec.familias.data.model.Proyecto>>
+    @GET("api/proyectos/")
+    suspend fun getProyectos(): List<ProjectResponse>
 
-    @retrofit2.http.GET("api/eventos/")
-    suspend fun getEventos(): retrofit2.Response<List<mx.tec.familias.data.model.Evento>>
+    @PATCH("api/proyectos/{project_id}")
+    suspend fun updateProject(
+        @Header("Authorization") authorization: String,
+        @Path("project_id") projectId: Int,
+        @Body request: ProjectUpdateRequest
+    ): ProjectResponse
 
-    @retrofit2.http.GET("api/talleres/")
-    suspend fun getTalleres(): retrofit2.Response<List<mx.tec.familias.data.model.Taller>>
+    @GET("api/eventos/")
+    suspend fun getEventos(): List<EventResponse>
+
+    @PATCH("api/eventos/{event_id}")
+    suspend fun updateEvent(
+        @Header("Authorization") authorization: String,
+        @Path("event_id") eventId: Int,
+        @Body request: EventUpdateRequest
+    ): EventResponse
+
+    @GET("api/talleres/")
+    suspend fun getTalleres(): List<WorkshopResponse>
+
+    @PATCH("api/talleres/{workshop_id}")
+    suspend fun updateWorkshop(
+        @Header("Authorization") authorization: String,
+        @Path("workshop_id") workshopId: Int,
+        @Body request: WorkshopUpdateRequest
+    ): WorkshopResponse
+
+    @GET("api/donaciones/")
+    suspend fun getDonations(): List<DonationResponse>
+
+    @PATCH("api/donaciones/{donation_id}")
+    suspend fun updateDonation(
+        @Header("Authorization") authorization: String,
+        @Path("donation_id") donationId: Int,
+        @Body request: DonationUpdateRequest
+    ): DonationResponse
 
     @retrofit2.http.Multipart
     @retrofit2.http.POST("api/fotos/")

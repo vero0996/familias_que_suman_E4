@@ -30,6 +30,10 @@ import mx.tec.familias.ui.screens.actividades.CalendarioScreen
 import mx.tec.familias.ui.screens.actividades.MisActividadesScreen
 import mx.tec.familias.ui.screens.admin.campanias.MisCampaniasScreen
 import mx.tec.familias.ui.screens.admin.campanias.EditarCampaniaScreen
+import mx.tec.familias.ui.screens.admin.campanias.GestionPublicacionesScreen
+import mx.tec.familias.ui.screens.admin.campanias.EditarPublicacionScreen
+import mx.tec.familias.viewmodel.AdminPublicationsViewModel
+import mx.tec.familias.viewmodel.PublicationKind
 import mx.tec.familias.viewmodel.CampaignViewModel
 import androidx.activity.compose.BackHandler
 import mx.tec.familias.ui.screens.admin.dashboard.DashboardAdminScreen
@@ -69,6 +73,12 @@ fun AppNavigation() {
     val campaignViewModel: mx.tec.familias.viewmodel.CampaignViewModel = viewModel()
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
+    val adminPublicationsViewModel: AdminPublicationsViewModel = viewModel(
+        factory = remember(sessionManager) {
+            AdminPublicationsViewModel.Factory(sessionManager)
+        }
+    )
+    val adminPublicationsState by adminPublicationsViewModel.uiState.collectAsState()
 
     val actividadesViewModel: mx.tec.familias.viewmodel.ActividadesViewModel =
         viewModel(
@@ -1050,6 +1060,10 @@ fun AppNavigation() {
                         )
                     },
 
+                    onGestionarPublicacionesClick = {
+                        navController.navigate(Routes.GestionPublicaciones.route)
+                    },
+
                     onGestionCampaniaClick = {
                         navController.navigate(
                             Routes.GestionMensajesCampania.route
@@ -1086,6 +1100,7 @@ fun AppNavigation() {
                 EditarCampaniaScreen(
                     campaignId = campaignId,
                     campaigns = uiState.campaigns,
+                    canChangeStatus = rolUsuario == "admin",
                     isSaving = uiState.isLoading,
                     error = uiState.error,
                     onBackClick = {
@@ -1093,6 +1108,67 @@ fun AppNavigation() {
                     },
                     onSave = { id, request ->
                         campaignViewModel.updateCampaign(id, request) {
+                            navController.popBackStack()
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(Routes.GestionPublicaciones.route) {
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                LaunchedEffect(Unit) {
+                    adminPublicationsViewModel.loadPublications()
+                }
+                GestionPublicacionesScreen(
+                    state = adminPublicationsState,
+                    onBackClick = { navController.popBackStack() },
+                    onRetry = adminPublicationsViewModel::loadPublications,
+                    onEditClick = { publication ->
+                        if (publication.kind == PublicationKind.CAMPAIGN) {
+                            navController.navigate(
+                                Routes.EditarCampania.createRoute(publication.id)
+                            )
+                        } else {
+                            navController.navigate(
+                                Routes.EditarPublicacion.createRoute(
+                                    publication.kind.name.lowercase(),
+                                    publication.id
+                                )
+                            )
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(Routes.EditarPublicacion.route + "/{kind}/{publicationId}") { backStackEntry ->
+            RutaAdminProtegida(
+                tieneAcceso = tieneAccesoAdmin,
+                navController = navController
+            ) {
+                val kindName = backStackEntry.arguments?.getString("kind")
+                val publicationId = backStackEntry.arguments
+                    ?.getString("publicationId")
+                    ?.toIntOrNull()
+                val kind = PublicationKind.values()
+                    .firstOrNull { it.name.equals(kindName, ignoreCase = true) }
+                val publication = if (kind != null && publicationId != null) {
+                    adminPublicationsState.find(kind, publicationId)
+                } else {
+                    null
+                }
+
+                EditarPublicacionScreen(
+                    publication = publication,
+                    isSaving = adminPublicationsState.isLoading,
+                    error = adminPublicationsState.error,
+                    onBackClick = { navController.popBackStack() },
+                    onSave = { draft ->
+                        adminPublicationsViewModel.updatePublication(draft) {
                             navController.popBackStack()
                         }
                     }
