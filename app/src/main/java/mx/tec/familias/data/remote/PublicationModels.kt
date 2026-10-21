@@ -79,5 +79,6 @@ data class ActivityUpdateRequest(
     val location: String,
     val capacity_people: Int,
     val registration_deadline: String? = null,
+    val photo_url: String? = null,
     val status: String? = null
 )

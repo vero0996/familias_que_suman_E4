@@ -8,6 +8,7 @@ data class CampaignResponse(
     val title: String,
     val description: String,
     val organization_name: String,
+    val photo_url: String? = null,
     val status: String,
     val created_by_user_id: Int? = null,
     val created_at: String,
@@ -15,9 +16,18 @@ data class CampaignResponse(
 )
 
 @Serializable
+data class CampaignCreateRequest(
+    val title: String,
+    val description: String,
+    val organization_name: String,
+    val photo_url: String? = null
+)
+
+@Serializable
 data class CampaignUpdateRequest(
     val title: String? = null,
     val description: String? = null,
     val organization_name: String? = null,
+    val photo_url: String? = null,
     val status: String? = null
 )

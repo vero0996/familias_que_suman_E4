@@ -1,5 +1,7 @@
 package mx.tec.familias.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +18,7 @@ import mx.tec.familias.data.remote.CampaignResponse
 import mx.tec.familias.data.remote.CampaignUpdateRequest
 import mx.tec.familias.data.remote.DonationUpdateRequest
 import mx.tec.familias.data.remote.EventUpdateRequest
+import mx.tec.familias.data.remote.ManagedActivityRegistrationResponse
 import mx.tec.familias.data.remote.ProjectUpdateRequest
 import mx.tec.familias.data.remote.SessionManager
 import mx.tec.familias.data.remote.WorkshopUpdateRequest
@@ -38,6 +41,10 @@ data class EditablePublication(
     val id: Int,
     val title: String,
     val description: String,
+    val photoUrl: String? = null,
+    val status: String = "",
+    val confirmedPeople: Int = 0,
+    val campaignId: Int? = null,
     val organizationName: String = "",
     val location: String = "",
     val startsAt: String = "",
@@ -55,6 +62,9 @@ data class AdminPublicationsUiState(
     val events: List<EditablePublication> = emptyList(),
     val workshops: List<EditablePublication> = emptyList(),
     val donations: List<EditablePublication> = emptyList(),
+    val activityRegistrations: List<ManagedActivityRegistrationResponse> = emptyList(),
+    val isLoadingRegistrations: Boolean = false,
+    val activityManagementError: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
@@ -81,6 +91,150 @@ class AdminPublicationsViewModel(
 
     private val _uiState = MutableStateFlow(AdminPublicationsUiState())
     val uiState: StateFlow<AdminPublicationsUiState> = _uiState.asStateFlow()
+
+    fun loadActivities() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf(String::isNotBlank)
+                    ?: throw IllegalStateException(
+                        "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    )
+                val activities = activityRepository.getManagedActivities(token)
+                    .map { it.toEditable() }
+                _uiState.value = _uiState.value.copy(
+                    activities = activities,
+                    isLoading = false,
+                    error = null
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("AdminPublications", "Error al cargar actividades", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.userMessage("No se pudieron cargar las actividades.")
+                )
+            }
+        }
+    }
+
+    fun loadActivityRegistrations(activityId: Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoadingRegistrations = true,
+                activityManagementError = null
+            )
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf(String::isNotBlank)
+                    ?: throw IllegalStateException(
+                        "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    )
+                val registrations = activityRepository.getManagedRegistrations(
+                    token,
+                    activityId
+                )
+                _uiState.value = _uiState.value.copy(
+                    activityRegistrations = registrations,
+                    isLoadingRegistrations = false,
+                    activityManagementError = null
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(
+                    "AdminPublications",
+                    "Error al cargar participantes de actividad $activityId",
+                    e
+                )
+                _uiState.value = _uiState.value.copy(
+                    isLoadingRegistrations = false,
+                    activityManagementError =
+                        e.userMessage("No se pudieron cargar los participantes.")
+                )
+            }
+        }
+    }
+
+    fun cancelActivityRegistration(activityId: Int, registrationId: Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoadingRegistrations = true,
+                activityManagementError = null
+            )
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf(String::isNotBlank)
+                    ?: throw IllegalStateException(
+                        "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    )
+                val registrations = activityRepository.cancelRegistration(
+                    token,
+                    activityId,
+                    registrationId
+                )
+                _uiState.value = _uiState.value.copy(
+                    activityRegistrations = registrations,
+                    isLoadingRegistrations = false,
+                    activityManagementError = null
+                )
+                loadActivities()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(
+                    "AdminPublications",
+                    "Error al cancelar inscripción $registrationId",
+                    e
+                )
+                _uiState.value = _uiState.value.copy(
+                    isLoadingRegistrations = false,
+                    activityManagementError =
+                        e.userMessage("No se pudo cancelar la inscripción.")
+                )
+            }
+        }
+    }
+
+    fun cancelActivity(activityId: Int, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                val token = sessionManager.getToken()
+                    ?.takeIf(String::isNotBlank)
+                    ?: throw IllegalStateException(
+                        "Tu sesión ha expirado. Inicia sesión nuevamente."
+                    )
+                activityRepository.cancelActivity(token, activityId)
+                _uiState.value = _uiState.value.copy(
+                    activities = _uiState.value.activities.map { activity ->
+                        if (activity.id == activityId) {
+                            activity.copy(status = "cancelada")
+                        } else {
+                            activity
+                        }
+                    },
+                    isLoading = false,
+                    error = null
+                )
+                onSuccess()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(
+                    "AdminPublications",
+                    "Error al cancelar actividad $activityId",
+                    e
+                )
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.userMessage("No se pudo cancelar la actividad.")
+                )
+            }
+        }
+    }
 
     fun loadPublications() {
         viewModelScope.launch {
@@ -117,6 +271,8 @@ class AdminPublicationsViewModel(
 
     fun updatePublication(
         draft: EditablePublication,
+        photoContext: Context? = null,
+        photoUri: Uri? = null,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
@@ -142,6 +298,15 @@ class AdminPublicationsViewModel(
                     PublicationKind.ACTIVITY -> {
                         val capacity = draft.capacityPeople.toIntOrNull()
                             ?: throw IllegalArgumentException("La capacidad debe ser un número entero.")
+                        val photoUrl = if (photoUri != null) {
+                            val context = photoContext
+                                ?: throw IllegalArgumentException(
+                                    "No se pudo acceder al archivo de imagen."
+                                )
+                            campaignRepository.uploadPhoto(context, token, photoUri).url
+                        } else {
+                            draft.photoUrl
+                        }
                         publicationRepository.updateActivity(
                             token,
                             draft.id,
@@ -153,7 +318,8 @@ class AdminPublicationsViewModel(
                                 location = draft.location,
                                 capacity_people = capacity,
                                 registration_deadline =
-                                    draft.registrationDeadline.ifBlank { null }
+                                    draft.registrationDeadline.ifBlank { null },
+                                photo_url = photoUrl
                             )
                         ).toEditable()
                     }
@@ -256,7 +422,9 @@ class AdminPublicationsViewModel(
         id = id,
         title = title,
         description = description,
-        organizationName = organization_name
+        organizationName = organization_name,
+        photoUrl = photo_url,
+        status = status
     )
 
     private fun mx.tec.familias.data.remote.ActivityResponse.toEditable() =
@@ -265,6 +433,10 @@ class AdminPublicationsViewModel(
             id = id,
             title = title,
             description = description,
+            photoUrl = photo_url,
+            status = status,
+            confirmedPeople = confirmed_people,
+            campaignId = campaign_id,
             location = location,
             startsAt = starts_at,
             endsAt = ends_at.orEmpty(),

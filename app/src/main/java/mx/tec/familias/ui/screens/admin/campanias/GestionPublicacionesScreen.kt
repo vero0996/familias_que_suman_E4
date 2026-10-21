@@ -1,5 +1,6 @@
 package mx.tec.familias.ui.screens.admin.campanias
 
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mx.tec.familias.ui.components.AdminScreenHeader
+import mx.tec.familias.ui.components.PublicationPhotoPicker
 import mx.tec.familias.ui.theme.BrownPrimary
 import mx.tec.familias.ui.theme.Surface
 import mx.tec.familias.ui.theme.TealLight
@@ -187,7 +189,7 @@ fun EditarPublicacionScreen(
     isSaving: Boolean,
     error: String?,
     onBackClick: () -> Unit,
-    onSave: (EditablePublication) -> Unit
+    onSave: (EditablePublication, Uri?) -> Unit
 ) {
     if (publication == null) {
         Scaffold(
@@ -217,6 +219,7 @@ fun EditarPublicacionScreen(
     var capacity by remember(publication) { mutableStateOf(publication.capacityPeople) }
     var goalAmount by remember(publication) { mutableStateOf(publication.goalAmount) }
     var currentAmount by remember(publication) { mutableStateOf(publication.currentAmount) }
+    var photoUri by remember(publication) { mutableStateOf<Uri?>(null) }
     var validationError by remember(publication) { mutableStateOf<String?>(null) }
 
     Scaffold(
@@ -290,6 +293,17 @@ fun EditarPublicacionScreen(
             }
 
             if (publication.kind == PublicationKind.ACTIVITY) {
+                Text(
+                    "Foto de actividad",
+                    color = TextPrimary,
+                    fontWeight = FontWeight.SemiBold
+                )
+                PublicationPhotoPicker(
+                    photoUrl = publication.photoUrl,
+                    selectedPhotoUri = photoUri,
+                    isUploading = isSaving,
+                    onPhotoSelected = { photoUri = it }
+                )
                 DateTimeField(
                     value = endsAt,
                     label = "Fecha y hora de fin (opcional)",
@@ -363,7 +377,8 @@ fun EditarPublicacionScreen(
                                 capacityPeople = capacity.trim(),
                                 goalAmount = goalAmount.trim(),
                                 currentAmount = currentAmount.trim()
-                            )
+                            ),
+                            photoUri
                         )
                     }
                 },

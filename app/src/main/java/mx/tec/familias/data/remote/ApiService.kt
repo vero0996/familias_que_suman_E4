@@ -25,6 +25,17 @@ interface ApiService {
     @GET("campaigns")
     suspend fun getCampaigns(): List<CampaignResponse>
 
+    @GET("campaigns/mine")
+    suspend fun getManagedCampaigns(
+        @Header("Authorization") authorization: String
+    ): List<CampaignResponse>
+
+    @POST("campaigns")
+    suspend fun createCampaign(
+        @Header("Authorization") authorization: String,
+        @Body request: CampaignCreateRequest
+    ): CampaignResponse
+
     @PATCH("campaigns/{campaign_id}")
     suspend fun updateCampaign(
         @Header("Authorization") authorization: String,
@@ -45,6 +56,11 @@ interface ApiService {
     @GET("activities")
     suspend fun getActivities(): List<ActivityResponse>
 
+    @GET("activities/admin")
+    suspend fun getManagedActivities(
+        @Header("Authorization") authorization: String
+    ): List<ActivityResponse>
+
     @PATCH("activities/{activity_id}")
     suspend fun updateActivity(
         @Header("Authorization") authorization: String,
@@ -56,6 +72,25 @@ interface ApiService {
     suspend fun getActivity(
         @Path("activity_id") activityId: Int
     ): ActivityResponse
+
+    @GET("activities/admin/{activity_id}/registrations")
+    suspend fun getManagedActivityRegistrations(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int
+    ): List<ManagedActivityRegistrationResponse>
+
+    @retrofit2.http.PATCH("activities/admin/{activity_id}/registrations/{registration_id}/cancel")
+    suspend fun cancelManagedActivityRegistration(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int,
+        @Path("registration_id") registrationId: Int
+    ): List<ManagedActivityRegistrationResponse>
+
+    @DELETE("activities/{activity_id}")
+    suspend fun cancelActivity(
+        @Header("Authorization") authorization: String,
+        @Path("activity_id") activityId: Int
+    )
 
     @POST("registrations")
     suspend fun createRegistration(
@@ -153,6 +188,7 @@ interface ApiService {
     @retrofit2.http.Multipart
     @retrofit2.http.POST("api/fotos/")
     suspend fun uploadFoto(
+        @Header("Authorization") authorization: String,
         @retrofit2.http.Part file: okhttp3.MultipartBody.Part
     ): retrofit2.Response<mx.tec.familias.data.model.UploadResponse>
 

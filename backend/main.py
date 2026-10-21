@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from admin import router as admin_router
@@ -17,7 +18,7 @@ from surveys import router as surveys_router
 from projects import router as projects_router
 from events import router as events_router
 from workshops import router as workshops_router
-from photos import router as photos_router
+from photos import UPLOADS_DIR, router as photos_router
 from donations import router as donations_router
 from messages import router as messages_router
 
@@ -62,6 +63,11 @@ app.include_router(workshops_router)
 app.include_router(photos_router)
 app.include_router(donations_router)
 app.include_router(messages_router)
+app.mount(
+    "/uploads",
+    StaticFiles(directory=UPLOADS_DIR),
+    name="uploads",
+)
 
 
 @app.get("/")

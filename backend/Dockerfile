@@ -12,6 +12,7 @@ RUN groupadd --system app \
 WORKDIR /app
 
 RUN chown app:app /app
+RUN mkdir /app/uploads && chown app:app /app/uploads
 
 COPY --chown=app:app pyproject.toml uv.lock ./
 
@@ -23,4 +24,4 @@ COPY --chown=app:app . .
 
 EXPOSE 8000
 
-CMD ["uv", "run", "--no-sync", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && exec uv run --no-sync uvicorn main:app --host 0.0.0.0 --port 8000"]

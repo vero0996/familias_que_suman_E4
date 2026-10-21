@@ -105,10 +105,9 @@ def get_available_activity(
         else None
     )
 
-    if (
-        activity.status != "publicada"
-        or campaign is None
-        or campaign.status != "publicada"
+    if activity.status != "publicada" or (
+        activity.campaign_id is not None
+        and (campaign is None or campaign.status != "publicada")
     ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

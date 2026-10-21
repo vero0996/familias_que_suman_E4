@@ -11,7 +11,7 @@ object ApiClient {
 
     // CAMBIAR URL cada que se levante el backend
     private const val BASE_URL =
-        "https://merger-districts-skip-story.trycloudflare.com/"
+        "https://shopper-digest-web-oldest.trycloudflare.com/"
 
     private val json = Json {
         ignoreUnknownKeys = true

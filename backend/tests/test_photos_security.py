@@ -1,11 +1,12 @@
+from pathlib import Path
 from types import SimpleNamespace
-import os
 
 import pytest
 from fastapi.testclient import TestClient
 
 from dependencies import get_current_user
 from main import app
+from photos import UPLOADS_DIR
 
 
 @pytest.fixture
@@ -29,11 +30,8 @@ def authenticate_as(role: str):
     )
 
 
-def delete_test_file(file_name: str):
-    file_location = f"uploads/{file_name}"
-
-    if os.path.exists(file_location):
-        os.remove(file_location)
+def delete_uploaded_file(url: str):
+    (UPLOADS_DIR / Path(url).name).unlink(missing_ok=True)
 
 
 def test_photo_upload_requires_authentication(photo_sandbox):
@@ -56,9 +54,7 @@ def test_photo_upload_requires_authentication(photo_sandbox):
 def test_family_can_upload_jpg(photo_sandbox):
     client = photo_sandbox
     authenticate_as("familia")
-
     file_name = "familia.jpg"
-    delete_test_file(file_name)
 
     response = client.post(
         "/api/fotos/",
@@ -73,18 +69,17 @@ def test_family_can_upload_jpg(photo_sandbox):
 
     assert response.status_code == 201
     assert response.json()["mensaje"] == "Foto subida"
-    assert response.json()["url"] == "/uploads/familia.jpg"
-    assert os.path.exists("uploads/familia.jpg")
-
-    delete_test_file(file_name)
+    url = response.json()["url"]
+    assert url.startswith("/uploads/")
+    assert (UPLOADS_DIR / Path(url).name).exists()
+    assert client.get(url).content == b"imagen-de-prueba"
+    delete_uploaded_file(url)
 
 
 def test_organization_can_upload_png(photo_sandbox):
     client = photo_sandbox
     authenticate_as("organizacion")
-
     file_name = "organizacion.png"
-    delete_test_file(file_name)
 
     response = client.post(
         "/api/fotos/",
@@ -98,17 +93,16 @@ def test_organization_can_upload_png(photo_sandbox):
     )
 
     assert response.status_code == 201
-    assert os.path.exists("uploads/organizacion.png")
-
-    delete_test_file(file_name)
+    url = response.json()["url"]
+    assert url.startswith("/uploads/")
+    assert (UPLOADS_DIR / Path(url).name).exists()
+    delete_uploaded_file(url)
 
 
 def test_admin_can_upload_webp(photo_sandbox):
     client = photo_sandbox
     authenticate_as("admin")
-
     file_name = "admin.webp"
-    delete_test_file(file_name)
 
     response = client.post(
         "/api/fotos/",
@@ -122,9 +116,10 @@ def test_admin_can_upload_webp(photo_sandbox):
     )
 
     assert response.status_code == 201
-    assert os.path.exists("uploads/admin.webp")
-
-    delete_test_file(file_name)
+    url = response.json()["url"]
+    assert url.startswith("/uploads/")
+    assert (UPLOADS_DIR / Path(url).name).exists()
+    delete_uploaded_file(url)
 
 
 def test_text_file_is_rejected(photo_sandbox):
@@ -143,7 +138,7 @@ def test_text_file_is_rejected(photo_sandbox):
     )
 
     assert response.status_code == 422
-    assert not os.path.exists("uploads/archivo.txt")
+    assert not (UPLOADS_DIR / "archivo.txt").exists()
 
 
 def test_pdf_file_is_rejected(photo_sandbox):
@@ -162,4 +157,4 @@ def test_pdf_file_is_rejected(photo_sandbox):
     )
 
     assert response.status_code == 422
-    assert not os.path.exists("uploads/archivo.pdf")
+    assert not (UPLOADS_DIR / "archivo.pdf").exists()

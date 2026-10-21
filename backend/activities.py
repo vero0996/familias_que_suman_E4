@@ -1,18 +1,25 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from datetime import datetime
+from sqlalchemy.orm import Session, selectinload
+from datetime import datetime, timezone
 from database import get_db
 from dependencies import require_role
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from models import (
     Activity,
     Campaign,
+    Family,
     FamilyMember,
     Registration,
+    RegistrationEvent,
     User,
 )
-from schemas import ActivityCreate, ActivityResponse, ActivityUpdate
+from schemas import (
+    ActivityCreate,
+    ActivityResponse,
+    ActivityUpdate,
+    ManagedActivityRegistrationResponse,
+)
 
 router = APIRouter(prefix="/activities", tags=["Actividades"])
 
@@ -38,6 +45,39 @@ def ensure_campaign_access(campaign: Campaign, current_user: User) -> None:
         )
 
 
+def get_managed_activity_or_404(
+    db: Session,
+    activity_id: int,
+    current_user: User,
+) -> Activity:
+    activity = db.get(Activity, activity_id)
+    if activity is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Actividad no encontrada",
+        )
+
+    if current_user.role == "admin":
+        return activity
+
+    campaign = (
+        db.get(Campaign, activity.campaign_id)
+        if activity.campaign_id is not None
+        else None
+    )
+    owns_activity = activity.created_by_user_id == current_user.id
+    owns_campaign = (
+        campaign is not None
+        and campaign.created_by_user_id == current_user.id
+    )
+    if not (owns_activity and (campaign is None or owns_campaign)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para gestionar esta actividad",
+        )
+    return activity
+
+
 def ensure_compatible_datetimes(*values: datetime | None) -> None:
     """Rechaza mezclas de fechas con y sin zona horaria."""
     awareness = {
@@ -54,6 +94,12 @@ def ensure_compatible_datetimes(*values: datetime | None) -> None:
                 "con o sin zona horaria"
             ),
         )
+
+
+def ensure_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def build_activity_response(
@@ -91,19 +137,48 @@ def build_activity_response(
 
 @router.get("", response_model=list[ActivityResponse])
 def list_activities(db: Session = Depends(get_db)):
-    """Lista actividades publicadas con su ocupación real."""
+    """Lista actividades públicas independientes o de campañas publicadas."""
     statement = (
         select(Activity)
-        .join(Campaign, Activity.campaign_id == Campaign.id)
+        .outerjoin(Campaign, Activity.campaign_id == Campaign.id)
         .where(
             Activity.status == "publicada",
-            Campaign.status == "publicada",
+            or_(
+                Activity.campaign_id.is_(None),
+                Campaign.status == "publicada",
+            ),
         )
         .order_by(Activity.starts_at)
     )
 
     activities = db.scalars(statement).all()
 
+    return [
+        build_activity_response(db, activity)
+        for activity in activities
+    ]
+
+
+@router.get("/admin", response_model=list[ActivityResponse])
+def list_managed_activities(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("organizacion", "admin")),
+):
+    """Lista todas las actividades que la organización puede gestionar."""
+    statement = (
+        select(Activity)
+        .outerjoin(Campaign, Activity.campaign_id == Campaign.id)
+        .order_by(Activity.starts_at)
+    )
+    if current_user.role != "admin":
+        statement = statement.where(
+            or_(
+                Activity.created_by_user_id == current_user.id,
+                Campaign.created_by_user_id == current_user.id,
+            )
+        )
+
+    activities = db.scalars(statement).all()
     return [
         build_activity_response(db, activity)
         for activity in activities
@@ -122,15 +197,180 @@ def get_activity(activity_id: int, db: Session = Depends(get_db)):
             detail="Actividad no encontrada",
         )
 
-    campaign = db.get(Campaign, activity.campaign_id) if activity.campaign_id else None
+    campaign = (
+        db.get(Campaign, activity.campaign_id)
+        if activity.campaign_id is not None
+        else None
+    )
 
-    if campaign is None or campaign.status != "publicada":
+    if activity.campaign_id is not None and (
+        campaign is None or campaign.status != "publicada"
+    ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Actividad no encontrada",
         )
 
     return build_activity_response(db, activity)
+
+
+@router.get(
+    "/admin/{activity_id}/registrations",
+    response_model=list[ManagedActivityRegistrationResponse],
+)
+def list_activity_registrations(
+    activity_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("organizacion", "admin")),
+):
+    activity = get_managed_activity_or_404(db, activity_id, current_user)
+    rows = db.execute(
+        select(Registration, Family.name, User.full_name, User.email, User.phone)
+        .join(Family, Registration.family_id == Family.id)
+        .join(User, Family.owner_user_id == User.id)
+        .options(selectinload(Registration.participants))
+        .where(Registration.activity_id == activity.id)
+        .order_by(Registration.created_at.desc())
+    ).all()
+
+    return [
+        ManagedActivityRegistrationResponse(
+            id=registration.id,
+            activity_id=registration.activity_id,
+            family_id=registration.family_id,
+            family_name=family_name,
+            contact_name=contact_name,
+            email=email,
+            phone=phone,
+            status=registration.status,
+            participant_names=[
+                participant.full_name
+                for participant in registration.participants
+            ],
+            people_count=1 + len(registration.participants),
+            created_at=registration.created_at,
+        )
+        for registration, family_name, contact_name, email, phone in rows
+    ]
+
+
+@router.patch(
+    "/admin/{activity_id}/registrations/{registration_id}/cancel",
+    response_model=list[ManagedActivityRegistrationResponse],
+)
+def cancel_activity_registration(
+    activity_id: int,
+    registration_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("organizacion", "admin")),
+):
+    activity = get_managed_activity_or_404(db, activity_id, current_user)
+    registration = db.scalar(
+        select(Registration)
+        .where(
+            Registration.id == registration_id,
+            Registration.activity_id == activity.id,
+        )
+        .with_for_update()
+    )
+    if registration is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inscripción no encontrada para esta actividad",
+        )
+    if registration.status == "cancelada":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="La inscripción ya está cancelada",
+        )
+
+    previous_status = registration.status
+    registration.status = "cancelada"
+    registration.canceled_at = datetime.now(timezone.utc)
+    registration.updated_at = registration.canceled_at
+    db.add(
+        RegistrationEvent(
+            registration_id=registration.id,
+            event_type="inscripcion_cancelada",
+            from_status=previous_status,
+            to_status="cancelada",
+            actor_user_id=current_user.id,
+            details="Cancelada por la organización",
+        )
+    )
+
+    if (
+        previous_status == "confirmada"
+        and ensure_utc(activity.starts_at) > datetime.now(timezone.utc)
+    ):
+        current_confirmed = db.scalars(
+            select(Registration)
+            .where(
+                Registration.activity_id == activity.id,
+                Registration.status == "confirmada",
+                Registration.id != registration.id,
+            )
+            .options(selectinload(Registration.participants))
+        ).all()
+        available_people = max(
+            0,
+            activity.capacity_people
+            - sum(1 + len(item.participants) for item in current_confirmed),
+        )
+        waiting = db.scalars(
+            select(Registration)
+            .where(
+                Registration.activity_id == activity.id,
+                Registration.status == "lista_espera",
+            )
+            .order_by(Registration.created_at, Registration.id)
+            .with_for_update()
+            .options(selectinload(Registration.participants))
+        ).all()
+        for waiting_registration in waiting:
+            places = 1 + len(waiting_registration.participants)
+            if places > available_people:
+                continue
+            waiting_registration.status = "confirmada"
+            waiting_registration.updated_at = registration.updated_at
+            db.add(
+                RegistrationEvent(
+                    registration_id=waiting_registration.id,
+                    event_type="lista_espera_promovida",
+                    from_status="lista_espera",
+                    to_status="confirmada",
+                    actor_user_id=current_user.id,
+                    details="Cupo liberado por una cancelación",
+                )
+            )
+            available_people -= places
+
+    db.commit()
+    return list_activity_registrations(activity_id, db, current_user)
+
+
+@router.delete(
+    "/{activity_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def cancel_activity(
+    activity_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("organizacion", "admin")),
+):
+    activity = get_managed_activity_or_404(db, activity_id, current_user)
+    if activity.status == "cancelada":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="La actividad ya está cancelada",
+        )
+    if activity.status == "finalizada":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No se puede cancelar una actividad finalizada",
+        )
+    activity.status = "cancelada"
+    db.commit()
 
 
 @router.post(
@@ -143,20 +383,23 @@ def create_activity(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("organizacion", "admin")),
 ):
-    """Crea una actividad en una campaña que el usuario puede gestionar."""
-    campaign = get_campaign_or_404(db, data.campaign_id)
-    ensure_campaign_access(campaign, current_user)
+    """Crea una actividad independiente o vinculada a una campaña propia."""
+    campaign = None
+    if data.campaign_id is not None:
+        campaign = get_campaign_or_404(db, data.campaign_id)
+        ensure_campaign_access(campaign, current_user)
 
-    if campaign.status != "publicada":
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Solo se pueden agregar actividades a campañas publicadas",
-        )
+        if campaign.status != "publicada":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Solo se pueden agregar actividades a campañas publicadas",
+            )
 
     activity = Activity(
-        campaign_id=campaign.id,
+        campaign_id=campaign.id if campaign is not None else None,
         title=data.title,
         description=data.description,
+        photo_url=data.photo_url,
         starts_at=data.starts_at,
         ends_at=data.ends_at,
         location=data.location,
@@ -203,7 +446,9 @@ def update_activity(
         and campaign.created_by_user_id == current_user.id
     )
 
-    if not is_admin and not (owns_activity and owns_campaign):
+    if not is_admin and not (
+        owns_activity and (campaign is None or owns_campaign)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para modificar esta actividad",
@@ -269,7 +514,7 @@ def update_activity(
             )
 
         if new_status == "publicada":
-            if campaign is None or campaign.status != "publicada":
+            if campaign is not None and campaign.status != "publicada":
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="La campaña debe estar publicada para publicar la actividad",

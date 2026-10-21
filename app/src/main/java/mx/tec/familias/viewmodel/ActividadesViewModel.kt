@@ -1,7 +1,5 @@
 package mx.tec.familias.viewmodel
 
-import android.content.Context
-import android.net.Uri
 import kotlinx.coroutines.flow.first
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -10,8 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import mx.tec.familias.data.model.Activity
 import mx.tec.familias.data.model.EstadoActividades
@@ -23,11 +19,6 @@ import mx.tec.familias.data.repository.ActivityRemoteRepository
 import mx.tec.familias.data.repository.CampaignRepository
 import mx.tec.familias.data.repository.RegistrationRemoteRepository
 import mx.tec.familias.data.repository.SurveyRemoteRepository
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import java.io.FileOutputStream
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -552,29 +543,6 @@ class ActividadesViewModel(
         }
     }
 
-    fun subirFotoCampania(context: Context, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                // 1. Convertir el Uri de la galería a un archivo físico
-                val inputStream = context.contentResolver.openInputStream(uri)
-                val file = File(context.cacheDir, "foto_temp.jpg")
-                val outputStream = FileOutputStream(file)
-                inputStream?.copyTo(outputStream)
-
-                // 2. Empaquetar el archivo
-                val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-                val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
-
-                // 3. Enviar al servidor (Aquí usarán el FamiliasApiService que creaste)
-                // val apiService = FamiliasApiService.create() // Dependiendo de cómo configuren Retrofit
-                // val response = apiService.uploadFoto(body)
-                // if(response.isSuccessful) { println("Foto subida: ${response.body()?.url}") }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
 }
 
 class ActividadesViewModelFactory(

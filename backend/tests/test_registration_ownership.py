@@ -217,6 +217,25 @@ def test_family_can_register_own_active_member(registration_sandbox):
     assert response.status_code == 201, response.text
 
 
+def test_family_can_register_for_standalone_activity(registration_sandbox):
+    client, engine, _, _, activity_id, own_member_id, *_ = registration_sandbox
+
+    with Session(engine) as db:
+        activity = db.get(Activity, activity_id)
+        activity.campaign_id = None
+        db.commit()
+
+    response = client.post(
+        "/registrations",
+        json={
+            "activity_id": activity_id,
+            "participant_ids": [own_member_id],
+        },
+    )
+
+    assert response.status_code == 201, response.text
+
+
 def test_family_cannot_register_foreign_member(registration_sandbox):
     client, _, _, _, activity_id, _, foreign_member_id, *_ = registration_sandbox
 
