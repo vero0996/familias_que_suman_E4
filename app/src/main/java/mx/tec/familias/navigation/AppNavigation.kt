@@ -45,6 +45,7 @@ import mx.tec.familias.viewmodel.AdminPublicationsViewModel
 import mx.tec.familias.viewmodel.CampaignViewModel
 import mx.tec.familias.viewmodel.FamilyViewModel
 import mx.tec.familias.viewmodel.PublicationKind
+import mx.tec.familias.ui.screens.perfil.AvisoPrivacidadScreen
 
 @Composable
 fun AppNavigation() {
@@ -600,6 +601,10 @@ fun AppNavigation() {
                 onMensajesClick = { navController.navigate(Routes.Mensajes.route) },
                 onAgregarIntegrante = { navController.navigate(Routes.Integrantes.route) },
 
+                onAvisoPrivacidadClick = {
+                    navController.navigate(Routes.AvisoPrivacidad.route)
+                },
+
                 onCambiarRolClick = {
                     familyViewModel.usuario.value = null
 
@@ -615,6 +620,12 @@ fun AppNavigation() {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Routes.AvisoPrivacidad.route) {
+            AvisoPrivacidadScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 

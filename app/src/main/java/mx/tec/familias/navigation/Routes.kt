@@ -23,6 +23,8 @@ sealed class Routes(val route: String) {
 
     data object Perfil : Routes("perfil")
 
+    data object AvisoPrivacidad : Routes("avisoPrivacidad")
+
     data object ConfirmacionCampania : Routes("confirmacionCampania")
 
 
@@ -42,9 +44,11 @@ sealed class Routes(val route: String) {
     data object GestionMensajesCampania : Routes("gestionMensajesCampania")
 
     data object CrearCampania : Routes("crearCampania")
+
     data object EditarCampania : Routes("editarCampania") {
         fun createRoute(campaignId: Int) = "editarCampania/$campaignId"
     }
+
     data object EditarPublicacion : Routes("editarPublicacion") {
         fun createRoute(kind: String, id: Int) = "editarPublicacion/$kind/$id"
     }
@@ -52,16 +56,18 @@ sealed class Routes(val route: String) {
     data object Mensajes : Routes("mensajes")
 
     data object ChatMessages : Routes("chatMessages")
+
     data object DetalleActividadAdmin : Routes("detalleActividadAdmin") {
         fun createRoute(activityId: Int) = "detalleActividadAdmin/$activityId"
     }
+
     data object GestionarParticipantesAdmin : Routes("gestionarParticipantesAdmin") {
         fun createRoute(activityId: Int) = "gestionarParticipantesAdmin/$activityId"
     }
 
     data object Publico : Routes("publico")
+
     data object Login : Routes("login")
 
     data object ForgotPassword : Routes("forgotPassword")
-
 }

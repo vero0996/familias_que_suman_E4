@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mx.tec.familias.ui.components.AdaptiveContainer
 import mx.tec.familias.ui.components.BottomNavigationBar
 import mx.tec.familias.ui.components.FamilyDestination
 import mx.tec.familias.ui.theme.*
@@ -34,6 +33,7 @@ fun PerfilScreen(
     onMensajesClick: () -> Unit = {},
     onAgregarIntegrante: () -> Unit,
     onCambiarRolClick: () -> Unit,
+    onAvisoPrivacidadClick: () -> Unit,
     onCancelarInscripcionClick: () -> Unit = {}
 ) {
     var mostrarDialogoCancelacion by remember { mutableStateOf(false) }
@@ -50,16 +50,9 @@ fun PerfilScreen(
                     .statusBarsPadding()
                     .padding(start = 18.dp, end = 18.dp, top = 10.dp),
                 shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Surface
-                ),
-                border = BorderStroke(
-                    1.dp,
-                    Color.White.copy(alpha = 0.90f)
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 3.dp
-                )
+                colors = CardDefaults.cardColors(containerColor = Surface),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.90f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
                 TopAppBar(
                     title = {
@@ -76,6 +69,7 @@ fun PerfilScreen(
                 )
             }
         },
+
         bottomBar = {
             BottomNavigationBar(
                 currentDestination = FamilyDestination.PERFIL,
@@ -93,160 +87,169 @@ fun PerfilScreen(
         }
     ) { paddingValues ->
 
-        //AdaptiveContainer {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 18.dp)
-            ) {
-                Spacer(modifier = Modifier.height(18.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+        ) {
+            Spacer(modifier = Modifier.height(18.dp))
 
-                Text(
-                    "Familia",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+            Text(
+                "Familia",
+                color = TealPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+            )
+
+            ConfigCard {
+                ConfigListItem(
+                    icon = Icons.Default.FamilyRestroom,
+                    text = "Gestionar integrantes",
+                    onClick = onAgregarIntegrante
                 )
-
-                ConfigCard {
-                    ConfigListItem(
-                        icon = Icons.Default.FamilyRestroom,
-                        text = "Gestionar integrantes",
-                        onClick = onAgregarIntegrante
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    "Cuenta",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
-                )
-
-                ConfigCard {
-                    Column {
-                        ConfigListItem(
-                            icon = Icons.Default.Person,
-                            text = "Editar perfil",
-                            onClick = { mostrarProximamente = true }
-                        )
-
-                        Divider(
-                            color = Divider.copy(alpha = 0.60f),
-                            modifier = Modifier.padding(horizontal = 18.dp)
-                        )
-
-                        ConfigListItem(
-                            icon = Icons.Default.Lock,
-                            text = "Seguridad",
-                            onClick = { mostrarProximamente = true }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    "Ayuda",
-                    color = TealPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
-                )
-
-                ConfigCard {
-                    Column {
-                        ConfigListItem(
-                            icon = Icons.Default.HelpOutline,
-                            text = "Centro de ayuda",
-                            onClick = { mostrarProximamente = true }
-                        )
-
-                        Divider(
-                            color = Divider.copy(alpha = 0.60f),
-                            modifier = Modifier.padding(horizontal = 18.dp)
-                        )
-
-                        ConfigListItem(
-                            icon = Icons.Default.Info,
-                            text = "Acerca de Familias que Suman",
-                            onClick = { mostrarAcercaDe = true }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                OutlinedButton(
-                    onClick = onCambiarRolClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Error
-                    ),
-                    border = BorderStroke(
-                        1.dp,
-                        Error.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.ExitToApp,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Text(
-                        "Cerrar sesión",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                OutlinedButton(
-                    onClick = {
-                        mostrarDialogoCancelacion = true
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.Red
-                    ),
-                    border = BorderStroke(
-                        1.dp,
-                        Color.Red.copy(alpha = 0.65f)
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = Color.Red
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        "Eliminar cuenta",
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                "Cuenta",
+                color = TealPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+            )
+
+            ConfigCard {
+                Column {
+                    ConfigListItem(
+                        icon = Icons.Default.Person,
+                        text = "Editar perfil",
+                        onClick = { mostrarProximamente = true }
+                    )
+
+                    Divider(
+                        color = Divider.copy(alpha = 0.60f),
+                        modifier = Modifier.padding(horizontal = 18.dp)
+                    )
+
+                    ConfigListItem(
+                        icon = Icons.Default.Lock,
+                        text = "Seguridad",
+                        onClick = { mostrarProximamente = true }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                "Ayuda",
+                color = TealPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(start = 6.dp, bottom = 8.dp)
+            )
+
+            ConfigCard {
+                Column {
+                    ConfigListItem(
+                        icon = Icons.Default.HelpOutline,
+                        text = "Centro de ayuda",
+                        onClick = { mostrarProximamente = true }
+                    )
+
+                    Divider(
+                        color = Divider.copy(alpha = 0.60f),
+                        modifier = Modifier.padding(horizontal = 18.dp)
+                    )
+
+                    ConfigListItem(
+                        icon = Icons.Default.PrivacyTip,
+                        text = "Aviso de privacidad",
+                        onClick = onAvisoPrivacidadClick
+                    )
+
+                    Divider(
+                        color = Divider.copy(alpha = 0.60f),
+                        modifier = Modifier.padding(horizontal = 18.dp)
+                    )
+
+                    ConfigListItem(
+                        icon = Icons.Default.Info,
+                        text = "Acerca de Familias que Suman",
+                        onClick = { mostrarAcercaDe = true }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            OutlinedButton(
+                onClick = onCambiarRolClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Error
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Error.copy(alpha = 0.5f)
+                )
+            ) {
+                Icon(
+                    Icons.Default.ExitToApp,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    "Cerrar sesión",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            OutlinedButton(
+                onClick = {
+                    mostrarDialogoCancelacion = true
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.Red
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color.Red.copy(alpha = 0.65f)
+                )
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = Color.Red
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    "Eliminar cuenta",
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         if (mostrarAcercaDe) {
@@ -367,7 +370,7 @@ fun PerfilScreen(
                 shape = RoundedCornerShape(28.dp)
             )
         }
-   // }
+    }
 
     if (estaCancelando) {
         LaunchedEffect(Unit) {
