@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: Familias
+    folder: Familias que Suman
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
