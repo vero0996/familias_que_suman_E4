@@ -1,4 +1,5 @@
 import os
+from monitoring import MetricsMiddleware, metrics_lifespan
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +27,7 @@ from password_recovery import router as password_recovery_router
 
 
 app = FastAPI(
+    lifespan=metrics_lifespan,
     title="Familias que Suman API",
     version="0.2.0",
     description="Backend de Familias que Suman+",
@@ -112,3 +114,5 @@ async def add_security_headers(request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
+
+app.add_middleware(MetricsMiddleware)
