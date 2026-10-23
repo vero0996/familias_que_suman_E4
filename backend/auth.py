@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 import jwt
 from pwdlib import PasswordHash
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from database import get_db
@@ -55,8 +55,9 @@ def register(
     payload: RegisterRequest,
     db: Session = Depends(get_db),
 ):
+    email_clean = payload.email.strip().lower()
     existing_user = db.scalar(
-        select(User).where(User.email == payload.email)
+        select(User).where(func.lower(User.email) == email_clean)
     )
 
     if existing_user:
@@ -67,7 +68,7 @@ def register(
 
     user = User(
         full_name=payload.full_name,
-        email=payload.email,
+        email=email_clean,
         phone=payload.phone,
         password_hash=password_hash.hash(payload.password),
         role="familia",
@@ -145,8 +146,9 @@ def login(
     payload: LoginRequest,
     db: Session = Depends(get_db),
 ):
+    email_clean = payload.email.strip().lower()
     user = db.scalar(
-        select(User).where(User.email == payload.email)
+        select(User).where(func.lower(User.email) == email_clean)
     )
 
     if (

@@ -19,7 +19,7 @@ class AuthRepository {
         return ApiClient.apiService.register(
             RegisterRequest(
                 full_name = name.trim(),
-                email = email.trim(),
+                email = email.trim().lowercase(),
                 phone = phone.trim(),
                 password = password,
                 family_name = name.trim()
@@ -33,7 +33,7 @@ class AuthRepository {
     ): TokenResponse {
         return ApiClient.apiService.login(
             LoginRequest(
-                email = email.trim(),
+                email = email.trim().lowercase(),
                 password = password
             )
         )

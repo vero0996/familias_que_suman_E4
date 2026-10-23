@@ -1,10 +1,11 @@
 package mx.tec.familias.ui.screens.admin.dashboard
 
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
+import mx.tec.familias.data.model.Activity
+import mx.tec.familias.ui.theme.FamiliasQueSumanTheme
 import mx.tec.familias.viewmodel.EditablePublication
 import mx.tec.familias.viewmodel.PublicationKind
-import mx.tec.familias.ui.theme.FamiliasQueSumanTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -20,8 +21,8 @@ class ActivityOccupancyUiTest {
             kind = PublicationKind.ACTIVITY,
             id = 2,
             title = "Actividad secundaria real",
-            organizationName = "Organización",
             description = "Prueba",
+            organizationName = "Organización",
             startsAt = "21/10/2026 10:00",
             location = "Monterrey",
             capacityPeople = "6",
