@@ -193,7 +193,8 @@ class CoreWorkflowUiTest {
                     onExplorarClick = {},
                     onActividadesClick = {},
                     onAgregarIntegrante = { openFamilyMembers = true },
-                    onCambiarRolClick = { logout = true }
+                    onCambiarRolClick = { logout = true },
+                    onAvisoPrivacidadClick = {}
                 )
             }
         }
